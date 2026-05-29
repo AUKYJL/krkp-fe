@@ -36,7 +36,7 @@ AI agents MUST:
 4. Validate changes against defined constraints
 5. Use project skills when relevant:
    - `tailwind-patterns` MUST be used whenever creating, editing, or refactoring styles, layouts, responsive UI, shadcn/ui components, or Tailwind classNames.
-   - `react-best-practices` SHOULD be used when creating, reviewing, or optimizing React components.
+   - `react-standarts` SHOULD be used when creating, reviewing, or optimizing React components.
    - `shadcn` MUST be used for all shadcn/ui component implementations.
 
 🚫 Implementation MUST NOT begin without alignment.
