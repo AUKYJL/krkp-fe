@@ -21,6 +21,7 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --radius-5xl: calc(var(--radius) + 26px);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -53,12 +54,36 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-tertiary: var(--bg-tertiary);
+  --color-bg-fourth: var(--bg-fourth);
+
   --color-background-menu: var(--dune-black);
   --color-select-menu: var(--pizazz);
 
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
   --color-text-contrast: var(--text-contrast);
+
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-primary-hover: var(--accent-primary-hover);
+  --color-accent-primary-soft: var(--accent-primary-soft);
+  --color-accent-primary-soft-strong: var(--accent-primary-soft-strong);
+  --color-background-card: var(--background-card);
+  --color-background-page: var(--background-page);
+  --color-background-sidebar: var(--background-sidebar);
+  --color-border-default: var(--border-default);
+  --color-dark-primary: var(--dark-primary);
+  --color-dark-primary-soft: var(--dark-primary-soft);
+  --color-inverse-divider: var(--inverse-divider);
+  --color-inverse-soft: var(--inverse-soft);
+  --color-status-error: var(--status-error);
+  --color-status-success: var(--status-success);
+  --color-status-warning: var(--status-warning);
+  --color-text-inverse: var(--text-inverse);
+  --color-text-inverse-muted: var(--text-inverse-muted);
+  --color-text-inverse-subtle: var(--text-inverse-subtle);
 
   --color-rullete-background: var(--dune);
 
@@ -120,6 +145,41 @@
   --bg-secondary: var(--orange);
   --bg-tertiary: var(--yellow);
   --bg-fourth: var(--brown);
+}
+
+.theme-taxiparks {
+  --accent-primary: #ff7a02;
+  --accent-primary-hover: #e86e00;
+  --accent-primary-soft: #ff7a0226;
+  --accent-primary-soft-strong: #ff7a0240;
+  --background-card: #ffffff;
+  --background-page: #f0f0f0;
+  --background-sidebar: #232323;
+  --border-default: #e5e5e5;
+  --dark-primary: #232323;
+  --dark-primary-soft: #2323231a;
+  --inverse-divider: #ffffff1f;
+  --inverse-soft: #ffffff1a;
+  --status-error: #b42318;
+  --status-success: #1f8f4d;
+  --status-warning: #b86b00;
+  --text-inverse: #ffffff;
+  --text-primary: #232323;
+  --text-inverse-muted: #ffffffcc;
+  --text-inverse-subtle: #ffffff99;
+
+  --font-weight-bold: 700;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  --radius-button: 10px;
+  --radius-card: 14px;
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
 }
 
 /* .dark {

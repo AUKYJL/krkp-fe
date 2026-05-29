@@ -13,8 +13,6 @@ import {
   TEXT_VARIANTS_VARIABLES,
 } from "../app-text";
 
-import { Image } from "@/features/image/image";
-
 function Dialog({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Root>) {
@@ -87,7 +85,7 @@ function DialogContent({
       >
         {topImage && (
           <div className="pointer-events-none absolute top-0 left-1/2 z-[-1] w-screen origin-bottom -translate-x-1/2 translate-y-[-100%] scale-50">
-            <Image
+            <img
               src={topImage}
               alt="squirrel"
               className={clsx(topImageClassName, "max-w-none")}
@@ -95,7 +93,7 @@ function DialogContent({
           </div>
         )}
 
-        <div className="grid gap-4 bg-(--bg-primary) px-4 py-5">
+        <div className="grid gap-4 bg-bg-primary px-4 py-5">
           {title && (
             <DialogHeader className="mx-5">
               <DialogTitle className="text-center">
@@ -130,7 +128,7 @@ function DialogContent({
                 .catch(() => {})
             }
           >
-            <XSvg className="text-[22px] text-(--bg-secondary)" />
+            <XSvg className="text-[22px] text-bg-secondary" />
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>
         )}

@@ -91,3 +91,42 @@ Each decision should include:
 - Update decisions if they're revisited/changed
 - Focus on "why" not "how" (implementation details go elsewhere)
 
+### ADR-004: Keep `src/routes` Thin; Pages Own UI (2026-05-29)
+
+**Context:**
+- Route files started to accumulate layout/UI concerns (sidebar shells, title mapping, etc.), making it harder to keep a consistent structure.
+- We want a stable convention so we don’t re-discuss where routing logic ends and page/UI logic begins.
+
+**Decision:**
+- `src/routes/*` contains only TanStack Router route definitions (`createRootRoute`, `createFileRoute`).
+- Each route component returns a page component from `src/pages/*` (e.g. `return <TaxiParkPage />;`) and does not build layouts/feature UI directly.
+- Page components in `src/pages/*` own the markup/layout for that page (and may use TanStack hooks like `useRouterState`, `useParams`, etc. if needed).
+- The app shell that must persist across navigation (sidebar + `<Outlet />`) lives in `src/pages/home/HomePage` and is mounted from `src/routes/__root.tsx`.
+
+**Alternatives Considered:**
+- Put layout shells into route files → Rejected: spreads UI across routing layer and breaks the “routes are thin” convention.
+- Keep sidebar only under `/taxiparks/*` → Rejected: requirement is for sidebar + outlet to persist for `/`, `/taxiparks`, `/drivers`, etc.
+
+**Consequences:**
+- ✅ `src/routes` stays predictable and easy to scan.
+- ✅ Page-level UI stays in `src/pages`, improving reuse and testing later.
+- ❌ Sometimes pages need to read router state/params (acceptable trade-off).
+
+### ADR-005: Feature Folder `ui/` Is Optional for Internal Splitting (2026-05-29)
+
+**Context:**
+- We often create `src/features/<feature>/index.ts` that re-exports a single component file (e.g. `titled-section-page.tsx`).
+- Creating `ui/` for every feature adds noise; but when a single component grows, we still want a clear place for its internal subcomponents.
+
+**Decision:**
+- A feature folder may contain only `index.ts` + a single `*.tsx` file when that’s sufficient (example: `src/features/titled-section-page/`).
+- Create `src/features/<feature>/ui/` only when the main `*.tsx` grows and needs to be split into multiple internal components that belong exclusively to that feature.
+
+**Alternatives Considered:**
+- Always create `ui/` → Rejected: creates empty/low-value structure until it’s actually needed.
+- Put subcomponents next to the main file → Rejected: feature root becomes cluttered over time.
+
+**Consequences:**
+- ✅ Feature folders stay minimal by default.
+- ✅ When needed, `ui/` provides an obvious place for internal subcomponents.
+- ❌ One-time refactor cost when splitting a large `*.tsx` into `ui/` parts.

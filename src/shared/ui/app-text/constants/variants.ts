@@ -5,6 +5,9 @@ export const TEXT_VARIANTS_VARIABLES = {
   title: "title",
   primary: "primary",
   contrast: "contrast",
+  main: "main",
+  inverse: "inverse",
+  inverseMuted: "inverseMuted",
 } as const;
 
 export const TEXT_VARIANTS = {
@@ -15,5 +18,10 @@ export const TEXT_VARIANTS = {
   [TEXT_VARIANTS_VARIABLES.primary]: clsx("text-text-primary uppercase"),
   [TEXT_VARIANTS_VARIABLES.contrast]: clsx(
     "text-text-contrast font-bold uppercase",
+  ),
+  [TEXT_VARIANTS_VARIABLES.main]: clsx("text-text-primary"),
+  [TEXT_VARIANTS_VARIABLES.inverse]: clsx("text-text-inverse"),
+  [TEXT_VARIANTS_VARIABLES.inverseMuted]: clsx(
+    "text-text-inverse-muted",
   ),
 };

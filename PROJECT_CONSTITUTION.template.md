@@ -39,6 +39,9 @@ AI agents MUST:
    - `react-standarts` SHOULD be used when creating, reviewing, or optimizing React components.
    - `shadcn` MUST be used for all shadcn/ui component implementations.
 
+Operational requirement:
+- If any Tailwind classes/styles/layout/responsive UI are touched, the agent MUST first open and follow `.agents/skills/tailwind-patterns/SKILL.md` and mention that the `tailwind-patterns` skill is being used in the working notes/response for that change.
+
 🚫 Implementation MUST NOT begin without alignment.
 
 ---

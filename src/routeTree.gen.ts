@@ -9,8 +9,50 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VehiclesRouteImport } from './routes/vehicles'
+import { Route as TaxiparksUiKitRouteImport } from './routes/taxiparks-ui-kit'
+import { Route as TaxiparksRouteImport } from './routes/taxiparks'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as FinanceRouteImport } from './routes/finance'
+import { Route as DriversRouteImport } from './routes/drivers'
 import { Route as IndexRouteImport } from './routes/index'
 
+const VehiclesRoute = VehiclesRouteImport.update({
+  id: '/vehicles',
+  path: '/vehicles',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TaxiparksUiKitRoute = TaxiparksUiKitRouteImport.update({
+  id: '/taxiparks-ui-kit',
+  path: '/taxiparks-ui-kit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TaxiparksRoute = TaxiparksRouteImport.update({
+  id: '/taxiparks',
+  path: '/taxiparks',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinanceRoute = FinanceRouteImport.update({
+  id: '/finance',
+  path: '/finance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DriversRoute = DriversRouteImport.update({
+  id: '/drivers',
+  path: '/drivers',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +61,130 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/drivers': typeof DriversRoute
+  '/finance': typeof FinanceRoute
+  '/reports': typeof ReportsRoute
+  '/settings': typeof SettingsRoute
+  '/taxiparks': typeof TaxiparksRoute
+  '/taxiparks-ui-kit': typeof TaxiparksUiKitRoute
+  '/vehicles': typeof VehiclesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/drivers': typeof DriversRoute
+  '/finance': typeof FinanceRoute
+  '/reports': typeof ReportsRoute
+  '/settings': typeof SettingsRoute
+  '/taxiparks': typeof TaxiparksRoute
+  '/taxiparks-ui-kit': typeof TaxiparksUiKitRoute
+  '/vehicles': typeof VehiclesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/drivers': typeof DriversRoute
+  '/finance': typeof FinanceRoute
+  '/reports': typeof ReportsRoute
+  '/settings': typeof SettingsRoute
+  '/taxiparks': typeof TaxiparksRoute
+  '/taxiparks-ui-kit': typeof TaxiparksUiKitRoute
+  '/vehicles': typeof VehiclesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/drivers'
+    | '/finance'
+    | '/reports'
+    | '/settings'
+    | '/taxiparks'
+    | '/taxiparks-ui-kit'
+    | '/vehicles'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/drivers'
+    | '/finance'
+    | '/reports'
+    | '/settings'
+    | '/taxiparks'
+    | '/taxiparks-ui-kit'
+    | '/vehicles'
+  id:
+    | '__root__'
+    | '/'
+    | '/drivers'
+    | '/finance'
+    | '/reports'
+    | '/settings'
+    | '/taxiparks'
+    | '/taxiparks-ui-kit'
+    | '/vehicles'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DriversRoute: typeof DriversRoute
+  FinanceRoute: typeof FinanceRoute
+  ReportsRoute: typeof ReportsRoute
+  SettingsRoute: typeof SettingsRoute
+  TaxiparksRoute: typeof TaxiparksRoute
+  TaxiparksUiKitRoute: typeof TaxiparksUiKitRoute
+  VehiclesRoute: typeof VehiclesRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/vehicles': {
+      id: '/vehicles'
+      path: '/vehicles'
+      fullPath: '/vehicles'
+      preLoaderRoute: typeof VehiclesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/taxiparks-ui-kit': {
+      id: '/taxiparks-ui-kit'
+      path: '/taxiparks-ui-kit'
+      fullPath: '/taxiparks-ui-kit'
+      preLoaderRoute: typeof TaxiparksUiKitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/taxiparks': {
+      id: '/taxiparks'
+      path: '/taxiparks'
+      fullPath: '/taxiparks'
+      preLoaderRoute: typeof TaxiparksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/finance': {
+      id: '/finance'
+      path: '/finance'
+      fullPath: '/finance'
+      preLoaderRoute: typeof FinanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/drivers': {
+      id: '/drivers'
+      path: '/drivers'
+      fullPath: '/drivers'
+      preLoaderRoute: typeof DriversRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +197,13 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DriversRoute: DriversRoute,
+  FinanceRoute: FinanceRoute,
+  ReportsRoute: ReportsRoute,
+  SettingsRoute: SettingsRoute,
+  TaxiparksRoute: TaxiparksRoute,
+  TaxiparksUiKitRoute: TaxiparksUiKitRoute,
+  VehiclesRoute: VehiclesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -13,7 +13,7 @@ import {
 } from "./constants";
 
 const buttonVariants = cva(
-  "inline-flex items-center cursor-pointer justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none  shrink-0 [&_svg]:shrink-0 outline-none  aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive select-none",
+  "inline-flex items-center cursor-pointer justify-center gap-2 whitespace-nowrap rounded-md text-[14px] font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none  shrink-0 [&_svg]:shrink-0 outline-none  aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive select-none",
   {
     variants: {
       variant: BUTTON_VARIANTS,
@@ -30,7 +30,6 @@ export function Button({
   className,
   variant,
   size,
-  onClick,
   asChild = false,
   ...props
 }: React.ComponentProps<"button"> &
@@ -38,21 +37,11 @@ export function Button({
     asChild?: boolean;
   }) {
   const Comp = asChild ? Slot : "button";
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    bridge
-      .send("VKWebAppTapticImpactOccurred", {
-        style: "light",
-      })
-      .catch(() => {});
-    if (onClick) {
-      onClick(e);
-    }
-  };
+
   return (
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
-      onClick={handleClick}
       {...props}
     />
   );

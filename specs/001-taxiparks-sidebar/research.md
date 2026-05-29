@@ -37,3 +37,16 @@
 ## Open Questions (non-blocking)
 
 - Exact token values (colors/spacing/typography) and exact nav item list are extracted from Pencil during implementation; the plan assumes Pencil inspection/export is available to the implementer.
+
+## Pencil Variables (confirmed)
+
+Variables are defined in the Pencil `.pen` file and use kebab-case names; in CSS they map 1:1 to custom properties with the same name prefixed by `--` (e.g. `color-accent-primary` → `--color-accent-primary`).
+
+- Colors: `color-*` (e.g. `color-background-sidebar`, `color-text-inverse`)
+- Typography: `font-size-*`, `font-weight-*`
+- Spacing: `spacing-*`
+- Radii: `radius-*`
+
+## Quick A11y Notes
+
+- Sidebar nav items are links with `focus-visible` ring for keyboard navigation; verify contrast in a design review.

@@ -38,7 +38,7 @@ const TabsTrigger = React.forwardRef<
       className={cn(
         "ring-offset-background inline-flex cursor-pointer items-center justify-center rounded-[999px] px-3 py-2.5 font-[etelkaMedium] text-sm font-medium whitespace-nowrap transition-all disabled:pointer-events-none disabled:opacity-50",
         "text-text-primary",
-        "data-[state=active]:text-text-contrast text-[13px] uppercase data-[state=active]:bg-(--bg-secondary)",
+        "data-[state=active]:text-text-contrast text-[13px] uppercase data-[state=active]:bg-bg-secondary",
         className,
       )}
       onClick={handleClick}

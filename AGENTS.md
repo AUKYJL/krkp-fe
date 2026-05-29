@@ -10,6 +10,14 @@ shell commands, and other important information, read the current plan:
 `specs/001-taxiparks-sidebar/plan.md`
 <!-- SPECKIT END -->
 
+## AI Skills (Must Follow)
+
+When making changes in the areas below, the agent MUST load and follow the corresponding skill file:
+
+- Tailwind / styles / layout / responsive UI / shadcn styling / Tailwind classNames → `tailwind-patterns` (`.agents/skills/tailwind-patterns/SKILL.md`)
+- React components / hooks / component refactors → `react-standarts` (`.agents/skills/react-standarts/SKILL.md`)
+- shadcn/ui component work → `shadcn` (`.agents/skills/shadcn/SKILL.md`)
+
 ## Project Memory System
 
 This project maintains institutional knowledge in `docs/project_notes/` for consistency across sessions.
