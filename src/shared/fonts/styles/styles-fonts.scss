@@ -1,0 +1,26 @@
+@font-face {
+  font-family: "etelkaText";
+  src:
+    url("../etelka-text.woff2") format("woff2"),
+    url("../etelka-text.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "etelkaText";
+  src:
+    url("../etelka-text-bold.woff2") format("woff2"),
+    url("../etelka-text-bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "etelkaMedium";
+  src:
+    url("../etelka-medium.woff2") format("woff2"),
+    url("../etelka-medium.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+}

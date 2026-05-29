@@ -1,0 +1,7 @@
+variables: {}
+include:
+  - https://devops.jago.agency/manifest/global/stages.gitlab-ci.yml
+  - https://devops.jago.agency/manifest/jobs/build/kaniko.gitlab-ci.yml
+  - https://devops.jago.agency/manifest/jobs/build/static.gitlab-ci.yml
+  - https://devops.jago.agency/manifest/jobs/deploy/argocd-staging.gitlab-ci.yml
+  - https://devops.jago.agency/manifest/workflow/review-on-branches.gitlab-ci.yml
