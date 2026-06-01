@@ -10,11 +10,11 @@ interface DonutPieChartTooltipProps {
   }>;
   percentDigits: number;
 }
-export function DonutPieChartTooltip({
+export const DonutPieChartTooltip = ({
   active,
   payload,
   percentDigits,
-}: DonutPieChartTooltipProps) {
+}: DonutPieChartTooltipProps) => {
   if (!active) return null;
 
   const item = payload?.[0]?.payload;
@@ -41,4 +41,4 @@ export function DonutPieChartTooltip({
       </div>
     </div>
   );
-}
+};

@@ -117,7 +117,7 @@ const columns: ColumnDef<TaxiParkRow>[] = [
   },
 ];
 
-export function TaxiparksUiKitPage() {
+export const TaxiparksUiKitPage = () => {
   return (
     <main className="bg-background-page flex h-full w-full flex-col gap-6 p-6">
       <AppText
@@ -268,4 +268,4 @@ export function TaxiparksUiKitPage() {
       </TitledBlock>
     </main>
   );
-}
+};

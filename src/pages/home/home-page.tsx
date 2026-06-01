@@ -1,6 +1,6 @@
 import { AppText, TEXT_SIZES_VARIABLES, TEXT_VARIANTS_VARIABLES } from "@/shared/ui/app-text";
 
-export function HomePage() {
+export const HomePage = () => {
   return (
     <main className="flex h-full w-full flex-col gap-4 bg-background-page p-6">
       <AppText
@@ -12,5 +12,4 @@ export function HomePage() {
       </AppText>
     </main>
   );
-}
-
+};

@@ -1,11 +1,8 @@
 import type { ReactNode } from "react";
 
-import {
-  AppText,
-  TEXT_SIZES_VARIABLES,
-  TEXT_VARIANTS_VARIABLES,
-} from "@/shared/ui/app-text";
+import { AppText } from "@/shared/ui/app-text";
 import { CardSurface } from "@/shared/ui/card-surface";
+import { cn } from "@/shared/utils";
 
 export interface ProgressCardProps {
   title?: ReactNode;
@@ -15,41 +12,34 @@ export interface ProgressCardProps {
   className?: string;
 }
 
-export function ProgressCard({
+export const ProgressCard = ({
   title,
   value,
   max = 100,
   secondaryText,
   className,
-}: ProgressCardProps) {
+}: ProgressCardProps) => {
   const safeMax = max > 0 ? max : 1;
-  const ratio = value / safeMax;
-  const percentage = Math.max(0, Math.min(100, ratio * 100));
+  const percentage = Math.max(0, Math.min(100, (value / safeMax) * 100));
 
   return (
-    <CardSurface className={className}>
-      <div className="flex items-center justify-between gap-2">
-        {title != null && (
-          <AppText
-            variant={TEXT_VARIANTS_VARIABLES.main}
-            size={TEXT_SIZES_VARIABLES.medium}
-            className="font-medium"
-          >
-            {title}
-          </AppText>
-        )}
-        {secondaryText != null && (
-          <AppText
-            variant={TEXT_VARIANTS_VARIABLES.main}
-            size={TEXT_SIZES_VARIABLES.xs}
-            className="text-accent-primary font-medium"
-          >
-            {secondaryText}
-          </AppText>
-        )}
-      </div>
+    <CardSurface className={cn("flex flex-col gap-2", className)}>
+      {(title != null || secondaryText != null) && (
+        <div className="flex items-center justify-between gap-3">
+          {title != null && (
+            <AppText className="text-text-primary text-sm font-bold">
+              {title}
+            </AppText>
+          )}
+          {secondaryText != null && (
+            <AppText className="text-accent-primary text-sm font-bold">
+              {secondaryText}
+            </AppText>
+          )}
+        </div>
+      )}
 
-      <div className="bg-dark-primary-soft h-2 w-full overflow-hidden rounded-full">
+      <div className="bg-border-default/60 h-2 w-full overflow-hidden rounded-full">
         <div
           className="bg-accent-primary h-full rounded-full transition-[width]"
           style={{ width: `${percentage}%` }}
@@ -57,4 +47,4 @@ export function ProgressCard({
       </div>
     </CardSurface>
   );
-}
+};

@@ -7,27 +7,29 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { ChevronUp } from "lucide-react";
-import * as React from "react";
+import { useState } from "react";
 
-import { DataTablePagination } from "@/features/data-table/ui/data-table-pagination";
 import { cn } from "@/shared/utils";
+
+import type { TYPE_PAGE_SIZE_OPTIONS } from "./consts/consts";
+import { DataTablePagination } from "@/features/data-table/ui/data-table-pagination";
 
 type DataTableProps<TData> = {
   className?: string;
   columns: ColumnDef<TData, unknown>[];
   data: TData[];
-  initialPageSize?: number;
+  initialPageSize?: TYPE_PAGE_SIZE_OPTIONS;
   onRowClick?: (row: TData) => void;
 };
 
-export function DataTable<TData>({
+export const DataTable: <TData>(props: DataTableProps<TData>) => JSX.Element = ({
   className,
   columns,
   data,
   initialPageSize = 25,
   onRowClick,
-}: DataTableProps<TData>) {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+}: DataTableProps<TData>) => {
+  const [sorting, setSorting] = useState<SortingState>([]);
 
   const table = useReactTable({
     data,
@@ -46,7 +48,7 @@ export function DataTable<TData>({
 
   return (
     <div className={cn("flex flex-col gap-4", className)}>
-      <div className="overflow-hidden rounded-[14px] border border-border-default bg-background-card">
+      <div className="border-border-default bg-background-card overflow-hidden rounded-[14px] border">
         <div className="overflow-x-auto">
           <table className="w-full table-fixed caption-bottom text-sm">
             <thead className="border-border-default border-b">
@@ -61,7 +63,7 @@ export function DataTable<TData>({
                         key={header.id}
                         colSpan={header.colSpan}
                         className={cn(
-                          "text-text-secondary h-11 px-4 text-left align-middle text-xs font-semibold uppercase tracking-wide",
+                          "text-text-secondary h-11 px-4 text-left align-middle text-xs font-semibold tracking-wide uppercase",
                           canSort && "select-none",
                         )}
                       >
@@ -70,11 +72,14 @@ export function DataTable<TData>({
                             type="button"
                             className={cn(
                               "inline-flex items-center gap-2",
-                              canSort && "cursor-pointer hover:text-text-primary",
+                              canSort &&
+                                "hover:text-text-primary cursor-pointer",
                               !canSort && "cursor-default",
                             )}
                             onClick={
-                              canSort ? header.column.getToggleSortingHandler() : undefined
+                              canSort
+                                ? header.column.getToggleSortingHandler()
+                                : undefined
                             }
                           >
                             {flexRender(
@@ -103,9 +108,11 @@ export function DataTable<TData>({
                   key={row.id}
                   className={cn(
                     "border-border-default h-[65px] border-b last:border-0",
-                    onRowClick && "cursor-pointer hover:bg-dark-primary-soft",
+                    onRowClick && "hover:bg-dark-primary-soft cursor-pointer",
                   )}
-                  onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+                  onClick={
+                    onRowClick ? () => onRowClick(row.original) : undefined
+                  }
                   tabIndex={onRowClick ? 0 : undefined}
                   onKeyDown={
                     onRowClick
@@ -124,7 +131,10 @@ export function DataTable<TData>({
                       className="text-text-primary h-[65px] px-4 py-0 align-middle"
                     >
                       <div className="min-w-0 truncate">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
                       </div>
                     </td>
                   ))}
@@ -175,4 +185,4 @@ export function DataTable<TData>({
       <DataTablePagination table={table} />
     </div>
   );
-}
+};

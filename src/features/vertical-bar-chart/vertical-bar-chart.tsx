@@ -1,4 +1,5 @@
-import * as React from "react";
+import type { ReactNode } from "react";
+import { useState } from "react";
 import {
   Bar,
   BarChart,
@@ -29,11 +30,11 @@ export interface VerticalBarChartProps {
   activeBarFill?: string;
   xTickFormatter?: (date: string) => string;
   yTickFormatter?: (value: number) => string;
-  tooltipDateFormatter?: (date: string) => React.ReactNode;
-  tooltipValueFormatter?: (value: number) => React.ReactNode;
+  tooltipDateFormatter?: (date: string) => ReactNode;
+  tooltipValueFormatter?: (value: number) => ReactNode;
 }
 
-export function VerticalBarChart({
+export const VerticalBarChart = ({
   data,
   valueLabel,
   className,
@@ -46,17 +47,12 @@ export function VerticalBarChart({
   yTickFormatter,
   tooltipDateFormatter,
   tooltipValueFormatter,
-}: VerticalBarChartProps) {
-  const [activeIndex, setActiveIndex] = React.useState<number | null>(null);
-
-  const safeData = React.useMemo(
-    () =>
-      data.map((item) => ({
-        date: item.date,
-        value: Number.isFinite(item.value) ? item.value : 0,
-      })),
-    [data],
-  );
+}: VerticalBarChartProps) => {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const safeData = data.map((item) => ({
+    date: item.date,
+    value: Number.isFinite(item.value) ? item.value : 0,
+  }));
 
   return (
     <div className={cn("w-full", className)}>
@@ -142,4 +138,4 @@ export function VerticalBarChart({
       </div>
     </div>
   );
-}
+};

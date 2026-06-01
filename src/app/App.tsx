@@ -1,7 +1,7 @@
 import { AppComposer } from "./providers/app-composer";
 
-function App() {
+const App = () => {
   return <AppComposer />;
-}
+};
 
 export default App;

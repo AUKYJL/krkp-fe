@@ -18,6 +18,12 @@ When making changes in the areas below, the agent MUST load and follow the corre
 - React components / hooks / component refactors → `react-standarts` (`.agents/skills/react-standarts/SKILL.md`)
 - shadcn/ui component work → `shadcn` (`.agents/skills/shadcn/SKILL.md`)
 
+## React Conventions (Must Follow)
+
+- Do not add memoization (`useMemo`, `useCallback`, `React.memo`) unless it is actually required (e.g. proven by profiling or a real performance issue).
+- Do not use `React.useState(...)` / `React.useEffect(...)`; import hooks directly (e.g. `import { useState } from "react"`).
+- Components must be declared as const arrow functions, e.g. `export const Name = () => {}` (avoid `function Name() {}`).
+
 ## Project Memory System
 
 This project maintains institutional knowledge in `docs/project_notes/` for consistency across sessions.

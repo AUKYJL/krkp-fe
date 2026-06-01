@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 interface VerticalBarChartTooltipProps {
   active?: boolean;
   payload?: Array<{
@@ -6,16 +8,16 @@ interface VerticalBarChartTooltipProps {
       value: number;
     };
   }>;
-  tooltipDateFormatter?: (date: string) => React.ReactNode;
-  tooltipValueFormatter?: (value: number) => React.ReactNode;
+  tooltipDateFormatter?: (date: string) => ReactNode;
+  tooltipValueFormatter?: (value: number) => ReactNode;
 }
 
-export function VerticalBarChartTooltip({
+export const VerticalBarChartTooltip = ({
   active,
   payload,
   tooltipDateFormatter,
   tooltipValueFormatter,
-}: VerticalBarChartTooltipProps) {
+}: VerticalBarChartTooltipProps) => {
   if (!active) return null;
 
   const item = payload?.[0]?.payload;
@@ -33,4 +35,4 @@ export function VerticalBarChartTooltip({
       </div>
     </div>
   );
-}
+};

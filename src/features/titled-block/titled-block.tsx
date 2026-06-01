@@ -19,7 +19,7 @@ export interface TitledBlockProps {
   contentClassName?: string;
 }
 
-export function TitledBlock({
+export const TitledBlock = ({
   title,
   subtitle,
   topRightSlot,
@@ -27,7 +27,7 @@ export function TitledBlock({
   className,
   headerClassName,
   contentClassName,
-}: TitledBlockProps) {
+}: TitledBlockProps) => {
   const hasHeader = title != null || subtitle != null || topRightSlot != null;
 
   return (
@@ -45,7 +45,7 @@ export function TitledBlock({
                 tag={TAG.h3}
                 variant={TEXT_VARIANTS_VARIABLES.main}
                 size={TEXT_SIZES_VARIABLES.medium}
-                className="text-text-primary font-bold break-words"
+                className="text-text-primary break-normal font-bold"
               >
                 {title}
               </AppText>
@@ -55,7 +55,7 @@ export function TitledBlock({
               <AppText
                 variant={TEXT_VARIANTS_VARIABLES.main}
                 size={TEXT_SIZES_VARIABLES.xs}
-                className="text-text-secondary mt-1 font-medium break-words"
+                className="text-text-secondary break-normal mt-1 font-medium"
               >
                 {subtitle}
               </AppText>
@@ -73,4 +73,4 @@ export function TitledBlock({
       )}
     </CardSurface>
   );
-}
+};

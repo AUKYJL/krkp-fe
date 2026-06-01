@@ -32,10 +32,25 @@ type AppTextProps = HTMLAttributes<HTMLDivElement> & {
     asChild?: boolean;
   };
 
+const TextWrapper = ({
+  children,
+  variant,
+  size,
+  className,
+  tag = TAG.p,
+}: AppTextProps) => {
+  const Tag = tag;
+
+  return (
+    <Tag className={cn(textVariant({ variant, size, className }))}>
+      {children}
+    </Tag>
+  );
+};
+
 export const AppText = ({
   children,
   className,
-
   variant,
   size,
   tag,
@@ -46,19 +61,3 @@ export const AppText = ({
     </TextWrapper>
   );
 };
-
-function TextWrapper({
-  children,
-  variant,
-  size,
-  className,
-  tag = TAG.p,
-}: AppTextProps) {
-  const Tag = tag;
-
-  return (
-    <Tag className={cn(textVariant({ variant, size, className }))}>
-      {children}
-    </Tag>
-  );
-}

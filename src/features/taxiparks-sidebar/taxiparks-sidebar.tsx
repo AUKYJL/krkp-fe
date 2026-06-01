@@ -28,12 +28,12 @@ function getActiveNavId(pathname: string) {
   return null;
 }
 
-export function TaxiparksSidebar() {
+export const TaxiparksSidebar = () => {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const activeId = getActiveNavId(pathname);
 
   return (
-    <aside className="bg-background-sidebar flex h-full w-[280px] shrink-0 flex-col px-4 py-6">
+    <aside className="bg-background-sidebar fixed inset-y-0 left-0 z-40 flex w-[280px] shrink-0 flex-col overflow-hidden px-4 py-6">
       <div className="flex min-h-0 flex-1 flex-col gap-5">
         <div className="flex items-center gap-3 px-2 pb-2">
           <div className="bg-accent-primary flex h-9 w-9 items-center justify-center rounded-[10px]">
@@ -82,4 +82,4 @@ export function TaxiparksSidebar() {
       </div>
     </aside>
   );
-}
+};

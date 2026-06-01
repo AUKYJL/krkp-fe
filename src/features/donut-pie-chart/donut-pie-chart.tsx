@@ -1,4 +1,4 @@
-import * as React from "react";
+import type { ReactNode } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
 import { cn } from "@/shared/utils";
@@ -14,8 +14,8 @@ export interface DonutPieChartItem {
 
 export interface DonutPieChartProps {
   data: DonutPieChartItem[];
-  centerLabel?: React.ReactNode;
-  centerSubLabel?: React.ReactNode;
+  centerLabel?: ReactNode;
+  centerSubLabel?: ReactNode;
   className?: string;
   chartClassName?: string;
   legendClassName?: string;
@@ -25,7 +25,7 @@ export interface DonutPieChartProps {
   percentDigits?: number;
 }
 
-export function DonutPieChart({
+export const DonutPieChart = ({
   data,
   centerLabel,
   centerSubLabel,
@@ -36,7 +36,7 @@ export function DonutPieChart({
   innerRadius = 62,
   outerRadius = 84,
   percentDigits = 0,
-}: DonutPieChartProps) {
+}: DonutPieChartProps) => {
   const safePercentDigits = clampNumber(percentDigits, 0, 2);
   const total = data.reduce(
     (acc, item) =>
@@ -128,4 +128,4 @@ export function DonutPieChart({
       </div>
     </div>
   );
-}
+};

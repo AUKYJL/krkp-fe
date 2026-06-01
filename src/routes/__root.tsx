@@ -2,17 +2,17 @@ import { Outlet, createRootRoute } from "@tanstack/react-router";
 
 import { TaxiparksSidebar } from "@/features/taxiparks-sidebar";
 
-export const Route = createRootRoute({
-  component: RootComponent,
-});
-
-function RootComponent() {
+const RootComponent = () => {
   return (
-    <div className="flex h-dvh w-full">
+    <div className="relative h-dvh w-full">
       <TaxiparksSidebar />
-      <div className="min-w-0 flex-1">
+      <div className="ml-[280px] h-dvh min-w-0 overflow-y-auto">
         <Outlet />
       </div>
     </div>
   );
-}
+};
+
+export const Route = createRootRoute({
+  component: RootComponent,
+});

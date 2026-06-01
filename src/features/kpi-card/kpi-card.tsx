@@ -18,7 +18,7 @@ export interface KpiCardProps {
   metaClassName?: string;
 }
 
-export function KpiCard({
+export const KpiCard = ({
   label,
   value,
   meta,
@@ -26,7 +26,7 @@ export function KpiCard({
   labelClassName,
   valueClassName,
   metaClassName,
-}: KpiCardProps) {
+}: KpiCardProps) => {
   return (
     <CardSurface className={className}>
       {label != null && (
@@ -60,4 +60,4 @@ export function KpiCard({
       )}
     </CardSurface>
   );
-}
+};

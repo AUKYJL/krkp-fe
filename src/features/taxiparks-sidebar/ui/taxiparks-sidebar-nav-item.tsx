@@ -10,7 +10,7 @@ interface Props {
   isActive: boolean;
 }
 
-export function TaxiparksSidebarNavItem({ item, isActive }: Props) {
+export const TaxiparksSidebarNavItem = ({ item, isActive }: Props) => {
   const textColor = isActive
     ? "text-dark-primary"
     : item.isMuted
@@ -56,4 +56,4 @@ export function TaxiparksSidebarNavItem({ item, isActive }: Props) {
       </AppText>
     </Link>
   );
-}
+};

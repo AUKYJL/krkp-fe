@@ -5,8 +5,8 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
-import * as React from "react";
 
+import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
 import {
   Select,
   SelectContent,
@@ -15,20 +15,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select";
-import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
 import { cn } from "@/shared/utils";
+
+import {
+  PAGE_SIZE_OPTIONS,
+  type TYPE_PAGE_SIZE_OPTIONS,
+} from "../consts/consts";
 
 type DataTablePaginationProps<TData> = {
   className?: string;
-  pageSizeOptions?: number[];
+  pageSizeOptions?: readonly TYPE_PAGE_SIZE_OPTIONS[];
   table: Table<TData>;
 };
 
-export function DataTablePagination<TData>({
+export const DataTablePagination: <TData>(
+  props: DataTablePaginationProps<TData>,
+) => JSX.Element = ({
   className,
-  pageSizeOptions = [10, 25, 50, 100],
+  pageSizeOptions = PAGE_SIZE_OPTIONS,
   table,
-}: DataTablePaginationProps<TData>) {
+}: DataTablePaginationProps<TData>) => {
   const pageIndex = table.getState().pagination.pageIndex;
   const pageCount = table.getPageCount();
   const currentPage = pageIndex + 1;
@@ -36,7 +42,7 @@ export function DataTablePagination<TData>({
   const canPrevious = table.getCanPreviousPage();
   const canNext = table.getCanNextPage();
 
-  const pages = React.useMemo(() => {
+  const pages = (() => {
     if (pageCount <= 0) return [];
 
     const candidates = [currentPage - 1, currentPage, currentPage + 1].filter(
@@ -44,7 +50,7 @@ export function DataTablePagination<TData>({
     );
 
     return Array.from(new Set(candidates));
-  }, [currentPage, pageCount]);
+  })();
 
   return (
     <div
@@ -139,4 +145,4 @@ export function DataTablePagination<TData>({
       </div>
     </div>
   );
-}
+};

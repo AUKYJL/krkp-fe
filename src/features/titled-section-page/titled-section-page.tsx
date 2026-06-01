@@ -4,7 +4,7 @@ interface Props {
   title: string;
 }
 
-export function TitledSectionPage({ title }: Props) {
+export const TitledSectionPage = ({ title }: Props) => {
   return (
     <main className="flex h-full w-full flex-col gap-4 bg-background-page p-6">
       <AppText
@@ -16,4 +16,4 @@ export function TitledSectionPage({ title }: Props) {
       </AppText>
     </main>
   );
-}
+};

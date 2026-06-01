@@ -4,7 +4,7 @@ import { cn } from "@/shared/utils";
 
 export type CardSurfaceProps = ComponentPropsWithoutRef<"div">;
 
-export function CardSurface({ className, ...props }: CardSurfaceProps) {
+export const CardSurface = ({ className, ...props }: CardSurfaceProps) => {
   return (
     <div
       className={cn(
@@ -14,5 +14,4 @@ export function CardSurface({ className, ...props }: CardSurfaceProps) {
       {...props}
     />
   );
-}
-
+};

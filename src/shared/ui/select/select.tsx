@@ -1,30 +1,39 @@
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { Check, ChevronDown, ChevronUp } from "lucide-react";
-import * as React from "react";
+import type { ComponentProps } from "react";
 
 import { cn } from "@/shared/utils";
 
-function Select(props: React.ComponentProps<typeof SelectPrimitive.Root>) {
+const getPortalContainer = () => {
+  if (typeof document === "undefined") return undefined;
+  const themeRoot =
+    document.querySelector<HTMLElement>('[class^="theme-"]') ??
+    document.querySelector<HTMLElement>('[class*=" theme-"]');
+
+  return themeRoot ?? document.getElementById("root") ?? document.body;
+};
+
+const Select = (props: ComponentProps<typeof SelectPrimitive.Root>) => {
   return <SelectPrimitive.Root data-slot="select" {...props} />;
-}
+};
 
-function SelectGroup(
-  props: React.ComponentProps<typeof SelectPrimitive.Group>,
-) {
+const SelectGroup = (
+  props: ComponentProps<typeof SelectPrimitive.Group>,
+) => {
   return <SelectPrimitive.Group data-slot="select-group" {...props} />;
-}
+};
 
-function SelectValue(
-  props: React.ComponentProps<typeof SelectPrimitive.Value>,
-) {
+const SelectValue = (
+  props: ComponentProps<typeof SelectPrimitive.Value>,
+) => {
   return <SelectPrimitive.Value data-slot="select-value" {...props} />;
-}
+};
 
-function SelectTrigger({
+const SelectTrigger = ({
   className,
   children,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Trigger>) {
+}: ComponentProps<typeof SelectPrimitive.Trigger>) => {
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
@@ -42,22 +51,15 @@ function SelectTrigger({
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   );
-}
+};
 
-function SelectContent({
+const SelectContent = ({
   className,
   children,
   position = "popper",
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Content>) {
-  const portalContainer = React.useMemo(() => {
-    if (typeof document === "undefined") return undefined;
-    const themeRoot =
-      document.querySelector<HTMLElement>('[class^="theme-"]') ??
-      document.querySelector<HTMLElement>('[class*=" theme-"]');
-
-    return themeRoot ?? document.getElementById("root") ?? document.body;
-  }, []);
+}: ComponentProps<typeof SelectPrimitive.Content>) => {
+  const portalContainer = getPortalContainer();
 
   return (
     <SelectPrimitive.Portal
@@ -91,12 +93,12 @@ function SelectContent({
       </SelectPrimitive.Content>
     </SelectPrimitive.Portal>
   );
-}
+};
 
-function SelectLabel({
+const SelectLabel = ({
   className,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Label>) {
+}: ComponentProps<typeof SelectPrimitive.Label>) => {
   return (
     <SelectPrimitive.Label
       data-slot="select-label"
@@ -104,13 +106,13 @@ function SelectLabel({
       {...props}
     />
   );
-}
+};
 
-function SelectItem({
+const SelectItem = ({
   className,
   children,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Item>) {
+}: ComponentProps<typeof SelectPrimitive.Item>) => {
   return (
     <SelectPrimitive.Item
       data-slot="select-item"
@@ -130,12 +132,12 @@ function SelectItem({
       <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
     </SelectPrimitive.Item>
   );
-}
+};
 
-function SelectSeparator({
+const SelectSeparator = ({
   className,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Separator>) {
+}: ComponentProps<typeof SelectPrimitive.Separator>) => {
   return (
     <SelectPrimitive.Separator
       data-slot="select-separator"
@@ -143,12 +145,12 @@ function SelectSeparator({
       {...props}
     />
   );
-}
+};
 
-function SelectScrollUpButton({
+const SelectScrollUpButton = ({
   className,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.ScrollUpButton>) {
+}: ComponentProps<typeof SelectPrimitive.ScrollUpButton>) => {
   return (
     <SelectPrimitive.ScrollUpButton
       data-slot="select-scroll-up"
@@ -161,12 +163,12 @@ function SelectScrollUpButton({
       <ChevronUp className="size-4 opacity-70" />
     </SelectPrimitive.ScrollUpButton>
   );
-}
+};
 
-function SelectScrollDownButton({
+const SelectScrollDownButton = ({
   className,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.ScrollDownButton>) {
+}: ComponentProps<typeof SelectPrimitive.ScrollDownButton>) => {
   return (
     <SelectPrimitive.ScrollDownButton
       data-slot="select-scroll-down"
@@ -179,7 +181,7 @@ function SelectScrollDownButton({
       <ChevronDown className="size-4 opacity-70" />
     </SelectPrimitive.ScrollDownButton>
   );
-}
+};
 
 export {
   Select,
