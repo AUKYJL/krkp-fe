@@ -22,7 +22,9 @@ type DataTableProps<TData> = {
   onRowClick?: (row: TData) => void;
 };
 
-export const DataTable: <TData>(props: DataTableProps<TData>) => JSX.Element = ({
+export const DataTable: <TData>(
+  props: DataTableProps<TData>,
+) => JSX.Element = ({
   className,
   columns,
   data,

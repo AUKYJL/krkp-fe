@@ -3,10 +3,10 @@ import clsx from "clsx";
 
 import { AppText, TEXT_SIZES_VARIABLES, TEXT_VARIANTS_VARIABLES } from "@/shared/ui/app-text";
 
-import type { TaxiparksSidebarNavItem } from "../model/sidebar-nav-item";
+import type { TaxiparksSidebarNavItem as TaxiparksSidebarNavItemModel } from "../model/sidebar-nav-item";
 
 interface Props {
-  item: TaxiparksSidebarNavItem;
+  item: TaxiparksSidebarNavItemModel;
   isActive: boolean;
 }
 

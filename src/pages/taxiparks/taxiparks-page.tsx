@@ -1,7 +1,8 @@
+import { useNavigate } from "@tanstack/react-router";
 import { CalendarDays, Plus, Search } from "lucide-react";
 import { useState } from "react";
 
-import { AppText, TAG, TEXT_SIZES_VARIABLES } from "@/shared/ui/app-text";
+import { AppText } from "@/shared/ui/app-text";
 import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 
@@ -18,6 +19,7 @@ import { TitledBlock } from "@/features/titled-block";
 
 export const TaxiParksPage = () => {
   const [search, setSearch] = useState("");
+  const navigate = useNavigate();
 
   const query = search.trim().toLowerCase();
   const filteredTableData =
@@ -239,7 +241,7 @@ export const TaxiParksPage = () => {
           data={filteredTableData}
           initialPageSize={10}
           onRowClick={(row) => {
-            console.log("row click", row);
+            navigate({ to: "/taxiparks/$id", params: { id: row.id } });
           }}
         />
       </TitledBlock>

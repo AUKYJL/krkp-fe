@@ -17,6 +17,8 @@ import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as FinanceRouteImport } from './routes/finance'
 import { Route as DriversRouteImport } from './routes/drivers'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TaxiparksIndexRouteImport } from './routes/taxiparks/index'
+import { Route as TaxiparksIdRouteImport } from './routes/taxiparks/$id'
 
 const VehiclesRoute = VehiclesRouteImport.update({
   id: '/vehicles',
@@ -58,6 +60,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TaxiparksIndexRoute = TaxiparksIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => TaxiparksRoute,
+} as any)
+const TaxiparksIdRoute = TaxiparksIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => TaxiparksRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -65,9 +77,11 @@ export interface FileRoutesByFullPath {
   '/finance': typeof FinanceRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
-  '/taxiparks': typeof TaxiparksRoute
+  '/taxiparks': typeof TaxiparksRouteWithChildren
   '/taxiparks-ui-kit': typeof TaxiparksUiKitRoute
   '/vehicles': typeof VehiclesRoute
+  '/taxiparks/$id': typeof TaxiparksIdRoute
+  '/taxiparks/': typeof TaxiparksIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -75,9 +89,10 @@ export interface FileRoutesByTo {
   '/finance': typeof FinanceRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
-  '/taxiparks': typeof TaxiparksRoute
   '/taxiparks-ui-kit': typeof TaxiparksUiKitRoute
   '/vehicles': typeof VehiclesRoute
+  '/taxiparks/$id': typeof TaxiparksIdRoute
+  '/taxiparks': typeof TaxiparksIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -86,9 +101,11 @@ export interface FileRoutesById {
   '/finance': typeof FinanceRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
-  '/taxiparks': typeof TaxiparksRoute
+  '/taxiparks': typeof TaxiparksRouteWithChildren
   '/taxiparks-ui-kit': typeof TaxiparksUiKitRoute
   '/vehicles': typeof VehiclesRoute
+  '/taxiparks/$id': typeof TaxiparksIdRoute
+  '/taxiparks/': typeof TaxiparksIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +118,8 @@ export interface FileRouteTypes {
     | '/taxiparks'
     | '/taxiparks-ui-kit'
     | '/vehicles'
+    | '/taxiparks/$id'
+    | '/taxiparks/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -108,9 +127,10 @@ export interface FileRouteTypes {
     | '/finance'
     | '/reports'
     | '/settings'
-    | '/taxiparks'
     | '/taxiparks-ui-kit'
     | '/vehicles'
+    | '/taxiparks/$id'
+    | '/taxiparks'
   id:
     | '__root__'
     | '/'
@@ -121,6 +141,8 @@ export interface FileRouteTypes {
     | '/taxiparks'
     | '/taxiparks-ui-kit'
     | '/vehicles'
+    | '/taxiparks/$id'
+    | '/taxiparks/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -129,7 +151,7 @@ export interface RootRouteChildren {
   FinanceRoute: typeof FinanceRoute
   ReportsRoute: typeof ReportsRoute
   SettingsRoute: typeof SettingsRoute
-  TaxiparksRoute: typeof TaxiparksRoute
+  TaxiparksRoute: typeof TaxiparksRouteWithChildren
   TaxiparksUiKitRoute: typeof TaxiparksUiKitRoute
   VehiclesRoute: typeof VehiclesRoute
 }
@@ -192,8 +214,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/taxiparks/': {
+      id: '/taxiparks/'
+      path: '/'
+      fullPath: '/taxiparks/'
+      preLoaderRoute: typeof TaxiparksIndexRouteImport
+      parentRoute: typeof TaxiparksRoute
+    }
+    '/taxiparks/$id': {
+      id: '/taxiparks/$id'
+      path: '/$id'
+      fullPath: '/taxiparks/$id'
+      preLoaderRoute: typeof TaxiparksIdRouteImport
+      parentRoute: typeof TaxiparksRoute
+    }
   }
 }
+
+interface TaxiparksRouteChildren {
+  TaxiparksIdRoute: typeof TaxiparksIdRoute
+  TaxiparksIndexRoute: typeof TaxiparksIndexRoute
+}
+
+const TaxiparksRouteChildren: TaxiparksRouteChildren = {
+  TaxiparksIdRoute: TaxiparksIdRoute,
+  TaxiparksIndexRoute: TaxiparksIndexRoute,
+}
+
+const TaxiparksRouteWithChildren = TaxiparksRoute._addFileChildren(
+  TaxiparksRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -201,7 +251,7 @@ const rootRouteChildren: RootRouteChildren = {
   FinanceRoute: FinanceRoute,
   ReportsRoute: ReportsRoute,
   SettingsRoute: SettingsRoute,
-  TaxiparksRoute: TaxiparksRoute,
+  TaxiparksRoute: TaxiparksRouteWithChildren,
   TaxiparksUiKitRoute: TaxiparksUiKitRoute,
   VehiclesRoute: VehiclesRoute,
 }

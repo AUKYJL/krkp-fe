@@ -1,3 +1,5 @@
+import { Link } from "@tanstack/react-router";
+
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -35,12 +37,12 @@ export function AppBreadcrumbs({ items }: AppBreadcrumbsProps) {
                   </BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink asChild>
-                    <a
-                      href={item.href}
+                    <Link
+                      to={item.href}
                       className="text-text-primary/60 hover:text-text-primary text-xs font-medium transition"
                     >
                       {item.label}
-                    </a>
+                    </Link>
                   </BreadcrumbLink>
                 )}
               </BreadcrumbItem>
