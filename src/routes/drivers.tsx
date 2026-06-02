@@ -1,9 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-
-import { DriversPage } from "@/pages/drivers";
+import { Outlet, createFileRoute } from "@tanstack/react-router";
 
 const RouteComponent = () => {
-  return <DriversPage />;
+  return <Outlet />;
 };
 
 export const Route = createFileRoute("/drivers")({

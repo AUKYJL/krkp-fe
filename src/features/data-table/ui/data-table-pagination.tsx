@@ -5,6 +5,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
+import type { ReactElement } from "react";
 
 import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
 import {
@@ -28,13 +29,11 @@ type DataTablePaginationProps<TData> = {
   table: Table<TData>;
 };
 
-export const DataTablePagination: <TData>(
-  props: DataTablePaginationProps<TData>,
-) => JSX.Element = ({
+export const DataTablePagination = <TData,>({
   className,
   pageSizeOptions = PAGE_SIZE_OPTIONS,
   table,
-}: DataTablePaginationProps<TData>) => {
+}: DataTablePaginationProps<TData>): ReactElement => {
   const pageIndex = table.getState().pagination.pageIndex;
   const pageCount = table.getPageCount();
   const currentPage = pageIndex + 1;

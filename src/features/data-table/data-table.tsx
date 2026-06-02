@@ -7,7 +7,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { ChevronUp } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactElement } from "react";
 
 import { cn } from "@/shared/utils";
 
@@ -22,15 +22,13 @@ type DataTableProps<TData> = {
   onRowClick?: (row: TData) => void;
 };
 
-export const DataTable: <TData>(
-  props: DataTableProps<TData>,
-) => JSX.Element = ({
+export const DataTable = <TData,>({
   className,
   columns,
   data,
   initialPageSize = 25,
   onRowClick,
-}: DataTableProps<TData>) => {
+}: DataTableProps<TData>): ReactElement => {
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const table = useReactTable({

@@ -1,6 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Download } from "lucide-react";
 import Papa from "papaparse";
+import type { ReactElement } from "react";
 
 import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
 import { cn } from "@/shared/utils";
@@ -15,15 +16,13 @@ export interface CsvExportButtonProps<TData> {
   label?: string;
 }
 
-export const CsvExportButton: <TData>(
-  props: CsvExportButtonProps<TData>,
-) => JSX.Element = ({
+export const CsvExportButton = <TData,>({
   className,
   columns,
   data,
   fileName = "export",
   label = "Экспорт",
-}: CsvExportButtonProps<TData>) => {
+}: CsvExportButtonProps<TData>): ReactElement => {
   const exportColumns = getExportColumns(columns);
   const isDisabled = data.length === 0 || exportColumns.length === 0;
 

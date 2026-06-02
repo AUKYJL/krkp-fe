@@ -9,6 +9,7 @@ export interface ProgressCardProps {
   value: number;
   max?: number;
   secondaryText?: ReactNode;
+  footnote?: ReactNode;
   className?: string;
 }
 
@@ -17,6 +18,7 @@ export const ProgressCard = ({
   value,
   max = 100,
   secondaryText,
+  footnote,
   className,
 }: ProgressCardProps) => {
   const safeMax = max > 0 ? max : 1;
@@ -45,6 +47,12 @@ export const ProgressCard = ({
           style={{ width: `${percentage}%` }}
         />
       </div>
+
+      {footnote != null && (
+        <AppText className="text-text-secondary text-xs font-medium">
+          {footnote}
+        </AppText>
+      )}
     </CardSurface>
   );
 };
