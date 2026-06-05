@@ -6,7 +6,7 @@ import { Separator } from "@/shared/ui/separator";
 import { cn } from "@/shared/utils";
 
 const fieldVariants = cva(
-  "group/field data-[invalid=true]:text-destructive flex w-full gap-3",
+  "group/field data-[invalid=true]:text-destructive flex w-full gap-1",
   {
     variants: {
       orientation: {
@@ -73,7 +73,7 @@ export const FieldGroup = ({ className, ...props }: ComponentProps<"div">) => {
     <div
       data-slot="field-group"
       className={cn(
-        "group/field-group @container/field-group flex w-full flex-col gap-7 data-[slot=checkbox-group]:gap-3 [&>[data-slot=field-group]]:gap-4",
+        "group/field-group @container/field-group flex w-full flex-col gap-4 data-[slot=checkbox-group]:gap-3 [&>[data-slot=field-group]]:gap-4",
         className,
       )}
       {...props}

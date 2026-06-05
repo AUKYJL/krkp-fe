@@ -20,6 +20,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as VehiclesIndexRouteImport } from './routes/vehicles/index'
 import { Route as TaxiparksIndexRouteImport } from './routes/taxiparks/index'
 import { Route as DriversIndexRouteImport } from './routes/drivers/index'
+import { Route as VehiclesCreateRouteImport } from './routes/vehicles/create'
 import { Route as VehiclesIdRouteImport } from './routes/vehicles/$id'
 import { Route as TaxiparksIdRouteImport } from './routes/taxiparks/$id'
 import { Route as DriversIdRouteImport } from './routes/drivers/$id'
@@ -79,6 +80,11 @@ const DriversIndexRoute = DriversIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DriversRoute,
 } as any)
+const VehiclesCreateRoute = VehiclesCreateRouteImport.update({
+  id: '/create',
+  path: '/create',
+  getParentRoute: () => VehiclesRoute,
+} as any)
 const VehiclesIdRoute = VehiclesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/drivers/$id': typeof DriversIdRoute
   '/taxiparks/$id': typeof TaxiparksIdRoute
   '/vehicles/$id': typeof VehiclesIdRoute
+  '/vehicles/create': typeof VehiclesCreateRoute
   '/drivers/': typeof DriversIndexRoute
   '/taxiparks/': typeof TaxiparksIndexRoute
   '/vehicles/': typeof VehiclesIndexRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByTo {
   '/drivers/$id': typeof DriversIdRoute
   '/taxiparks/$id': typeof TaxiparksIdRoute
   '/vehicles/$id': typeof VehiclesIdRoute
+  '/vehicles/create': typeof VehiclesCreateRoute
   '/drivers': typeof DriversIndexRoute
   '/taxiparks': typeof TaxiparksIndexRoute
   '/vehicles': typeof VehiclesIndexRoute
@@ -137,6 +145,7 @@ export interface FileRoutesById {
   '/drivers/$id': typeof DriversIdRoute
   '/taxiparks/$id': typeof TaxiparksIdRoute
   '/vehicles/$id': typeof VehiclesIdRoute
+  '/vehicles/create': typeof VehiclesCreateRoute
   '/drivers/': typeof DriversIndexRoute
   '/taxiparks/': typeof TaxiparksIndexRoute
   '/vehicles/': typeof VehiclesIndexRoute
@@ -155,6 +164,7 @@ export interface FileRouteTypes {
     | '/drivers/$id'
     | '/taxiparks/$id'
     | '/vehicles/$id'
+    | '/vehicles/create'
     | '/drivers/'
     | '/taxiparks/'
     | '/vehicles/'
@@ -168,6 +178,7 @@ export interface FileRouteTypes {
     | '/drivers/$id'
     | '/taxiparks/$id'
     | '/vehicles/$id'
+    | '/vehicles/create'
     | '/drivers'
     | '/taxiparks'
     | '/vehicles'
@@ -184,6 +195,7 @@ export interface FileRouteTypes {
     | '/drivers/$id'
     | '/taxiparks/$id'
     | '/vehicles/$id'
+    | '/vehicles/create'
     | '/drivers/'
     | '/taxiparks/'
     | '/vehicles/'
@@ -279,6 +291,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DriversIndexRouteImport
       parentRoute: typeof DriversRoute
     }
+    '/vehicles/create': {
+      id: '/vehicles/create'
+      path: '/create'
+      fullPath: '/vehicles/create'
+      preLoaderRoute: typeof VehiclesCreateRouteImport
+      parentRoute: typeof VehiclesRoute
+    }
     '/vehicles/$id': {
       id: '/vehicles/$id'
       path: '/$id'
@@ -332,11 +351,13 @@ const TaxiparksRouteWithChildren = TaxiparksRoute._addFileChildren(
 
 interface VehiclesRouteChildren {
   VehiclesIdRoute: typeof VehiclesIdRoute
+  VehiclesCreateRoute: typeof VehiclesCreateRoute
   VehiclesIndexRoute: typeof VehiclesIndexRoute
 }
 
 const VehiclesRouteChildren: VehiclesRouteChildren = {
   VehiclesIdRoute: VehiclesIdRoute,
+  VehiclesCreateRoute: VehiclesCreateRoute,
   VehiclesIndexRoute: VehiclesIndexRoute,
 }
 

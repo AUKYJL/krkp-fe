@@ -1,5 +1,16 @@
 import type { VehicleStatus } from "./types";
 
+export const VEHICLE_STATUS_VALUES = ["ok", "risk", "unassigned"] as const;
+
+export const VEHICLE_STATUS_OPTIONS: Array<{
+  value: VehicleStatus;
+  label: string;
+}> = [
+  { value: "ok", label: "Исправен" },
+  { value: "risk", label: "Аварийный" },
+  { value: "unassigned", label: "Не назначен" },
+];
+
 export const getVehicleStatusConfig = (status: VehicleStatus) => {
   if (status === "ok") {
     return {

@@ -38,8 +38,10 @@ const SelectTrigger = ({
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       className={cn(
-        "flex h-10 w-full items-center justify-between gap-2 rounded-[12px] border border-border-default bg-background-card px-3 py-2 text-sm text-text-primary shadow-none outline-none transition-colors",
+        "flex h-10 w-full items-center justify-between gap-2 rounded-[12px] border border-border-default bg-background-page px-3 py-2 text-sm text-text-primary shadow-none outline-none transition-[border-color,box-shadow]",
+        "data-[placeholder]:text-text-primary/60",
         "focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-0",
+        "aria-invalid:border-status-error aria-invalid:ring-2 aria-invalid:ring-status-error/15",
         "disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}

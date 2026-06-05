@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Plus, Search } from "lucide-react";
 import { useState } from "react";
 
@@ -87,9 +87,11 @@ export const VehiclesPage = () => {
               })}
             </div>
 
-            <Button type="button" className="h-10 rounded-[12px] px-4">
-              <Plus className="size-4" />
-              Добавить автомобиль
+            <Button type="button" asChild className="h-10 rounded-[12px] px-4">
+              <Link to="/vehicles/create">
+                <Plus className="size-4" />
+                Добавить автомобиль
+              </Link>
             </Button>
           </div>
         }
@@ -110,9 +112,12 @@ export const VehiclesPage = () => {
             type="button"
             variant={BUTTON_VARIANTS_VARIABLES.tertiary}
             className="h-9 rounded-[12px] px-3.5"
+            asChild
           >
-            <Plus className="size-4" />
-            Добавить
+            <Link to="/vehicles/create">
+              <Plus className="size-4" />
+              Добавить
+            </Link>
           </Button>
         }
         className="min-w-0"
