@@ -34,3 +34,7 @@ Use bullet lists for simplicity. This is not a replacement for your ticket syste
 - Update status if work gets blocked or resumed
 - Clean out very old entries periodically (3+ months)
 
+### 2026-06-05 - UI-vehicles-edit-page: Add vehicle edit page route
+- **Status**: Completed
+- **Description**: Added a UI-only `/vehicles/:id/edit` page based on the create form and wired the vehicle detail `Редактировать` action back to the vehicle detail flow.
+- **URL**: N/A

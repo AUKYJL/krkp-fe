@@ -118,7 +118,15 @@ export const VehicleDetailPage = ({ vehiclePlate }: VehicleDetailPageProps) => {
               Назад
             </Button>
 
-            <Button type="button">
+            <Button
+              type="button"
+              onClick={() =>
+                navigate({
+                  to: "/vehicles/$id/edit",
+                  params: { id: vehiclePlate },
+                })
+              }
+            >
               <PencilLine className="size-4" />
               Редактировать
             </Button>

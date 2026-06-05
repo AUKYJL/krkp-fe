@@ -1,11 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-
-import { VehicleDetailPage } from "@/pages/vehicles";
+import { Outlet, createFileRoute } from "@tanstack/react-router";
 
 const RouteComponent = () => {
-  const { id } = Route.useParams();
-
-  return <VehicleDetailPage vehiclePlate={id} />;
+  return <Outlet />;
 };
 
 export const Route = createFileRoute("/vehicles/$id")({

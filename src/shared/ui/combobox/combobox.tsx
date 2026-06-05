@@ -3,7 +3,7 @@
 import * as Popover from "@radix-ui/react-popover";
 import { Command } from "cmdk";
 import { Check, ChevronDown, Search } from "lucide-react";
-import { useMemo, useState, type ButtonHTMLAttributes } from "react";
+import { type ButtonHTMLAttributes, useMemo, useState } from "react";
 
 import { cn } from "@/shared/utils";
 
@@ -94,9 +94,9 @@ export const Combobox = ({
           disabled={disabled}
           data-slot="combobox-trigger"
           className={cn(
-            "flex h-10 w-full items-center justify-between gap-2 rounded-[12px] border border-border-default bg-background-page px-3 py-2 text-left text-sm text-text-primary shadow-none outline-none transition-[border-color,box-shadow]",
-            "focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-0",
-            "aria-invalid:border-status-error aria-invalid:ring-2 aria-invalid:ring-status-error/15",
+            "border-border-default bg-background-page text-text-primary flex h-10 w-full items-center justify-between gap-2 rounded-[12px] border px-3 py-2 text-left text-sm shadow-none transition-[border-color,box-shadow] outline-none",
+            "focus-visible:ring-ring/40 focus-visible:ring-2 focus-visible:ring-offset-0",
+            "aria-invalid:border-status-error aria-invalid:ring-status-error/15 aria-invalid:ring-2",
             "disabled:cursor-not-allowed disabled:opacity-50",
             className,
           )}
@@ -110,7 +110,7 @@ export const Combobox = ({
           >
             {selectedOption?.label ?? placeholder}
           </span>
-          <ChevronDown className="size-4 shrink-0 opacity-70" />
+          <ChevronDown className="text-text-primary size-4 shrink-0 opacity-70" />
         </button>
       </Popover.Trigger>
 
@@ -118,19 +118,16 @@ export const Combobox = ({
         <Popover.Content
           align="start"
           sideOffset={6}
-          className="z-50 w-[var(--radix-popover-trigger-width)] min-w-[280px] rounded-[14px] border border-border-default bg-background-card p-1 shadow-md outline-none"
+          className="border-border-default bg-background-card z-50 w-[var(--radix-popover-trigger-width)] min-w-[280px] rounded-[14px] border p-1 shadow-md outline-none"
         >
-          <Command
-            shouldFilter={false}
-            className="flex flex-col gap-1"
-          >
+          <Command shouldFilter={false} className="flex flex-col gap-1">
             <div className="relative">
               <Search className="text-text-primary/50 pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
               <Command.Input
                 value={query}
                 onValueChange={setQuery}
                 placeholder={searchPlaceholder}
-                className="text-text-primary placeholder:text-text-primary/60 border-border-default bg-background-page flex h-10 w-full rounded-[10px] border py-2 pr-3 pl-9 text-sm font-medium shadow-none outline-none transition-[border-color,box-shadow] focus-visible:border-dark-primary focus-visible:ring-2 focus-visible:ring-dark-primary/10"
+                className="text-text-primary placeholder:text-text-primary/60 border-border-default bg-background-page focus-visible:border-dark-primary focus-visible:ring-dark-primary/10 flex h-10 w-full rounded-[10px] border py-2 pr-3 pl-9 text-sm font-medium shadow-none transition-[border-color,box-shadow] outline-none focus-visible:ring-2"
               />
             </div>
 
@@ -149,7 +146,7 @@ export const Combobox = ({
                       value={option.value}
                       onSelect={() => handleSelect(option.value)}
                       className={cn(
-                        "flex cursor-pointer items-center gap-2 rounded-[10px] px-2 py-2 text-sm font-medium text-text-primary outline-none transition-colors",
+                        "text-text-primary flex cursor-pointer items-center gap-2 rounded-[10px] px-2 py-2 text-sm font-medium transition-colors outline-none",
                         "data-[selected=true]:bg-dark-primary-soft",
                       )}
                     >

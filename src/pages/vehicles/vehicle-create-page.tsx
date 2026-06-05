@@ -119,7 +119,7 @@ export const VehicleCreatePage = () => {
         <form
           noValidate
           onSubmit={handleSubmit(handleFormSubmit)}
-          className="flex flex-col gap-3"
+          className="flex flex-col gap-6"
         >
           <FieldGroup>
             <FormInput
