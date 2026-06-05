@@ -6,31 +6,59 @@ import { CardSurface } from "@/shared/ui/card-surface";
 import { Input } from "@/shared/ui/input";
 import { cn } from "@/shared/utils";
 
-import {
-  formatEditTime,
-  sanitizeRevenueInput,
-} from "./driver-home-dashboard.utils";
-
 const moneyFormatter = new Intl.NumberFormat("ru-RU");
 
-type TodayRevenueCardProps = {
-  initialRevenue?: number;
-  initialUpdatedAt?: string;
-  canEdit: boolean;
+const formatEditTime = (date: Date) => {
+  return date.toLocaleTimeString("ru-RU", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 };
 
-export const TodayRevenueCard = ({
-  initialRevenue,
-  initialUpdatedAt,
+const sanitizeRevenueInput = (value: string) => {
+  return value.replaceAll(/\D/g, "");
+};
+
+type SavePayload = {
+  revenue: number;
+  updatedAt: string;
+};
+
+export interface DriverTodayRevenueCardProps {
+  revenue?: number;
+  updatedAt?: string;
+  canEdit: boolean;
+  className?: string;
+  title?: string;
+  onSave?: (payload: SavePayload) => void;
+}
+
+export const DriverTodayRevenueCard = ({
+  revenue,
+  updatedAt,
   canEdit,
-}: TodayRevenueCardProps) => {
-  const [revenue, setRevenue] = useState<number | undefined>(initialRevenue);
-  const [lastUpdatedAt, setLastUpdatedAt] = useState(initialUpdatedAt);
+  className,
+  title = "Выручка сегодня в ₽",
+  onSave,
+}: DriverTodayRevenueCardProps) => {
   const [draftValue, setDraftValue] = useState(
-    initialRevenue == null ? "" : String(initialRevenue),
+    revenue == null ? "" : String(revenue),
   );
-  const [isEditing, setIsEditing] = useState(initialRevenue == null);
+  const [isEditing, setIsEditing] = useState(revenue == null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setDraftValue(revenue == null ? "" : String(revenue));
+  }, [revenue]);
+
+  useEffect(() => {
+    if (revenue == null) {
+      setIsEditing(true);
+      return;
+    }
+
+    setIsEditing(false);
+  }, [revenue]);
 
   useEffect(() => {
     if (!isEditing) {
@@ -59,7 +87,7 @@ export const TodayRevenueCard = ({
 
   const handleCancel = () => {
     setDraftValue(revenue == null ? "" : String(revenue));
-    setIsEditing(false);
+    setIsEditing(revenue == null);
   };
 
   const handleSave = () => {
@@ -69,8 +97,10 @@ export const TodayRevenueCard = ({
       return;
     }
 
-    setRevenue(Number(normalizedValue));
-    setLastUpdatedAt(formatEditTime(new Date()));
+    onSave?.({
+      revenue: Number(normalizedValue),
+      updatedAt: formatEditTime(new Date()),
+    });
     setDraftValue(normalizedValue);
     setIsEditing(false);
   };
@@ -78,14 +108,19 @@ export const TodayRevenueCard = ({
   const isSaveDisabled = sanitizeRevenueInput(draftValue).length === 0;
 
   return (
-    <CardSurface className="w-[350px] gap-2 rounded-[24px] p-6 md:p-7">
+    <CardSurface
+      className={cn(
+        "w-full gap-2 rounded-[24px] p-6 md:w-[350px] md:p-7",
+        className,
+      )}
+    >
       <div className="flex flex-col gap-1">
         <AppText
           tag={TAG.h3}
           size={TEXT_SIZES_VARIABLES.medium}
           className="text-text-primary font-bold"
         >
-          Выручка сегодня в ₽
+          {title}
         </AppText>
       </div>
 
@@ -128,7 +163,7 @@ export const TodayRevenueCard = ({
                   Последнее изменение:
                 </AppText>
                 <AppText className="text-text-primary text-sm font-semibold tabular-nums">
-                  {lastUpdatedAt}
+                  {updatedAt ?? "—"}
                 </AppText>
               </div>
 
@@ -156,28 +191,26 @@ export const TodayRevenueCard = ({
               : "pointer-events-none absolute inset-0 translate-y-2 opacity-0",
           )}
         >
-          <div className="flex items-center gap-3">
-            <Input
-              ref={inputRef}
-              type="text"
-              inputMode="numeric"
-              value={draftValue}
-              placeholder="Введите сумму"
-              className="h-12 tabular-nums"
-              onChange={(event) => {
-                setDraftValue(sanitizeRevenueInput(event.target.value));
-              }}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  handleSave();
-                }
+          <Input
+            ref={inputRef}
+            type="text"
+            inputMode="numeric"
+            value={draftValue}
+            placeholder="Введите сумму"
+            className="h-12 tabular-nums"
+            onChange={(event) => {
+              setDraftValue(sanitizeRevenueInput(event.target.value));
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                handleSave();
+              }
 
-                if (event.key === "Escape") {
-                  handleCancel();
-                }
-              }}
-            />
-          </div>
+              if (event.key === "Escape") {
+                handleCancel();
+              }
+            }}
+          />
 
           <div className="flex flex-col gap-2 sm:flex-row">
             <Button

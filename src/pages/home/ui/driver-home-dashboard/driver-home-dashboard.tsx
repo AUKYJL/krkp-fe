@@ -1,5 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { Building2, CarFront, TriangleAlert } from "lucide-react";
+import { useState } from "react";
 
 import type { CurrentUser } from "@/shared/api/auth";
 import {
@@ -19,7 +20,7 @@ import {
   getCarStatusConfig,
   getRecentDayStatusConfig,
 } from "./driver-home-dashboard.utils";
-import { TodayRevenueCard } from "./today-revenue-card";
+import { DriverTodayRevenueCard } from "@/features/driver-today-revenue-card";
 import { KpiCard } from "@/features/kpi-card";
 import { TitledBlock } from "@/features/titled-block";
 import { VerticalBarChart } from "@/features/vertical-bar-chart";
@@ -35,6 +36,7 @@ export const DriverHomeDashboard = ({
 }: DriverHomeDashboardProps) => {
   const navigate = useNavigate();
   const dashboard = buildDriverHomeDashboardData(currentUser.fullName);
+  const [todayRevenue, setTodayRevenue] = useState(dashboard.todayRevenue);
   const currentDate = formatDashboardDate(new Date());
   const carStatus = getCarStatusConfig(dashboard.car.status);
 
@@ -95,10 +97,17 @@ export const DriverHomeDashboard = ({
             </div>
           </div>
         </CardSurface>
-        <TodayRevenueCard
-          initialRevenue={dashboard.todayRevenue.amount}
-          initialUpdatedAt={dashboard.todayRevenue.updatedAt}
-          canEdit={dashboard.todayRevenue.canEdit}
+        <DriverTodayRevenueCard
+          revenue={todayRevenue.amount}
+          updatedAt={todayRevenue.updatedAt}
+          canEdit={todayRevenue.canEdit}
+          onSave={({ revenue, updatedAt }) => {
+            setTodayRevenue({
+              amount: revenue,
+              updatedAt,
+              canEdit: true,
+            });
+          }}
         />
       </div>
 
