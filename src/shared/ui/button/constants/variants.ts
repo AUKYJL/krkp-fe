@@ -1,5 +1,6 @@
 export const BUTTON_VARIANTS_VARIABLES = {
   default: "default",
+  destructive: "destructive",
   link: "link",
   fancy: "fancy",
   icon: "icon",
@@ -11,6 +12,8 @@ export const BUTTON_VARIANTS_VARIABLES = {
 export const BUTTON_VARIANTS = {
   [BUTTON_VARIANTS_VARIABLES.default]:
     "bg-accent-primary text-text-primary font-bold hover:text-text-inverse",
+  [BUTTON_VARIANTS_VARIABLES.destructive]:
+    "border border-transparent bg-destructive text-text-inverse font-bold hover:opacity-90",
   [BUTTON_VARIANTS_VARIABLES.link]:
     "text-primary underline-offset-4 hover:underline uppercase",
   [BUTTON_VARIANTS_VARIABLES.fancy]: "bg-transparent",

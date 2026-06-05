@@ -1,6 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, CarFront, PencilLine } from "lucide-react";
+import { ArrowLeft, CarFront, PencilLine, Trash2 } from "lucide-react";
 
+import { ConfirmDialog } from "@/features/confirm-dialog";
 import {
   AppText,
   TAG,
@@ -48,6 +49,8 @@ export const VehicleDetailPage = ({ vehiclePlate }: VehicleDetailPageProps) => {
   const navigate = useNavigate();
   const vehicle = getVehicleDetailMockByPlate(vehiclePlate);
   const vehicleRow = vehicleTableData.find((row) => row.plate === vehiclePlate);
+  const handleDeleteConfirm = () => undefined;
+  const handleDeleteCancel = () => undefined;
 
   if (!vehicle || !vehicleRow) {
     return (
@@ -119,6 +122,28 @@ export const VehicleDetailPage = ({ vehiclePlate }: VehicleDetailPageProps) => {
               <PencilLine className="size-4" />
               Редактировать
             </Button>
+
+            <ConfirmDialog
+              trigger={
+                <Button
+                  type="button"
+                  variant={BUTTON_VARIANTS_VARIABLES.destructive}
+                >
+                  <Trash2 className="size-4" />
+                  Удалить автомобиль
+                </Button>
+              }
+              title={`Удалить автомобиль ${vehicleRow.plate}?`}
+              description={
+                <>
+                  Вы подтверждаете удаление автомобиля {vehicle.title}. На
+                  текущем этапе это только UI-сценарий без реального удаления
+                  записи.
+                </>
+              }
+              onConfirm={handleDeleteConfirm}
+              onCancel={handleDeleteCancel}
+            />
           </>
         }
       />

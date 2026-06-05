@@ -23,7 +23,7 @@ export const PageHeader = ({
   actions,
 }: PageHeaderProps) => {
   return (
-    <header className="flex items-start justify-between gap-6">
+    <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
       <div className="min-w-0 flex-1">
         {breadcrumbs?.length ? <AppBreadcrumbs items={breadcrumbs} /> : null}
 
@@ -43,7 +43,9 @@ export const PageHeader = ({
       </div>
 
       {actions ? (
-        <div className="flex shrink-0 items-center gap-2">{actions}</div>
+        <div className="flex flex-wrap items-center gap-2 lg:max-w-[52%] lg:justify-end">
+          {actions}
+        </div>
       ) : null}
     </header>
   );
