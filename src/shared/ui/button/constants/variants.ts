@@ -2,7 +2,7 @@ export const BUTTON_VARIANTS_VARIABLES = {
   default: "default",
   destructive: "destructive",
   link: "link",
-  fancy: "fancy",
+  ghost: "ghost",
   icon: "icon",
   secondary: "secondary",
   tertiary: "tertiary",
@@ -15,7 +15,7 @@ export const BUTTON_VARIANTS = {
     "border border-transparent bg-destructive text-text-inverse font-bold hover:opacity-90",
   [BUTTON_VARIANTS_VARIABLES.link]:
     "text-primary underline-offset-4 hover:underline uppercase",
-  [BUTTON_VARIANTS_VARIABLES.fancy]: "bg-transparent",
+  [BUTTON_VARIANTS_VARIABLES.ghost]: "bg-transparent",
   [BUTTON_VARIANTS_VARIABLES.icon]: "bg-transparent p-0",
 
   [BUTTON_VARIANTS_VARIABLES.secondary]:
