@@ -1,11 +1,9 @@
 import { useNavigate } from "@tanstack/react-router";
-import { CalendarDays, Plus, Search } from "lucide-react";
+import { CalendarDays, Plus } from "lucide-react";
 import { useState } from "react";
 
 import { AppText } from "@/shared/ui/app-text";
 import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-
 import { columns, donutPieChartMockData, tableMockData } from "./consts";
 import { BestIndicatorItem, StatusBadge } from "./ui";
 import { CsvExportButton } from "@/features/csv-export-button";
@@ -14,6 +12,7 @@ import { DonutPieChart } from "@/features/donut-pie-chart";
 import { KpiCard } from "@/features/kpi-card";
 import { PageHeader } from "@/features/page-header/page-header";
 import { ProgressCard } from "@/features/progress-card";
+import { SearchInput } from "@/features/search-input";
 import { TAXIPARKS_SIDEBAR_NAV_BY_ID } from "@/features/taxiparks-sidebar";
 import { TitledBlock } from "@/features/titled-block";
 
@@ -219,15 +218,12 @@ export const TaxiParksPage = () => {
         headerClassName="items-center"
         topRightSlot={
           <div className="flex items-center gap-3">
-            <div className="relative w-96">
-              <Search className="text-text-primary/70 pointer-events-none absolute top-1/2 left-3 size-[18px] -translate-y-1/2" />
-              <Input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                className="pl-10"
-                placeholder="Поиск по таксопаркам"
-              />
-            </div>
+            <SearchInput
+              value={search}
+              onChange={(value) => setSearch(value)}
+              className="w-96"
+              placeholder="Поиск по таксопаркам"
+            />
             <CsvExportButton
               columns={columns}
               data={filteredTableData}

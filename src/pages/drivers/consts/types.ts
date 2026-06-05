@@ -3,6 +3,7 @@ export type DriverStatus = "active" | "risk";
 export type DriverRow = {
   id: string;
   driver: string;
+  experience: string;
   car: string;
   revenue: number;
   avgPerDay: number;
@@ -12,4 +13,3 @@ export type DriverRow = {
   rank: number;
   status: DriverStatus;
 };
-

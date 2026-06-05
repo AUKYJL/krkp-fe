@@ -9,16 +9,14 @@ import {
 import { ChevronUp } from "lucide-react";
 import { useState, type ReactElement } from "react";
 
+import { Pagination, type PageSizeOption } from "@/features/pagination";
 import { cn } from "@/shared/utils";
-
-import type { TYPE_PAGE_SIZE_OPTIONS } from "./consts/consts";
-import { DataTablePagination } from "@/features/data-table/ui/data-table-pagination";
 
 type DataTableProps<TData> = {
   className?: string;
   columns: ColumnDef<TData, unknown>[];
   data: TData[];
-  initialPageSize?: TYPE_PAGE_SIZE_OPTIONS;
+  initialPageSize?: PageSizeOption;
   onRowClick?: (row: TData) => void;
 };
 
@@ -182,7 +180,15 @@ export const DataTable = <TData,>({
         </div>
       </div>
 
-      <DataTablePagination table={table} />
+      <Pagination
+        page={table.getState().pagination.pageIndex + 1}
+        pageCount={table.getPageCount()}
+        pageSize={table.getState().pagination.pageSize}
+        canPrevious={table.getCanPreviousPage()}
+        canNext={table.getCanNextPage()}
+        onPageChange={(page) => table.setPageIndex(Math.max(0, page - 1))}
+        onPageSizeChange={(pageSize) => table.setPageSize(pageSize)}
+      />
     </div>
   );
 };

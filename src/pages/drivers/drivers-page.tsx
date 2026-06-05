@@ -1,21 +1,20 @@
 import { useNavigate } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { useState } from "react";
 import { Plus, Search } from "lucide-react";
+import { useState } from "react";
 
 import { AppText } from "@/shared/ui/app-text";
 import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { cn } from "@/shared/utils";
 
+import { type DriverRow, type DriverStatus, driverMockData } from "./consts";
 import { DataTable } from "@/features/data-table";
 import { KpiCard } from "@/features/kpi-card";
 import { PageHeader } from "@/features/page-header/page-header";
 import { ProgressCard } from "@/features/progress-card";
 import { TAXIPARKS_SIDEBAR_NAV_BY_ID } from "@/features/taxiparks-sidebar";
 import { TitledBlock } from "@/features/titled-block";
-
-import { driverMockData, type DriverRow, type DriverStatus } from "./consts";
 
 type PeriodKey = "today" | "week" | "month" | "custom";
 
@@ -138,16 +137,12 @@ const DriverStatusPill = ({ status }: { status: DriverStatus }) => {
   );
 };
 
-const SummaryRow = ({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) => {
+const SummaryRow = ({ label, value }: { label: string; value: string }) => {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-[10px] bg-background-page px-4 py-3">
-      <AppText className="text-text-primary text-sm font-medium">{label}</AppText>
+    <div className="bg-background-page flex items-center justify-between gap-4 rounded-[10px] px-4 py-3">
+      <AppText className="text-text-primary text-sm font-medium">
+        {label}
+      </AppText>
       <AppText className="text-text-primary text-sm font-semibold tabular-nums">
         {value}
       </AppText>
@@ -194,16 +189,6 @@ export const DriversPage = () => {
         ]}
         actions={
           <div className="flex flex-wrap items-center justify-end gap-3">
-            <div className="relative w-full sm:w-[220px] lg:w-[260px]">
-              <Search className="text-text-primary/60 pointer-events-none absolute top-1/2 left-3 size-[18px] -translate-y-1/2" />
-              <Input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                className="pl-10"
-                placeholder="Поиск водителя"
-              />
-            </div>
-
             <div className="flex flex-wrap items-center gap-2">
               {PERIODS.map((item) => {
                 const isActive = period === item.key;
@@ -226,7 +211,11 @@ export const DriversPage = () => {
               })}
             </div>
 
-            <Button type="button" className="h-10 rounded-[12px] px-4">
+            <Button
+              type="button"
+              className="h-10 rounded-[12px] px-4"
+              onClick={() => navigate({ to: "/drivers/add" })}
+            >
               <Plus className="size-4" />
               Добавить водителя
             </Button>
@@ -305,15 +294,25 @@ export const DriversPage = () => {
           subtitle="Пагинированный список по текущему фильтру"
           className="min-w-0"
         >
-        <DataTable
-          columns={driverColumns}
-          data={filteredRows}
-          initialPageSize={10}
-          onRowClick={(row) => {
-            navigate({ to: "/drivers/$id", params: { id: row.id } });
-          }}
-        />
-      </TitledBlock>
+          <div className="relative mb-4 w-full max-w-sm">
+            <Search className="text-text-secondary absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+            <Input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Поиск водителя или авто"
+              className="h-11 pl-9"
+            />
+          </div>
+
+          <DataTable
+            columns={driverColumns}
+            data={filteredRows}
+            initialPageSize={10}
+            onRowClick={(row) => {
+              navigate({ to: "/drivers/$id", params: { id: row.id } });
+            }}
+          />
+        </TitledBlock>
       </section>
 
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">

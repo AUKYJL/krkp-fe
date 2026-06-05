@@ -1,2 +1,1 @@
-export const PAGE_SIZE_OPTIONS = [5, 10, 25, 50, 100] as const;
-export type TYPE_PAGE_SIZE_OPTIONS = (typeof PAGE_SIZE_OPTIONS)[number];
+export { PAGE_SIZE_OPTIONS, type PageSizeOption as TYPE_PAGE_SIZE_OPTIONS } from "@/features/pagination";

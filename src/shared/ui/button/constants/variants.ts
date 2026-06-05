@@ -4,7 +4,6 @@ export const BUTTON_VARIANTS_VARIABLES = {
   link: "link",
   fancy: "fancy",
   icon: "icon",
-  primary: "primary",
   secondary: "secondary",
   tertiary: "tertiary",
 } as const;

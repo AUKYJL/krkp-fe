@@ -1,14 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
-
-import { DriverDetailPage } from "@/pages/drivers";
+import { Outlet, createFileRoute } from "@tanstack/react-router";
 
 const RouteComponent = () => {
-  const { id } = Route.useParams();
-
-  return <DriverDetailPage driverId={id} />;
+  return <Outlet />;
 };
 
 export const Route = createFileRoute("/drivers/$id")({
   component: RouteComponent,
 });
-

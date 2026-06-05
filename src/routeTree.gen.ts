@@ -23,9 +23,12 @@ import { Route as DriversIndexRouteImport } from './routes/drivers/index'
 import { Route as VehiclesCreateRouteImport } from './routes/vehicles/create'
 import { Route as VehiclesIdRouteImport } from './routes/vehicles/$id'
 import { Route as TaxiparksIdRouteImport } from './routes/taxiparks/$id'
+import { Route as DriversAddRouteImport } from './routes/drivers/add'
 import { Route as DriversIdRouteImport } from './routes/drivers/$id'
 import { Route as VehiclesIdIndexRouteImport } from './routes/vehicles/$id/index'
+import { Route as DriversIdIndexRouteImport } from './routes/drivers/$id/index'
 import { Route as VehiclesIdEditRouteImport } from './routes/vehicles/$id/edit'
+import { Route as DriversIdEditRouteImport } from './routes/drivers/$id/edit'
 
 const VehiclesRoute = VehiclesRouteImport.update({
   id: '/vehicles',
@@ -97,6 +100,11 @@ const TaxiparksIdRoute = TaxiparksIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => TaxiparksRoute,
 } as any)
+const DriversAddRoute = DriversAddRouteImport.update({
+  id: '/add',
+  path: '/add',
+  getParentRoute: () => DriversRoute,
+} as any)
 const DriversIdRoute = DriversIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -107,10 +115,20 @@ const VehiclesIdIndexRoute = VehiclesIdIndexRouteImport.update({
   path: '/',
   getParentRoute: () => VehiclesIdRoute,
 } as any)
+const DriversIdIndexRoute = DriversIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DriversIdRoute,
+} as any)
 const VehiclesIdEditRoute = VehiclesIdEditRouteImport.update({
   id: '/edit',
   path: '/edit',
   getParentRoute: () => VehiclesIdRoute,
+} as any)
+const DriversIdEditRoute = DriversIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => DriversIdRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -122,14 +140,17 @@ export interface FileRoutesByFullPath {
   '/taxiparks': typeof TaxiparksRouteWithChildren
   '/taxiparks-ui-kit': typeof TaxiparksUiKitRoute
   '/vehicles': typeof VehiclesRouteWithChildren
-  '/drivers/$id': typeof DriversIdRoute
+  '/drivers/$id': typeof DriversIdRouteWithChildren
+  '/drivers/add': typeof DriversAddRoute
   '/taxiparks/$id': typeof TaxiparksIdRoute
   '/vehicles/$id': typeof VehiclesIdRouteWithChildren
   '/vehicles/create': typeof VehiclesCreateRoute
   '/drivers/': typeof DriversIndexRoute
   '/taxiparks/': typeof TaxiparksIndexRoute
   '/vehicles/': typeof VehiclesIndexRoute
+  '/drivers/$id/edit': typeof DriversIdEditRoute
   '/vehicles/$id/edit': typeof VehiclesIdEditRoute
+  '/drivers/$id/': typeof DriversIdIndexRoute
   '/vehicles/$id/': typeof VehiclesIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -138,13 +159,15 @@ export interface FileRoutesByTo {
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
   '/taxiparks-ui-kit': typeof TaxiparksUiKitRoute
-  '/drivers/$id': typeof DriversIdRoute
+  '/drivers/add': typeof DriversAddRoute
   '/taxiparks/$id': typeof TaxiparksIdRoute
   '/vehicles/create': typeof VehiclesCreateRoute
   '/drivers': typeof DriversIndexRoute
   '/taxiparks': typeof TaxiparksIndexRoute
   '/vehicles': typeof VehiclesIndexRoute
+  '/drivers/$id/edit': typeof DriversIdEditRoute
   '/vehicles/$id/edit': typeof VehiclesIdEditRoute
+  '/drivers/$id': typeof DriversIdIndexRoute
   '/vehicles/$id': typeof VehiclesIdIndexRoute
 }
 export interface FileRoutesById {
@@ -157,14 +180,17 @@ export interface FileRoutesById {
   '/taxiparks': typeof TaxiparksRouteWithChildren
   '/taxiparks-ui-kit': typeof TaxiparksUiKitRoute
   '/vehicles': typeof VehiclesRouteWithChildren
-  '/drivers/$id': typeof DriversIdRoute
+  '/drivers/$id': typeof DriversIdRouteWithChildren
+  '/drivers/add': typeof DriversAddRoute
   '/taxiparks/$id': typeof TaxiparksIdRoute
   '/vehicles/$id': typeof VehiclesIdRouteWithChildren
   '/vehicles/create': typeof VehiclesCreateRoute
   '/drivers/': typeof DriversIndexRoute
   '/taxiparks/': typeof TaxiparksIndexRoute
   '/vehicles/': typeof VehiclesIndexRoute
+  '/drivers/$id/edit': typeof DriversIdEditRoute
   '/vehicles/$id/edit': typeof VehiclesIdEditRoute
+  '/drivers/$id/': typeof DriversIdIndexRoute
   '/vehicles/$id/': typeof VehiclesIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -179,13 +205,16 @@ export interface FileRouteTypes {
     | '/taxiparks-ui-kit'
     | '/vehicles'
     | '/drivers/$id'
+    | '/drivers/add'
     | '/taxiparks/$id'
     | '/vehicles/$id'
     | '/vehicles/create'
     | '/drivers/'
     | '/taxiparks/'
     | '/vehicles/'
+    | '/drivers/$id/edit'
     | '/vehicles/$id/edit'
+    | '/drivers/$id/'
     | '/vehicles/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -194,13 +223,15 @@ export interface FileRouteTypes {
     | '/reports'
     | '/settings'
     | '/taxiparks-ui-kit'
-    | '/drivers/$id'
+    | '/drivers/add'
     | '/taxiparks/$id'
     | '/vehicles/create'
     | '/drivers'
     | '/taxiparks'
     | '/vehicles'
+    | '/drivers/$id/edit'
     | '/vehicles/$id/edit'
+    | '/drivers/$id'
     | '/vehicles/$id'
   id:
     | '__root__'
@@ -213,13 +244,16 @@ export interface FileRouteTypes {
     | '/taxiparks-ui-kit'
     | '/vehicles'
     | '/drivers/$id'
+    | '/drivers/add'
     | '/taxiparks/$id'
     | '/vehicles/$id'
     | '/vehicles/create'
     | '/drivers/'
     | '/taxiparks/'
     | '/vehicles/'
+    | '/drivers/$id/edit'
     | '/vehicles/$id/edit'
+    | '/drivers/$id/'
     | '/vehicles/$id/'
   fileRoutesById: FileRoutesById
 }
@@ -334,6 +368,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxiparksIdRouteImport
       parentRoute: typeof TaxiparksRoute
     }
+    '/drivers/add': {
+      id: '/drivers/add'
+      path: '/add'
+      fullPath: '/drivers/add'
+      preLoaderRoute: typeof DriversAddRouteImport
+      parentRoute: typeof DriversRoute
+    }
     '/drivers/$id': {
       id: '/drivers/$id'
       path: '/$id'
@@ -348,6 +389,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VehiclesIdIndexRouteImport
       parentRoute: typeof VehiclesIdRoute
     }
+    '/drivers/$id/': {
+      id: '/drivers/$id/'
+      path: '/'
+      fullPath: '/drivers/$id/'
+      preLoaderRoute: typeof DriversIdIndexRouteImport
+      parentRoute: typeof DriversIdRoute
+    }
     '/vehicles/$id/edit': {
       id: '/vehicles/$id/edit'
       path: '/edit'
@@ -355,16 +403,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VehiclesIdEditRouteImport
       parentRoute: typeof VehiclesIdRoute
     }
+    '/drivers/$id/edit': {
+      id: '/drivers/$id/edit'
+      path: '/edit'
+      fullPath: '/drivers/$id/edit'
+      preLoaderRoute: typeof DriversIdEditRouteImport
+      parentRoute: typeof DriversIdRoute
+    }
   }
 }
 
+interface DriversIdRouteChildren {
+  DriversIdEditRoute: typeof DriversIdEditRoute
+  DriversIdIndexRoute: typeof DriversIdIndexRoute
+}
+
+const DriversIdRouteChildren: DriversIdRouteChildren = {
+  DriversIdEditRoute: DriversIdEditRoute,
+  DriversIdIndexRoute: DriversIdIndexRoute,
+}
+
+const DriversIdRouteWithChildren = DriversIdRoute._addFileChildren(
+  DriversIdRouteChildren,
+)
+
 interface DriversRouteChildren {
-  DriversIdRoute: typeof DriversIdRoute
+  DriversIdRoute: typeof DriversIdRouteWithChildren
+  DriversAddRoute: typeof DriversAddRoute
   DriversIndexRoute: typeof DriversIndexRoute
 }
 
 const DriversRouteChildren: DriversRouteChildren = {
-  DriversIdRoute: DriversIdRoute,
+  DriversIdRoute: DriversIdRouteWithChildren,
+  DriversAddRoute: DriversAddRoute,
   DriversIndexRoute: DriversIndexRoute,
 }
 

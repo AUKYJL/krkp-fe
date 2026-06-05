@@ -4,6 +4,7 @@ export const driverMockData: DriverRow[] = [
   {
     id: "1",
     driver: "Иван Петров",
+    experience: "6 лет",
     car: "А123ВС 77",
     revenue: 412_000,
     avgPerDay: 16_480,
@@ -16,6 +17,7 @@ export const driverMockData: DriverRow[] = [
   {
     id: "2",
     driver: "Алексей Смирнов",
+    experience: "5 лет",
     car: "М542КР 97",
     revenue: 387_000,
     avgPerDay: 15_875,
@@ -28,6 +30,7 @@ export const driverMockData: DriverRow[] = [
   {
     id: "3",
     driver: "Руслан Ахмедов",
+    experience: "4 года",
     car: "Т908ОР 50",
     revenue: 361_000,
     avgPerDay: 14_958,
@@ -40,6 +43,7 @@ export const driverMockData: DriverRow[] = [
   {
     id: "4",
     driver: "Дмитрий Орлов",
+    experience: "8 лет",
     car: "К711НА 77",
     revenue: 336_500,
     avgPerDay: 13_860,
@@ -52,6 +56,7 @@ export const driverMockData: DriverRow[] = [
   {
     id: "5",
     driver: "Сергей Волков",
+    experience: "7 лет",
     car: "В290ЕМ 97",
     revenue: 328_200,
     avgPerDay: 13_665,
@@ -64,6 +69,7 @@ export const driverMockData: DriverRow[] = [
   {
     id: "6",
     driver: "Павел Никитин",
+    experience: "3 года",
     car: "Р445ТХ 77",
     revenue: 319_700,
     avgPerDay: 13_030,
@@ -76,6 +82,7 @@ export const driverMockData: DriverRow[] = [
   {
     id: "7",
     driver: "Егор Васильев",
+    experience: "5 лет",
     car: "Н118СМ 50",
     revenue: 301_200,
     avgPerDay: 12_550,
@@ -88,6 +95,7 @@ export const driverMockData: DriverRow[] = [
   {
     id: "8",
     driver: "Артем Кузнецов",
+    experience: "2 года",
     car: "Х301ТЕ 77",
     revenue: 294_800,
     avgPerDay: 12_200,
@@ -100,6 +108,7 @@ export const driverMockData: DriverRow[] = [
   {
     id: "9",
     driver: "Михаил Зайцев",
+    experience: "9 лет",
     car: "С814УР 97",
     revenue: 287_600,
     avgPerDay: 11_920,
@@ -112,6 +121,7 @@ export const driverMockData: DriverRow[] = [
   {
     id: "10",
     driver: "Никита Лебедев",
+    experience: "4 года",
     car: "О620ВС 50",
     revenue: 279_900,
     avgPerDay: 11_330,
@@ -124,6 +134,7 @@ export const driverMockData: DriverRow[] = [
   {
     id: "11",
     driver: "Владимир Федоров",
+    experience: "10 лет",
     car: "А921КМ 77",
     revenue: 268_500,
     avgPerDay: 11_210,
@@ -136,6 +147,7 @@ export const driverMockData: DriverRow[] = [
   {
     id: "12",
     driver: "Антон Соколов",
+    experience: "3 года",
     car: "Е506НК 97",
     revenue: 260_400,
     avgPerDay: 10_860,
@@ -148,6 +160,7 @@ export const driverMockData: DriverRow[] = [
   {
     id: "13",
     driver: "Илья Морозов",
+    experience: "6 лет",
     car: "С744ХА 50",
     revenue: 253_100,
     avgPerDay: 10_600,
@@ -160,6 +173,7 @@ export const driverMockData: DriverRow[] = [
   {
     id: "14",
     driver: "Роман Мельников",
+    experience: "7 лет",
     car: "Т362КР 77",
     revenue: 247_800,
     avgPerDay: 10_320,
@@ -172,6 +186,7 @@ export const driverMockData: DriverRow[] = [
   {
     id: "15",
     driver: "Григорий Лазарев",
+    experience: "5 лет",
     car: "Н880РВ 97",
     revenue: 241_500,
     avgPerDay: 10_020,
@@ -184,6 +199,7 @@ export const driverMockData: DriverRow[] = [
   {
     id: "16",
     driver: "Константин Яковлев",
+    experience: "11 лет",
     car: "К129ОУ 50",
     revenue: 236_900,
     avgPerDay: 9_870,
@@ -196,6 +212,7 @@ export const driverMockData: DriverRow[] = [
   {
     id: "17",
     driver: "Станислав Беляев",
+    experience: "4 года",
     car: "В503АС 77",
     revenue: 229_300,
     avgPerDay: 9_520,
@@ -208,6 +225,7 @@ export const driverMockData: DriverRow[] = [
   {
     id: "18",
     driver: "Петр Матвеев",
+    experience: "6 лет",
     car: "Р658ТМ 97",
     revenue: 223_400,
     avgPerDay: 9_220,
@@ -220,6 +238,7 @@ export const driverMockData: DriverRow[] = [
   {
     id: "19",
     driver: "Виталий Алексеев",
+    experience: "8 лет",
     car: "О274ЕН 50",
     revenue: 216_800,
     avgPerDay: 8_960,
@@ -232,6 +251,7 @@ export const driverMockData: DriverRow[] = [
   {
     id: "20",
     driver: "Тимур Нестеров",
+    experience: "2 года",
     car: "Х517МН 77",
     revenue: 209_700,
     avgPerDay: 8_730,
@@ -245,4 +265,3 @@ export const driverMockData: DriverRow[] = [
 
 export const getDriverMockById = (id: string) =>
   driverMockData.find((driver) => driver.id === id) ?? driverMockData[0];
-

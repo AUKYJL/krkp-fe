@@ -1,18 +1,26 @@
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Info, PencilLine } from "lucide-react";
-import type { ReactNode } from "react";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Info,
+  PencilLine,
+  UserPlus,
+  UserRoundX,
+} from "lucide-react";
+import { type ReactNode, useState } from "react";
 
 import { AppText } from "@/shared/ui/app-text";
 import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
 import { CardSurface } from "@/shared/ui/card-surface";
 import { cn } from "@/shared/utils";
 
+import { type DriverRow, getDriverMockById } from "./consts";
+import { ConfirmDialog } from "@/features/confirm-dialog";
 import { KpiCard } from "@/features/kpi-card";
 import { PageHeader } from "@/features/page-header/page-header";
 import { ProgressCard } from "@/features/progress-card";
 import { TitledBlock } from "@/features/titled-block/titled-block";
 import { VerticalBarChart } from "@/features/vertical-bar-chart";
-import { getDriverMockById, type DriverRow } from "./consts";
 
 const moneyFormatter = new Intl.NumberFormat("ru-RU");
 const percentFormatter = new Intl.NumberFormat("ru-RU", {
@@ -20,8 +28,11 @@ const percentFormatter = new Intl.NumberFormat("ru-RU", {
   maximumFractionDigits: 1,
 });
 
+export type DriverDetailMode = "internal" | "external";
+
 interface DriverDetailPageProps {
   driverId: string;
+  mode: DriverDetailMode;
 }
 
 type DetailChipProps = {
@@ -63,9 +74,9 @@ const getInitials = (name: string) =>
 const buildRevenueChartData = (driver: DriverRow) =>
   Array.from({ length: 12 }).map((_, index) => {
     const day = 18 + index;
-    const weekdayBoost = [0, 60, 140, 210, 280, 120, -40, 90, 180, 240, 300, 160][
-      index
-    ];
+    const weekdayBoost = [
+      0, 60, 140, 210, 280, 120, -40, 90, 180, 240, 300, 160,
+    ][index];
     const value = Math.max(
       0,
       Math.round(driver.avgPerDay * 0.78 + weekdayBoost + driver.rank * 115),
@@ -87,7 +98,7 @@ const ComparisonRow = ({
   const safePercent = Math.max(0, Math.min(100, percent));
 
   return (
-    <div className="rounded-[12px] bg-background-page px-4 py-3">
+    <div className="bg-background-page rounded-[12px] px-4 py-3">
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
@@ -119,11 +130,44 @@ const ComparisonRow = ({
   );
 };
 
-export const DriverDetailPage = ({ driverId }: DriverDetailPageProps) => {
-  const navigate = useNavigate();
-  const driver = getDriverMockById(driverId);
-  const driverStatusLabel = driver.status === "active" ? "Активен" : "Риск";
-  const driverInitials = getInitials(driver.driver);
+const ExternalDriverCard = ({
+  driverName,
+  driverInitials,
+}: {
+  driverName: string;
+  driverInitials: string;
+}) => {
+  return (
+    <section className="max-w-3xl">
+      <CardSurface className="gap-6 rounded-[24px] p-6 md:p-8">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+          <div className="bg-accent-primary-soft text-accent-primary flex size-20 shrink-0 items-center justify-center rounded-[24px] text-2xl font-bold">
+            {driverInitials}
+          </div>
+
+          <div className="min-w-0">
+            <AppText className="text-text-secondary text-xs font-semibold tracking-[0.12em] uppercase">
+              Внешний профиль
+            </AppText>
+            <AppText className="text-text-primary mt-2 text-2xl font-bold">
+              {driverName}
+            </AppText>
+          </div>
+        </div>
+      </CardSurface>
+    </section>
+  );
+};
+
+const InternalDriverContent = ({
+  driver,
+  driverInitials,
+  driverStatusLabel,
+}: {
+  driver: DriverRow;
+  driverInitials: string;
+  driverStatusLabel: string;
+}) => {
   const revenueByDayData = buildRevenueChartData(driver);
   const revenueChartTotal = revenueByDayData.reduce(
     (total, item) => total + item.value,
@@ -196,33 +240,7 @@ export const DriverDetailPage = ({ driverId }: DriverDetailPageProps) => {
   ];
 
   return (
-    <main className="bg-background-page flex min-h-full w-full flex-col gap-6 p-6">
-      <PageHeader
-        title="Карточка водителя"
-        description="Обновлено: сегодня 09:40"
-        breadcrumbs={[
-          { label: "Главная", href: "/" },
-          { label: "Водители", href: "/drivers" },
-        ]}
-        actions={
-          <>
-            <Button
-              type="button"
-              variant={BUTTON_VARIANTS_VARIABLES.secondary}
-              onClick={() => navigate({ to: "/drivers" })}
-            >
-              <ArrowLeft className="size-4" />
-              Назад
-            </Button>
-
-            <Button type="button">
-              <PencilLine className="size-4" />
-              Редактировать
-            </Button>
-          </>
-        }
-      />
-
+    <>
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
         <div className="flex min-w-0 flex-col gap-4">
           <CardSurface className="gap-4">
@@ -237,7 +255,9 @@ export const DriverDetailPage = ({ driverId }: DriverDetailPageProps) => {
                     <AppText className="text-text-primary text-xl font-bold">
                       {driver.driver}
                     </AppText>
-                    <DetailChip tone={driver.status === "risk" ? "accent" : "default"}>
+                    <DetailChip
+                      tone={driver.status === "risk" ? "accent" : "default"}
+                    >
                       {driverStatusLabel}
                     </DetailChip>
                   </div>
@@ -397,6 +417,118 @@ export const DriverDetailPage = ({ driverId }: DriverDetailPageProps) => {
           height={220}
         />
       </CardSurface>
+    </>
+  );
+};
+
+export const DriverDetailPage = ({ driverId, mode }: DriverDetailPageProps) => {
+  const navigate = useNavigate();
+
+  const driver = getDriverMockById(driverId);
+  const driverStatusLabel = driver.status === "active" ? "Активен" : "Риск";
+  const driverInitials = getInitials(driver.driver);
+
+  return (
+    <main className="bg-background-page flex min-h-full w-full flex-col gap-6 p-6">
+      <PageHeader
+        title="Карточка водителя"
+        description="Обновлено: сегодня 09:40"
+        breadcrumbs={[
+          { label: "Главная", href: "/" },
+          { label: "Водители", href: "/drivers" },
+        ]}
+        actions={
+          mode === "external" ? (
+            <>
+              <Button
+                type="button"
+                variant={BUTTON_VARIANTS_VARIABLES.secondary}
+                onClick={() => navigate({ to: "/drivers" })}
+              >
+                <ArrowLeft className="size-4" />
+                Назад
+              </Button>
+
+              <ConfirmDialog
+                title={`Пригласить ${driver.driver} в таксопарк?`}
+                description={
+                  <>
+                    Мы отправим приглашение водителю {driver.driver}. В текущей
+                    версии это только UI-flow без изменения mock-данных.
+                  </>
+                }
+                confirmText={"Пригласить"}
+                cancelText={"Отмена"}
+                confirmVariant={BUTTON_VARIANTS_VARIABLES.default}
+                media={
+                  <div className="bg-accent-primary-soft text-accent-primary flex size-12 items-center justify-center rounded-full">
+                    <UserPlus className="size-6" />
+                  </div>
+                }
+                onConfirm={() => {}}
+                trigger={
+                  <Button type="button">
+                    <UserPlus className="size-4" />
+                    Пригласить в таксопарк
+                  </Button>
+                }
+              />
+            </>
+          ) : (
+            <>
+              <Button
+                type="button"
+                variant={BUTTON_VARIANTS_VARIABLES.secondary}
+                onClick={() => navigate({ to: "/drivers" })}
+              >
+                <ArrowLeft className="size-4" />
+                Назад
+              </Button>
+
+              <Button
+                type="button"
+                onClick={() =>
+                  navigate({
+                    to: "/drivers/$id/edit",
+                    params: { id: driverId },
+                  })
+                }
+              >
+                <PencilLine className="size-4" />
+                Редактировать
+              </Button>
+
+              <ConfirmDialog
+                title={`Уволить водителя ${driver.driver}?`}
+                description={`В локальном UI-сценарии действие не изменит данные, но позволит проверить destructive flow для водителя ${driver.driver}.`}
+                confirmText="Уволить"
+                trigger={
+                  <Button
+                    type="button"
+                    variant={BUTTON_VARIANTS_VARIABLES.destructive}
+                  >
+                    <UserRoundX className="size-4" />
+                    Уволить
+                  </Button>
+                }
+              />
+            </>
+          )
+        }
+      />
+
+      {mode === "external" ? (
+        <ExternalDriverCard
+          driverName={driver.driver}
+          driverInitials={driverInitials}
+        />
+      ) : (
+        <InternalDriverContent
+          driver={driver}
+          driverInitials={driverInitials}
+          driverStatusLabel={driverStatusLabel}
+        />
+      )}
     </main>
   );
 };
