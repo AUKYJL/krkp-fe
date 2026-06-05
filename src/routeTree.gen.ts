@@ -17,8 +17,10 @@ import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as FinanceRouteImport } from './routes/finance'
 import { Route as DriversRouteImport } from './routes/drivers'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VehiclesIndexRouteImport } from './routes/vehicles/index'
 import { Route as TaxiparksIndexRouteImport } from './routes/taxiparks/index'
 import { Route as DriversIndexRouteImport } from './routes/drivers/index'
+import { Route as VehiclesIdRouteImport } from './routes/vehicles/$id'
 import { Route as TaxiparksIdRouteImport } from './routes/taxiparks/$id'
 import { Route as DriversIdRouteImport } from './routes/drivers/$id'
 
@@ -62,6 +64,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VehiclesIndexRoute = VehiclesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => VehiclesRoute,
+} as any)
 const TaxiparksIndexRoute = TaxiparksIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -71,6 +78,11 @@ const DriversIndexRoute = DriversIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DriversRoute,
+} as any)
+const VehiclesIdRoute = VehiclesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => VehiclesRoute,
 } as any)
 const TaxiparksIdRoute = TaxiparksIdRouteImport.update({
   id: '/$id',
@@ -91,11 +103,13 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/taxiparks': typeof TaxiparksRouteWithChildren
   '/taxiparks-ui-kit': typeof TaxiparksUiKitRoute
-  '/vehicles': typeof VehiclesRoute
+  '/vehicles': typeof VehiclesRouteWithChildren
   '/drivers/$id': typeof DriversIdRoute
   '/taxiparks/$id': typeof TaxiparksIdRoute
+  '/vehicles/$id': typeof VehiclesIdRoute
   '/drivers/': typeof DriversIndexRoute
   '/taxiparks/': typeof TaxiparksIndexRoute
+  '/vehicles/': typeof VehiclesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -103,11 +117,12 @@ export interface FileRoutesByTo {
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
   '/taxiparks-ui-kit': typeof TaxiparksUiKitRoute
-  '/vehicles': typeof VehiclesRoute
   '/drivers/$id': typeof DriversIdRoute
   '/taxiparks/$id': typeof TaxiparksIdRoute
+  '/vehicles/$id': typeof VehiclesIdRoute
   '/drivers': typeof DriversIndexRoute
   '/taxiparks': typeof TaxiparksIndexRoute
+  '/vehicles': typeof VehiclesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -118,11 +133,13 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/taxiparks': typeof TaxiparksRouteWithChildren
   '/taxiparks-ui-kit': typeof TaxiparksUiKitRoute
-  '/vehicles': typeof VehiclesRoute
+  '/vehicles': typeof VehiclesRouteWithChildren
   '/drivers/$id': typeof DriversIdRoute
   '/taxiparks/$id': typeof TaxiparksIdRoute
+  '/vehicles/$id': typeof VehiclesIdRoute
   '/drivers/': typeof DriversIndexRoute
   '/taxiparks/': typeof TaxiparksIndexRoute
+  '/vehicles/': typeof VehiclesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -137,8 +154,10 @@ export interface FileRouteTypes {
     | '/vehicles'
     | '/drivers/$id'
     | '/taxiparks/$id'
+    | '/vehicles/$id'
     | '/drivers/'
     | '/taxiparks/'
+    | '/vehicles/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -146,11 +165,12 @@ export interface FileRouteTypes {
     | '/reports'
     | '/settings'
     | '/taxiparks-ui-kit'
-    | '/vehicles'
     | '/drivers/$id'
     | '/taxiparks/$id'
+    | '/vehicles/$id'
     | '/drivers'
     | '/taxiparks'
+    | '/vehicles'
   id:
     | '__root__'
     | '/'
@@ -163,8 +183,10 @@ export interface FileRouteTypes {
     | '/vehicles'
     | '/drivers/$id'
     | '/taxiparks/$id'
+    | '/vehicles/$id'
     | '/drivers/'
     | '/taxiparks/'
+    | '/vehicles/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -175,7 +197,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   TaxiparksRoute: typeof TaxiparksRouteWithChildren
   TaxiparksUiKitRoute: typeof TaxiparksUiKitRoute
-  VehiclesRoute: typeof VehiclesRoute
+  VehiclesRoute: typeof VehiclesRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -236,6 +258,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vehicles/': {
+      id: '/vehicles/'
+      path: '/'
+      fullPath: '/vehicles/'
+      preLoaderRoute: typeof VehiclesIndexRouteImport
+      parentRoute: typeof VehiclesRoute
+    }
     '/taxiparks/': {
       id: '/taxiparks/'
       path: '/'
@@ -249,6 +278,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/drivers/'
       preLoaderRoute: typeof DriversIndexRouteImport
       parentRoute: typeof DriversRoute
+    }
+    '/vehicles/$id': {
+      id: '/vehicles/$id'
+      path: '/$id'
+      fullPath: '/vehicles/$id'
+      preLoaderRoute: typeof VehiclesIdRouteImport
+      parentRoute: typeof VehiclesRoute
     }
     '/taxiparks/$id': {
       id: '/taxiparks/$id'
@@ -294,6 +330,20 @@ const TaxiparksRouteWithChildren = TaxiparksRoute._addFileChildren(
   TaxiparksRouteChildren,
 )
 
+interface VehiclesRouteChildren {
+  VehiclesIdRoute: typeof VehiclesIdRoute
+  VehiclesIndexRoute: typeof VehiclesIndexRoute
+}
+
+const VehiclesRouteChildren: VehiclesRouteChildren = {
+  VehiclesIdRoute: VehiclesIdRoute,
+  VehiclesIndexRoute: VehiclesIndexRoute,
+}
+
+const VehiclesRouteWithChildren = VehiclesRoute._addFileChildren(
+  VehiclesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DriversRoute: DriversRouteWithChildren,
@@ -302,7 +352,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   TaxiparksRoute: TaxiparksRouteWithChildren,
   TaxiparksUiKitRoute: TaxiparksUiKitRoute,
-  VehiclesRoute: VehiclesRoute,
+  VehiclesRoute: VehiclesRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

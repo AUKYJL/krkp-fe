@@ -1,0 +1,68 @@
+import type { KpiCardProps } from "@/features/kpi-card";
+
+export const vehicleKpiCards: KpiCardProps[] = [
+  {
+    label: "Общее количество",
+    value: "248",
+    meta: "всего в парке",
+    valueClassName: "text-text-primary",
+    metaClassName: "text-accent-primary",
+    className: "min-w-0",
+  },
+  {
+    label: "На линии",
+    value: "196",
+    meta: "79% от парка",
+    valueClassName: "text-text-primary",
+    metaClassName: "text-accent-primary",
+    className: "min-w-0",
+  },
+  {
+    label: "В простое",
+    value: "32",
+    meta: "требуют внимания",
+    valueClassName: "text-text-primary",
+    metaClassName: "text-accent-primary",
+    className: "min-w-0",
+  },
+  {
+    label: "Процент простоев",
+    value: "12.9%",
+    meta: "-1.3% за неделю",
+    valueClassName: "text-text-primary",
+    metaClassName: "text-accent-primary",
+    className: "min-w-0",
+  },
+  {
+    label: "Средняя дневная выручка",
+    value: "₽ 8 420",
+    meta: "по последним 7 дням",
+    valueClassName: "text-text-primary",
+    metaClassName: "text-accent-primary",
+    className: "min-w-0",
+  },
+  {
+    label: "Потерянная прибыль",
+    value: "₽ 1.24M",
+    meta: "из-за простоев",
+    valueClassName: "text-accent-primary",
+    metaClassName: "text-accent-primary",
+    className: "min-w-0",
+  },
+  {
+    label: "Индекс эффективности",
+    value: "87.4",
+    meta: "выше плана",
+    valueClassName: "text-text-primary",
+    metaClassName: "text-accent-primary",
+    className: "min-w-0",
+  },
+  {
+    label: "Аварийные автомобили",
+    value: "5",
+    meta: "срочный ремонт",
+    valueClassName: "text-text-primary",
+    metaClassName: "text-accent-primary",
+    className: "min-w-0",
+  },
+];

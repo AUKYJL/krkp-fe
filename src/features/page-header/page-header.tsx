@@ -24,7 +24,7 @@ export const PageHeader = ({
 }: PageHeaderProps) => {
   return (
     <header className="flex items-start justify-between gap-6">
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         {breadcrumbs?.length ? <AppBreadcrumbs items={breadcrumbs} /> : null}
 
         <AppText
