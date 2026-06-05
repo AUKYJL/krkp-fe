@@ -1,20 +1,19 @@
 import { useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
-  CheckCircle2,
   Info,
   PencilLine,
   UserPlus,
   UserRoundX,
 } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import type { ReactNode } from "react";
 
 import { AppText } from "@/shared/ui/app-text";
 import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
 import { CardSurface } from "@/shared/ui/card-surface";
 import { cn } from "@/shared/utils";
 
-import { type DriverRow, getDriverMockById } from "./consts";
+import { type DriverRow, getDriverMockById } from "../consts";
 import { ConfirmDialog } from "@/features/confirm-dialog";
 import { KpiCard } from "@/features/kpi-card";
 import { PageHeader } from "@/features/page-header/page-header";

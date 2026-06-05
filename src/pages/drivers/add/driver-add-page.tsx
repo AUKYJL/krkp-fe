@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 import { CardSurface } from "@/shared/ui/card-surface";
 
-import { driverMockData } from "./consts";
+import { driverMockData } from "../consts";
 import { DriverCard } from "./ui/driver-card";
 import { PageHeader } from "@/features/page-header/page-header";
 import { type PageSizeOption, Pagination } from "@/features/pagination";

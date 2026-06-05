@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { PageHeader } from "@/features/page-header/page-header";
-import { getDriverMockById } from "@/pages/drivers/consts";
+import { getDriverMockById } from "../consts";
 import { vehicleTableData } from "@/pages/vehicles/consts/vehicle-table-data";
 import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
 import { CardSurface } from "@/shared/ui/card-surface";

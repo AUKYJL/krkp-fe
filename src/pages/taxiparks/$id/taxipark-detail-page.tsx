@@ -20,7 +20,7 @@ import {
 } from "@/shared/ui/select";
 import { cn } from "@/shared/utils";
 
-import { BestIndicatorItem, StatusBadge } from "./ui";
+import { BestIndicatorItem, StatusBadge } from "../ui";
 import { DataTable } from "@/features/data-table";
 import { DonutPieChart } from "@/features/donut-pie-chart";
 import { PageHeader } from "@/features/page-header/page-header";

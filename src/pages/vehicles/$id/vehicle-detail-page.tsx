@@ -16,7 +16,7 @@ import {
   getVehicleDetailMockByPlate,
   getVehicleStatusConfig,
   vehicleTableData,
-} from "./consts";
+} from "../consts";
 import { KpiCard } from "@/features/kpi-card";
 import { PageHeader } from "@/features/page-header/page-header";
 import { VerticalBarChart } from "@/features/vertical-bar-chart";

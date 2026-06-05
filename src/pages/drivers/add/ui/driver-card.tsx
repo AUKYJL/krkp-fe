@@ -2,7 +2,7 @@ import { AppText } from "@/shared/ui/app-text";
 import { CardSurface } from "@/shared/ui/card-surface";
 import { cn } from "@/shared/utils";
 
-import type { DriverRow } from "../consts";
+import type { DriverRow } from "../../consts";
 
 interface DriverCardProps {
   driver: DriverRow;

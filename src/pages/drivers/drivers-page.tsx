@@ -8,7 +8,11 @@ import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { cn } from "@/shared/utils";
 
-import { type DriverRow, type DriverStatus, driverMockData } from "./consts";
+import {
+  type DriverRow,
+  type DriverStatus,
+  driverMockData,
+} from "./consts";
 import { DataTable } from "@/features/data-table";
 import { KpiCard } from "@/features/kpi-card";
 import { PageHeader } from "@/features/page-header/page-header";

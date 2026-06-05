@@ -9,16 +9,17 @@ import { tableMockData } from "@/pages/taxiparks/consts";
 import {
   VEHICLE_STATUS_OPTIONS,
   VEHICLE_STATUS_VALUES,
-} from "@/pages/vehicles/consts";
+} from "../consts";
 
-import { PageHeader } from "@/features/page-header/page-header";
 import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
 import { CardSurface } from "@/shared/ui/card-surface";
 import { type ComboboxOption } from "@/shared/ui/combobox";
 import { FieldGroup } from "@/shared/ui/field";
 import { FormCombobox, FormInput, FormSelect } from "@/shared/ui/form";
 
-const vehicleEditSchema = z.object({
+import { PageHeader } from "@/features/page-header/page-header";
+
+const vehicleCreateSchema = z.object({
   brand: z.string().trim().min(1, "Укажите марку"),
   model: z.string().trim().min(1, "Укажите модель"),
   plate: z.string().trim().min(1, "Укажите гос номер"),
@@ -29,11 +30,7 @@ const vehicleEditSchema = z.object({
   driverId: z.string().optional(),
 });
 
-type VehicleEditFormValues = z.infer<typeof vehicleEditSchema>;
-
-interface VehicleEditPageProps {
-  vehiclePlate: string;
-}
+export type VehicleCreateFormValues = z.infer<typeof vehicleCreateSchema>;
 
 const taxiparkOptions: ComboboxOption[] = tableMockData.map((taxipark) => ({
   value: taxipark.id,
@@ -57,7 +54,7 @@ const freeDriverOptions: ComboboxOption[] = driverMockData
     keywords: [driver.status],
   }));
 
-const buildVehicleEditPayload = (values: VehicleEditFormValues) => {
+const buildVehicleCreatePayload = (values: VehicleCreateFormValues) => {
   return {
     ...values,
     taxiparkName: taxiparkOptions.find(
@@ -69,12 +66,10 @@ const buildVehicleEditPayload = (values: VehicleEditFormValues) => {
   };
 };
 
-export const VehicleEditPage = ({
-  vehiclePlate,
-}: VehicleEditPageProps) => {
+export const VehicleCreatePage = () => {
   const navigate = useNavigate();
-  const form = useForm<VehicleEditFormValues>({
-    resolver: zodResolver(vehicleEditSchema),
+  const form = useForm<VehicleCreateFormValues>({
+    resolver: zodResolver(vehicleCreateSchema),
     defaultValues: {
       brand: "",
       model: "",
@@ -91,26 +86,21 @@ export const VehicleEditPage = ({
     handleSubmit,
   } = form;
 
-  const handleNavigateToDetail = () => {
-    navigate({ to: "/vehicles/$id", params: { id: vehiclePlate } });
-  };
+  const handleFormSubmit = (values: VehicleCreateFormValues) => {
+    void buildVehicleCreatePayload(values);
 
-  const handleFormSubmit = (values: VehicleEditFormValues) => {
-    void buildVehicleEditPayload(values);
-
-    handleNavigateToDetail();
+    navigate({ to: "/vehicles" });
   };
 
   return (
     <main className="bg-background-page flex min-h-full w-full flex-col gap-6 p-6">
       <PageHeader
-        title="Редактирование автомобиля"
-        description="Обновите данные автомобиля в локальном UI-сценарии и при необходимости переназначьте парк или водителя."
+        title="Создание автомобиля"
+        description="Добавьте автомобиль в локальный UI-каталог и при необходимости сразу назначьте парк и водителя."
         breadcrumbs={[
           { label: "Главная", href: "/" },
           { label: "Автомобили", href: "/vehicles" },
-          { label: vehiclePlate, href: `/vehicles/${vehiclePlate}` },
-          { label: "Редактирование" },
+          { label: "Создание" },
         ]}
         actions={
           <Button
@@ -118,9 +108,8 @@ export const VehicleEditPage = ({
             variant={BUTTON_VARIANTS_VARIABLES.secondary}
             asChild
           >
-            <Link to="/vehicles/$id" params={{ id: vehiclePlate }}>
-              <ArrowLeft className="size-4" />
-              К карточке
+            <Link to="/vehicles">
+              <ArrowLeft className="size-4" />К списку
             </Link>
           </Button>
         }
@@ -130,7 +119,7 @@ export const VehicleEditPage = ({
         <form
           noValidate
           onSubmit={handleSubmit(handleFormSubmit)}
-          className="flex flex-col gap-3"
+          className="flex flex-col gap-6"
         >
           <FieldGroup>
             <FormInput
@@ -189,13 +178,13 @@ export const VehicleEditPage = ({
           <div className="flex flex-wrap items-center gap-3">
             <Button type="submit" disabled={isSubmitting}>
               <Check className="size-4" />
-              Сохранить изменения
+              Создать автомобиль
             </Button>
 
             <Button
               type="button"
               variant={BUTTON_VARIANTS_VARIABLES.secondary}
-              onClick={handleNavigateToDetail}
+              onClick={() => navigate({ to: "/vehicles" })}
             >
               <ArrowLeft className="size-4" />
               Отмена
