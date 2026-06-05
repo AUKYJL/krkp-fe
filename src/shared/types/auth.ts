@@ -1,17 +1,17 @@
 import { z } from "zod";
 
-export enum ROLE {
+export enum ROLES {
   DRIVER = "DRIVER",
   DIRECTOR = "DIRECTOR",
 }
 
 export const authRoleOptions = [
   {
-    value: ROLE.DRIVER,
+    value: ROLES.DRIVER,
     label: "Водитель",
   },
   {
-    value: ROLE.DIRECTOR,
+    value: ROLES.DIRECTOR,
     label: "Директор",
   },
 ] as const;
@@ -27,7 +27,7 @@ export const registerSchema = z
     fullName: z.string().trim().min(1, "Укажите имя и фамилию"),
     password: z.string().min(1, "Укажите пароль"),
     repeatedPassword: z.string().min(1, "Повторите пароль"),
-    role: z.enum([ROLE.DRIVER, ROLE.DIRECTOR], {
+    role: z.enum([ROLES.DRIVER, ROLES.DIRECTOR], {
       error: "Выберите роль",
     }),
   })

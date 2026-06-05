@@ -4,14 +4,49 @@
  */
 
 export interface paths {
-    "/health": {
+    "/api/auth/register": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getHealth"];
+        get?: never;
+        put?: never;
+        /** Регистрация пользователя */
+        post: operations["AuthController_register"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Логин пользователя */
+        post: operations["AuthController_login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Получение авторизованного пользователя */
+        get: operations["AuthController_getCurrentUser"];
         put?: never;
         post?: never;
         delete?: never;
@@ -20,18 +55,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/progress/": {
+    "/api/action-logs": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /**
-         * Get user progress
-         * @description Returns user's level progress, found/unfound products/squirrels, and receipt count
-         */
-        get: operations["getProgress"];
+        /** Получить action logs */
+        get: operations["ActionLogsController_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -40,47 +72,98 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/progress/squirrel/{levelId}/{squirrelId}": {
+    "/api/taxi-parks/{taxiParkId}/action-logs": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Получить action logs по таксопарку */
+        get: operations["ActionLogsController_listByTaxiPark"];
         put?: never;
-        /**
-         * Mark squirrel as found
-         * @description Marks a squirrel as found. Pass isProduct=true if this squirrel has a product pack.
-         */
-        post: operations["postProgressSquirrelByLevelIdBySquirrelId"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/progress/unlock/{levelId}": {
+    "/api/taxi-parks": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Список моих таксопарков */
+        get: operations["TaxiParksController_listMine"];
         put?: never;
-        /**
-         * Unlock level for user
-         * @description Unlocks a level for the user, optionally bypassing global date lock
-         */
-        post: operations["postProgressUnlockByLevelId"];
+        /** Создать таксопарк */
+        post: operations["TaxiParksController_create"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/users/register": {
+    "/api/taxi-parks/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Получить таксопарк */
+        get: operations["TaxiParksController_get"];
+        put?: never;
+        post?: never;
+        /** Удалить таксопарк */
+        delete: operations["TaxiParksController_remove"];
+        options?: never;
+        head?: never;
+        /** Обновить таксопарк */
+        patch: operations["TaxiParksController_update"];
+        trace?: never;
+    };
+    "/api/taxi-parks/{taxiParkId}/cars": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Список авто таксопарка */
+        get: operations["CarsController_listByTaxiPark"];
+        put?: never;
+        /** Создать авто в таксопарке */
+        post: operations["CarsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cars/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Получить авто по id */
+        get: operations["CarsController_get"];
+        put?: never;
+        post?: never;
+        /** Удалить авто */
+        delete: operations["CarsController_remove"];
+        options?: never;
+        head?: never;
+        /** Обновить авто */
+        patch: operations["CarsController_update"];
+        trace?: never;
+    };
+    "/api/cars/{id}/state": {
         parameters: {
             query?: never;
             header?: never;
@@ -89,11 +172,401 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Register user from mini-app
-         * @description Creates user if not exists and sends the greeting message via bot on first registration. Call this on app open when the user is new (auth returns 401).
-         */
-        post: operations["postUsersRegister"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Обновить состояние авто */
+        patch: operations["CarsController_updateState"];
+        trace?: never;
+    };
+    "/api/drivers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Список водителей */
+        get: operations["DriversController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/drivers/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Профиль водителя (me) */
+        get: operations["DriversController_getMe"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/drivers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Получить водителя */
+        get: operations["DriversController_get"];
+        put?: never;
+        post?: never;
+        /** Удалить водителя */
+        delete: operations["DriversController_remove"];
+        options?: never;
+        head?: never;
+        /** Обновить водителя */
+        patch: operations["DriversController_update"];
+        trace?: never;
+    };
+    "/api/drivers/{driverId}/assign-car": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Назначить авто водителю */
+        post: operations["DriversController_assignCar"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/taxi-parks/{taxiParkId}/invitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Пригласить водителя в таксопарк */
+        post: operations["InvitationsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/invitations/my": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Мои приглашения */
+        get: operations["InvitationsController_listMy"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/invitations/{id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Принять приглашение */
+        patch: operations["InvitationsController_accept"];
+        trace?: never;
+    };
+    "/api/invitations/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Отклонить приглашение */
+        patch: operations["InvitationsController_reject"];
+        trace?: never;
+    };
+    "/api/invitations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Отменить приглашение */
+        delete: operations["InvitationsController_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/work-days": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Создать дневную запись */
+        post: operations["WorkDaysController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/work-days/my": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Мои дневные записи */
+        get: operations["WorkDaysController_listMy"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/work-days/my/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Моя дневная запись */
+        get: operations["WorkDaysController_getMy"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/work-days/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Обновить мою дневную запись */
+        patch: operations["WorkDaysController_updateMy"];
+        trace?: never;
+    };
+    "/api/drivers/{driverId}/work-days": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Work-days водителя (директор) */
+        get: operations["WorkDaysController_listByDriver"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cars/{carId}/work-days": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Work-days авто (директор) */
+        get: operations["WorkDaysController_listByCar"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analytics/driver/{driverId}/revenue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Выручка водителя */
+        get: operations["AnalyticsController_driverRevenue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analytics/taxi-parks/{taxiParkId}/revenue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Выручка таксопарка */
+        get: operations["AnalyticsController_taxiParkRevenue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analytics/revenue/all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Выручка всех */
+        get: operations["AnalyticsController_allRevenue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analytics/cars/most-profitable-brands": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Самые прибыльные бренды */
+        get: operations["AnalyticsController_mostProfitableBrands"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analytics/cars/not-on-line": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Авто не на линии */
+        get: operations["AnalyticsController_carsNotOnLine"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analytics/cars/most-broken-brands": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Самые ломающиеся бренды */
+        get: operations["AnalyticsController_mostBrokenBrands"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analytics/drivers/rating": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Рейтинг водителей */
+        get: operations["AnalyticsController_driversRating"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analytics/downtime-losses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Потери от простоя */
+        get: operations["AnalyticsController_downtimeLosses"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -103,7 +576,129 @@ export interface paths {
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: never;
+    schemas: {
+        RegisterDto: {
+            /** @example user@example.com */
+            email: string;
+            /** @example Иван Иванов */
+            fullName: string;
+            /** @example password123 */
+            password: string;
+            /** @example password123 */
+            repeatedPassword: string;
+            /**
+             * @example DIRECTOR
+             * @enum {string}
+             */
+            role: "DRIVER" | "DIRECTOR";
+        };
+        AuthTokenResponseDto: {
+            accessToken: string;
+        };
+        BadResponseDto: {
+            /** @example 400 */
+            statusCode: number;
+            message: string;
+        };
+        LoginDto: {
+            /** @example user@example.com */
+            email: string;
+            /** @example password123 */
+            password: string;
+        };
+        UsersResponseDto: {
+            /** @example b3d8e3d6-8a5a-4d6f-a2cb-3af69b83e46a */
+            id: string;
+            /** @example user@example.com */
+            email: string;
+            /** @example Иван Иванов */
+            fullName: string;
+            /**
+             * @example DIRECTOR
+             * @enum {string}
+             */
+            role: "DRIVER" | "DIRECTOR";
+        };
+        CreateTaxiParkDto: {
+            /** @example Таксопарк №1 */
+            name: string;
+            /** @example Москва, ул. Пушкина 1 */
+            address: string;
+        };
+        UpdateTaxiParkDto: {
+            /** @example Таксопарк №1 */
+            name?: string;
+            /** @example Москва, ул. Пушкина 1 */
+            address?: string;
+        };
+        CreateCarDto: {
+            /** @example Toyota */
+            firm: string;
+            /** @example Camry */
+            model: string;
+            /** @example SEDAN */
+            type: string;
+            /** @example A123BC77 */
+            plateNumber: string;
+            /**
+             * @example WORKING
+             * @enum {string}
+             */
+            state?: "WORKING" | "EMERGENCY" | "REPAIR";
+        };
+        UpdateCarDto: {
+            /** @example Toyota */
+            firm?: string;
+            /** @example Camry */
+            model?: string;
+            /** @example SEDAN */
+            type?: string;
+            /** @example A123BC77 */
+            plateNumber?: string;
+            /**
+             * @example WORKING
+             * @enum {string}
+             */
+            state?: "WORKING" | "EMERGENCY" | "REPAIR";
+        };
+        UpdateCarStateDto: {
+            /**
+             * @example REPAIR
+             * @enum {string}
+             */
+            state: "WORKING" | "EMERGENCY" | "REPAIR";
+        };
+        UpdateDriverDto: {
+            /** @example 1234 567890 */
+            passportNumber?: string;
+            /** @example 5 */
+            experience?: number;
+        };
+        AssignCarDto: {
+            /** @example car-uuid */
+            carId: string;
+        };
+        CreateDriverInvitationDto: {
+            /** @example driver-uuid */
+            driverId: string;
+        };
+        CreateWorkDayDto: {
+            /** @example 2026-05-02 */
+            workDate: string;
+            /** @example 2500 */
+            revenue?: number;
+            /** @example true */
+            carOnLine?: boolean;
+        };
+        UpdateWorkDayDto: {
+            /** @example 2026-05-02 */
+            workDate?: string;
+            /** @example 2500 */
+            revenue?: number;
+            /** @example true */
+            carOnLine?: boolean;
+        };
+    };
     responses: never;
     parameters: never;
     requestBodies: never;
@@ -112,7 +707,69 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    getHealth: {
+    AuthController_register: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthTokenResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadResponseDto"];
+                };
+            };
+        };
+    };
+    AuthController_login: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthTokenResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadResponseDto"];
+                };
+            };
+        };
+    };
+    AuthController_getCurrentUser: {
         parameters: {
             query?: never;
             header?: never;
@@ -120,176 +777,794 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
-        responses: never;
-    };
-    getProgress: {
-        parameters: {
-            query?: never;
-            header: {
-                authorization: string;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsersResponseDto"];
+                };
             };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadResponseDto"];
+                };
+            };
+        };
+    };
+    ActionLogsController_list: {
+        parameters: {
+            query?: {
+                /** @description Action filter */
+                action?: string;
+                from?: string;
+                to?: string;
+            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Response for status 200 */
+            /** @description List of logs */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": {
-                        levels: {
-                            levelId: number;
-                            name: string;
-                            unlocked: boolean;
-                            totalProducts: number;
-                            totalSquirrels: number;
-                            foundProductIds: number[];
-                            foundSquirrelIds: number[];
-                            unlocksAt: (string | null) | null;
-                        }[];
-                        receiptsCount: number;
-                    };
-                };
-            };
-            /** @description Response for status 401 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/plain": "UNAUTHORIZED";
-                };
+                content?: never;
             };
         };
     };
-    postProgressSquirrelByLevelIdBySquirrelId: {
+    ActionLogsController_listByTaxiPark: {
         parameters: {
-            query?: never;
-            header: {
-                authorization: string;
+            query?: {
+                /** @description Action filter */
+                action?: string;
+                from?: string;
+                to?: string;
             };
+            header?: never;
             path: {
-                levelId: number;
-                squirrelId: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    isProduct?: boolean;
-                };
-                "application/x-www-form-urlencoded": {
-                    isProduct?: boolean;
-                };
-                "multipart/form-data": {
-                    isProduct?: boolean;
-                };
-            };
-        };
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        success: boolean;
-                    };
-                };
-            };
-            /** @description Response for status 401 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/plain": "UNAUTHORIZED";
-                };
-            };
-        };
-    };
-    postProgressUnlockByLevelId: {
-        parameters: {
-            query?: never;
-            header: {
-                authorization: string;
-            };
-            path: {
-                levelId: number;
+                taxiParkId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Response for status 200 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": {
-                        success: boolean;
-                    };
-                };
-            };
-            /** @description Response for status 401 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/plain": "UNAUTHORIZED";
-                };
+                content?: never;
             };
         };
     };
-    postUsersRegister: {
+    TaxiParksController_listMine: {
         parameters: {
             query?: never;
-            header: {
-                authorization: string;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
+        };
+    };
+    TaxiParksController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": {
-                    startParam?: (string | null) | null;
-                };
-                "application/x-www-form-urlencoded": {
-                    startParam?: (string | null) | null;
-                };
-                "multipart/form-data": {
-                    startParam?: (string | null) | null;
-                };
+                "application/json": components["schemas"]["CreateTaxiParkDto"];
             };
         };
         responses: {
-            /** @description Response for status 200 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    TaxiParksController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": {
-                        isNew: boolean;
-                    };
-                };
+                content?: never;
             };
-            /** @description Response for status 401 */
-            401: {
+        };
+    };
+    TaxiParksController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "text/plain": "UNAUTHORIZED";
+                content?: never;
+            };
+        };
+    };
+    TaxiParksController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTaxiParkDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
                 };
+                content?: never;
+            };
+        };
+    };
+    CarsController_listByTaxiPark: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                taxiParkId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CarsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                taxiParkId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCarDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CarsController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CarsController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CarsController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCarDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CarsController_updateState: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCarStateDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    DriversController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    DriversController_getMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    DriversController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    DriversController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    DriversController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateDriverDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    DriversController_assignCar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                driverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignCarDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InvitationsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                taxiParkId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateDriverInvitationDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InvitationsController_listMy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InvitationsController_accept: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InvitationsController_reject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InvitationsController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    WorkDaysController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateWorkDayDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    WorkDaysController_listMy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    WorkDaysController_getMy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    WorkDaysController_updateMy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateWorkDayDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    WorkDaysController_listByDriver: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                driverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    WorkDaysController_listByCar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                carId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AnalyticsController_driverRevenue: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path: {
+                driverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AnalyticsController_taxiParkRevenue: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path: {
+                taxiParkId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AnalyticsController_allRevenue: {
+        parameters: {
+            query: {
+                date: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AnalyticsController_mostProfitableBrands: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AnalyticsController_carsNotOnLine: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AnalyticsController_mostBrokenBrands: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AnalyticsController_driversRating: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AnalyticsController_downtimeLosses: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

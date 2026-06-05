@@ -1,8 +1,15 @@
+import { useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
+
 import {
   AppText,
   TEXT_SIZES_VARIABLES,
   TEXT_VARIANTS_VARIABLES,
 } from "@/shared/ui/app-text";
+import { clearAuthToken, useCurrentUserQuery } from "@/shared/api/auth";
+import { Spinner } from "@/shared/ui/spinner";
+import { ROLES } from "@/shared/types";
+import { can } from "@/shared/utils";
 
 import {
   homeKpiCards,
@@ -16,6 +23,44 @@ import { TitledBlock } from "@/features/titled-block";
 import { VerticalBarChart } from "@/features/vertical-bar-chart";
 
 export const HomePage = () => {
+  const navigate = useNavigate();
+  const { data: currentUser, error, isLoading } = useCurrentUserQuery();
+
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
+
+    clearAuthToken();
+    void navigate({ to: "/auth/login", replace: true });
+  }, [error, navigate]);
+
+  if (isLoading) {
+    return (
+      <main className="bg-background-page flex min-h-full w-full items-center justify-center p-6">
+        <Spinner className="min-h-40" />
+      </main>
+    );
+  }
+
+  if (!currentUser) {
+    return null;
+  }
+
+  if (!can(currentUser.role, [ROLES.DIRECTOR])) {
+    return (
+      <main className="bg-background-page flex min-h-full w-full items-center justify-center p-6">
+        <AppText
+          variant={TEXT_VARIANTS_VARIABLES.main}
+          size={TEXT_SIZES_VARIABLES.large}
+          className="font-semibold"
+        >
+          Водитель
+        </AppText>
+      </main>
+    );
+  }
+
   return (
     <main className="bg-background-page flex min-h-full w-full flex-col gap-6 p-6">
       <PageHeader title="Главная" description="Сводка ключевых показателей" />

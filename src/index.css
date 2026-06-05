@@ -177,7 +177,6 @@ body {
   -ms-overflow-style: none;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: none;
-  overflow: scroll;
 }
 
 html::-webkit-scrollbar,

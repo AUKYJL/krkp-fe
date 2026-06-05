@@ -1,0 +1,992 @@
+openapi: 3.0.0
+paths:
+  /api/auth/register:
+    post:
+      operationId: AuthController_register
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterDto"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthTokenResponseDto"
+        "400":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadResponseDto"
+      summary: Регистрация пользователя
+      tags: &a1
+        - auth
+  /api/auth/login:
+    post:
+      operationId: AuthController_login
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginDto"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthTokenResponseDto"
+        "400":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadResponseDto"
+      summary: Логин пользователя
+      tags: *a1
+  /api/auth/me:
+    get:
+      operationId: AuthController_getCurrentUser
+      parameters: []
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsersResponseDto"
+        "400":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadResponseDto"
+      security:
+        - access-token: []
+      summary: Получение авторизованного пользователя
+      tags: *a1
+  /api/action-logs:
+    get:
+      operationId: ActionLogsController_list
+      parameters:
+        - name: action
+          required: false
+          in: query
+          description: Action filter
+          schema:
+            example: CREATE_CAR
+            type: string
+        - name: from
+          required: false
+          in: query
+          schema:
+            example: 2026-01-01T00:00:00.000Z
+            type: string
+        - name: to
+          required: false
+          in: query
+          schema:
+            example: 2026-01-31T23:59:59.000Z
+            type: string
+      responses:
+        "200":
+          description: List of logs
+      security: &a2
+        - access-token: []
+      summary: Получить action logs
+      tags: &a3
+        - action-logs
+  /api/taxi-parks/{taxiParkId}/action-logs:
+    get:
+      operationId: ActionLogsController_listByTaxiPark
+      parameters:
+        - name: taxiParkId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: action
+          required: false
+          in: query
+          description: Action filter
+          schema:
+            example: CREATE_CAR
+            type: string
+        - name: from
+          required: false
+          in: query
+          schema:
+            example: 2026-01-01T00:00:00.000Z
+            type: string
+        - name: to
+          required: false
+          in: query
+          schema:
+            example: 2026-01-31T23:59:59.000Z
+            type: string
+      responses:
+        "200":
+          description: ""
+      security: *a2
+      summary: Получить action logs по таксопарку
+      tags: *a3
+  /api/taxi-parks:
+    post:
+      operationId: TaxiParksController_create
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTaxiParkDto"
+      responses:
+        "201":
+          description: ""
+      security: &a4
+        - access-token: []
+      summary: Создать таксопарк
+      tags: &a5
+        - taxi-parks
+    get:
+      operationId: TaxiParksController_listMine
+      parameters: []
+      responses:
+        "200":
+          description: ""
+      security: *a4
+      summary: Список моих таксопарков
+      tags: *a5
+  /api/taxi-parks/{id}:
+    get:
+      operationId: TaxiParksController_get
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+      security: *a4
+      summary: Получить таксопарк
+      tags: *a5
+    patch:
+      operationId: TaxiParksController_update
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTaxiParkDto"
+      responses:
+        "200":
+          description: ""
+      security: *a4
+      summary: Обновить таксопарк
+      tags: *a5
+    delete:
+      operationId: TaxiParksController_remove
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+      security: *a4
+      summary: Удалить таксопарк
+      tags: *a5
+  /api/taxi-parks/{taxiParkId}/cars:
+    post:
+      operationId: CarsController_create
+      parameters:
+        - name: taxiParkId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCarDto"
+      responses:
+        "201":
+          description: ""
+      security: &a6
+        - access-token: []
+      summary: Создать авто в таксопарке
+      tags: &a7
+        - cars
+    get:
+      operationId: CarsController_listByTaxiPark
+      parameters:
+        - name: taxiParkId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+      security: *a6
+      summary: Список авто таксопарка
+      tags: *a7
+  /api/cars/{id}:
+    get:
+      operationId: CarsController_get
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+      security: *a6
+      summary: Получить авто по id
+      tags: *a7
+    patch:
+      operationId: CarsController_update
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCarDto"
+      responses:
+        "200":
+          description: ""
+      security: *a6
+      summary: Обновить авто
+      tags: *a7
+    delete:
+      operationId: CarsController_remove
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+      security: *a6
+      summary: Удалить авто
+      tags: *a7
+  /api/cars/{id}/state:
+    patch:
+      operationId: CarsController_updateState
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCarStateDto"
+      responses:
+        "200":
+          description: ""
+      security: *a6
+      summary: Обновить состояние авто
+      tags: *a7
+  /api/drivers:
+    get:
+      operationId: DriversController_list
+      parameters: []
+      responses:
+        "200":
+          description: ""
+      security: &a8
+        - access-token: []
+      summary: Список водителей
+      tags: &a9
+        - drivers
+  /api/drivers/me:
+    get:
+      operationId: DriversController_getMe
+      parameters: []
+      responses:
+        "200":
+          description: ""
+      security: *a8
+      summary: Профиль водителя (me)
+      tags: *a9
+  /api/drivers/{id}:
+    get:
+      operationId: DriversController_get
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+      security: *a8
+      summary: Получить водителя
+      tags: *a9
+    patch:
+      operationId: DriversController_update
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDriverDto"
+      responses:
+        "200":
+          description: ""
+      security: *a8
+      summary: Обновить водителя
+      tags: *a9
+    delete:
+      operationId: DriversController_remove
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+      security: *a8
+      summary: Удалить водителя
+      tags: *a9
+  /api/drivers/{driverId}/assign-car:
+    post:
+      operationId: DriversController_assignCar
+      parameters:
+        - name: driverId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignCarDto"
+      responses:
+        "201":
+          description: ""
+      security: *a8
+      summary: Назначить авто водителю
+      tags: *a9
+  /api/taxi-parks/{taxiParkId}/invitations:
+    post:
+      operationId: InvitationsController_create
+      parameters:
+        - name: taxiParkId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDriverInvitationDto"
+      responses:
+        "201":
+          description: ""
+      security: &a10
+        - access-token: []
+      summary: Пригласить водителя в таксопарк
+      tags: &a11
+        - invitations
+  /api/invitations/my:
+    get:
+      operationId: InvitationsController_listMy
+      parameters: []
+      responses:
+        "200":
+          description: ""
+      security: *a10
+      summary: Мои приглашения
+      tags: *a11
+  /api/invitations/{id}/accept:
+    patch:
+      operationId: InvitationsController_accept
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+      security: *a10
+      summary: Принять приглашение
+      tags: *a11
+  /api/invitations/{id}/reject:
+    patch:
+      operationId: InvitationsController_reject
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+      security: *a10
+      summary: Отклонить приглашение
+      tags: *a11
+  /api/invitations/{id}:
+    delete:
+      operationId: InvitationsController_remove
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+      security: *a10
+      summary: Отменить приглашение
+      tags: *a11
+  /api/work-days:
+    post:
+      operationId: WorkDaysController_create
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWorkDayDto"
+      responses:
+        "201":
+          description: ""
+      security: &a12
+        - access-token: []
+      summary: Создать дневную запись
+      tags: &a13
+        - work-days
+  /api/work-days/my:
+    get:
+      operationId: WorkDaysController_listMy
+      parameters: []
+      responses:
+        "200":
+          description: ""
+      security: *a12
+      summary: Мои дневные записи
+      tags: *a13
+  /api/work-days/my/{id}:
+    get:
+      operationId: WorkDaysController_getMy
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+      security: *a12
+      summary: Моя дневная запись
+      tags: *a13
+  /api/work-days/{id}:
+    patch:
+      operationId: WorkDaysController_updateMy
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateWorkDayDto"
+      responses:
+        "200":
+          description: ""
+      security: *a12
+      summary: Обновить мою дневную запись
+      tags: *a13
+  /api/drivers/{driverId}/work-days:
+    get:
+      operationId: WorkDaysController_listByDriver
+      parameters:
+        - name: driverId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+      security: *a12
+      summary: Work-days водителя (директор)
+      tags: *a13
+  /api/cars/{carId}/work-days:
+    get:
+      operationId: WorkDaysController_listByCar
+      parameters:
+        - name: carId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+      security: *a12
+      summary: Work-days авто (директор)
+      tags: *a13
+  /api/analytics/driver/{driverId}/revenue:
+    get:
+      operationId: AnalyticsController_driverRevenue
+      parameters:
+        - name: driverId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: from
+          required: false
+          in: query
+          schema:
+            example: 2026-05-01
+            type: string
+        - name: to
+          required: false
+          in: query
+          schema:
+            example: 2026-05-31
+            type: string
+      responses:
+        "200":
+          description: ""
+      security: &a14
+        - access-token: []
+      summary: "Выручка водителя "
+      tags: &a15
+        - analytics
+  /api/analytics/taxi-parks/{taxiParkId}/revenue:
+    get:
+      operationId: AnalyticsController_taxiParkRevenue
+      parameters:
+        - name: taxiParkId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: from
+          required: false
+          in: query
+          schema:
+            example: 2026-05-01
+            type: string
+        - name: to
+          required: false
+          in: query
+          schema:
+            example: 2026-05-31
+            type: string
+      responses:
+        "200":
+          description: ""
+      security: *a14
+      summary: "Выручка таксопарка "
+      tags: *a15
+  /api/analytics/revenue/all:
+    get:
+      operationId: AnalyticsController_allRevenue
+      parameters:
+        - name: date
+          required: true
+          in: query
+          schema:
+            example: 2026-05-02
+            type: string
+      responses:
+        "200":
+          description: ""
+      security: *a14
+      summary: "Выручка всех "
+      tags: *a15
+  /api/analytics/cars/most-profitable-brands:
+    get:
+      operationId: AnalyticsController_mostProfitableBrands
+      parameters:
+        - name: from
+          required: false
+          in: query
+          schema:
+            example: 2026-05-01
+            type: string
+        - name: to
+          required: false
+          in: query
+          schema:
+            example: 2026-05-31
+            type: string
+      responses:
+        "200":
+          description: ""
+      security: *a14
+      summary: "Самые прибыльные бренды "
+      tags: *a15
+  /api/analytics/cars/not-on-line:
+    get:
+      operationId: AnalyticsController_carsNotOnLine
+      parameters:
+        - name: from
+          required: false
+          in: query
+          schema:
+            example: 2026-05-01
+            type: string
+        - name: to
+          required: false
+          in: query
+          schema:
+            example: 2026-05-31
+            type: string
+      responses:
+        "200":
+          description: ""
+      security: *a14
+      summary: "Авто не на линии "
+      tags: *a15
+  /api/analytics/cars/most-broken-brands:
+    get:
+      operationId: AnalyticsController_mostBrokenBrands
+      parameters:
+        - name: from
+          required: false
+          in: query
+          schema:
+            example: 2026-05-01
+            type: string
+        - name: to
+          required: false
+          in: query
+          schema:
+            example: 2026-05-31
+            type: string
+      responses:
+        "200":
+          description: ""
+      security: *a14
+      summary: "Самые ломающиеся бренды "
+      tags: *a15
+  /api/analytics/drivers/rating:
+    get:
+      operationId: AnalyticsController_driversRating
+      parameters:
+        - name: from
+          required: false
+          in: query
+          schema:
+            example: 2026-05-01
+            type: string
+        - name: to
+          required: false
+          in: query
+          schema:
+            example: 2026-05-31
+            type: string
+      responses:
+        "200":
+          description: ""
+      security: *a14
+      summary: "Рейтинг водителей "
+      tags: *a15
+  /api/analytics/downtime-losses:
+    get:
+      operationId: AnalyticsController_downtimeLosses
+      parameters:
+        - name: from
+          required: false
+          in: query
+          schema:
+            example: 2026-05-01
+            type: string
+        - name: to
+          required: false
+          in: query
+          schema:
+            example: 2026-05-31
+            type: string
+      responses:
+        "200":
+          description: ""
+      security: *a14
+      summary: "Потери от простоя "
+      tags: *a15
+info:
+  title: title
+  description: API docs for title
+  version: "1.0"
+  contact: {}
+tags: []
+servers: []
+components:
+  securitySchemes:
+    access-token:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http
+  schemas:
+    RegisterDto:
+      type: object
+      properties:
+        email:
+          type: string
+          example: user@example.com
+        fullName:
+          type: string
+          example: Иван Иванов
+        password:
+          type: string
+          example: password123
+        repeatedPassword:
+          type: string
+          example: password123
+        role:
+          type: string
+          enum:
+            - DRIVER
+            - DIRECTOR
+          example: DIRECTOR
+      required:
+        - email
+        - fullName
+        - password
+        - repeatedPassword
+        - role
+    AuthTokenResponseDto:
+      type: object
+      properties:
+        accessToken:
+          type: string
+      required:
+        - accessToken
+    BadResponseDto:
+      type: object
+      properties:
+        statusCode:
+          type: number
+          example: 400
+        message:
+          type: string
+      required:
+        - statusCode
+        - message
+    LoginDto:
+      type: object
+      properties:
+        email:
+          type: string
+          example: user@example.com
+        password:
+          type: string
+          example: password123
+      required:
+        - email
+        - password
+    UsersResponseDto:
+      type: object
+      properties:
+        id:
+          type: string
+          example: b3d8e3d6-8a5a-4d6f-a2cb-3af69b83e46a
+        email:
+          type: string
+          example: user@example.com
+        fullName:
+          type: string
+          example: Иван Иванов
+        role:
+          type: string
+          enum:
+            - DRIVER
+            - DIRECTOR
+          example: DIRECTOR
+      required:
+        - id
+        - email
+        - fullName
+        - role
+    CreateTaxiParkDto:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Таксопарк №1
+        address:
+          type: string
+          example: Москва, ул. Пушкина 1
+      required:
+        - name
+        - address
+    UpdateTaxiParkDto:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Таксопарк №1
+        address:
+          type: string
+          example: Москва, ул. Пушкина 1
+    CreateCarDto:
+      type: object
+      properties:
+        firm:
+          type: string
+          example: Toyota
+        model:
+          type: string
+          example: Camry
+        type:
+          type: string
+          example: SEDAN
+        plateNumber:
+          type: string
+          example: A123BC77
+        state:
+          type: string
+          enum: &a16
+            - WORKING
+            - EMERGENCY
+            - REPAIR
+          example: WORKING
+      required:
+        - firm
+        - model
+        - type
+        - plateNumber
+    UpdateCarDto:
+      type: object
+      properties:
+        firm:
+          type: string
+          example: Toyota
+        model:
+          type: string
+          example: Camry
+        type:
+          type: string
+          example: SEDAN
+        plateNumber:
+          type: string
+          example: A123BC77
+        state:
+          type: string
+          enum: *a16
+          example: WORKING
+    UpdateCarStateDto:
+      type: object
+      properties:
+        state:
+          type: string
+          enum:
+            - WORKING
+            - EMERGENCY
+            - REPAIR
+          example: REPAIR
+      required:
+        - state
+    UpdateDriverDto:
+      type: object
+      properties:
+        passportNumber:
+          type: string
+          example: 1234 567890
+        experience:
+          type: number
+          example: 5
+    AssignCarDto:
+      type: object
+      properties:
+        carId:
+          type: string
+          example: car-uuid
+      required:
+        - carId
+    CreateDriverInvitationDto:
+      type: object
+      properties:
+        driverId:
+          type: string
+          example: driver-uuid
+      required:
+        - driverId
+    CreateWorkDayDto:
+      type: object
+      properties:
+        workDate:
+          type: string
+          example: 2026-05-02
+        revenue:
+          type: number
+          example: 2500
+        carOnLine:
+          type: boolean
+          example: true
+      required:
+        - workDate
+    UpdateWorkDayDto:
+      type: object
+      properties:
+        workDate:
+          type: string
+          example: 2026-05-02
+        revenue:
+          type: number
+          example: 2500
+        carOnLine:
+          type: boolean
+          example: true

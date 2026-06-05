@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "api:types": "npx openapi-typescript ./api/openapi/api-1.yaml -o ./src/shared/api/apiTypes.d.ts"
+    "api:types": "npx openapi-typescript ./api/openapi/api.yaml -o ./src/shared/api/apiTypes.d.ts"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
