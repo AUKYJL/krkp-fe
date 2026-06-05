@@ -43,3 +43,13 @@ Use bullet lists for simplicity. This is not a replacement for your ticket syste
 - **Status**: Completed
 - **Description**: Moved the sidebar shell into a pathless app branch, added `/auth` with nested `login` and `register` routes, and implemented UI-only auth forms with shared validation schemas.
 - **URL**: N/A
+
+### 2026-06-05 - UI-driver-home-inline-revenue: Move driver revenue entry to home dashboard
+- **Status**: Completed
+- **Description**: Removed the top-level revenue entry action, added an inline `Выручка сегодня` card under the driver header, and switched revenue entry/editing to in-place save/cancel states with autofocus.
+- **URL**: N/A
+
+### 2026-06-05 - UI-driver-home-dashboard-refactor: Split driver home dashboard into page-local module
+- **Status**: Completed
+- **Description**: Moved `DriverHomeDashboard` into a folder-based page-local module with local primitives, utils, and revenue card files while preserving the existing consumer import path via `index.ts`.
+- **URL**: N/A

@@ -1,16 +1,30 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import {
+  createRegisterPayload,
+  ensureCurrentUser,
+  getApiErrorMessage,
+  setAuthToken,
+  useRegisterMutation,
+} from "@/shared/api/auth";
 import {
   type RegisterFormValues,
   authRoleOptions,
   registerSchema,
 } from "@/shared/types";
 import { Button } from "@/shared/ui/button";
-import { FieldGroup } from "@/shared/ui/field";
+import { FieldError, FieldGroup } from "@/shared/ui/field";
 import { FormInput, FormSelect } from "@/shared/ui/form";
 
 export const RegisterPage = () => {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const registerMutation = useRegisterMutation();
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -28,8 +42,20 @@ export const RegisterPage = () => {
     handleSubmit,
   } = form;
 
-  const handleFormSubmit = (values: RegisterFormValues) => {
-    void values;
+  const handleFormSubmit = async (values: RegisterFormValues) => {
+    setSubmitError(null);
+
+    try {
+      const response = await registerMutation.mutateAsync(
+        createRegisterPayload(values),
+      );
+
+      setAuthToken(response.accessToken);
+      await ensureCurrentUser(queryClient);
+      await navigate({ to: "/" });
+    } catch (error) {
+      setSubmitError(getApiErrorMessage(error));
+    }
   };
 
   return (
@@ -86,6 +112,10 @@ export const RegisterPage = () => {
           options={[...authRoleOptions]}
         />
       </FieldGroup>
+
+      <FieldError className="rounded-[14px] border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm font-medium">
+        {submitError}
+      </FieldError>
 
       <Button type="submit" disabled={isSubmitting}>
         Зарегистрироваться
