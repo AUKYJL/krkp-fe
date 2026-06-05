@@ -9,194 +9,236 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as VehiclesRouteImport } from './routes/vehicles'
-import { Route as TaxiparksUiKitRouteImport } from './routes/taxiparks-ui-kit'
-import { Route as TaxiparksRouteImport } from './routes/taxiparks'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as ReportsRouteImport } from './routes/reports'
-import { Route as FinanceRouteImport } from './routes/finance'
-import { Route as DriversRouteImport } from './routes/drivers'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as VehiclesIndexRouteImport } from './routes/vehicles/index'
-import { Route as TaxiparksIndexRouteImport } from './routes/taxiparks/index'
-import { Route as DriversIndexRouteImport } from './routes/drivers/index'
-import { Route as VehiclesCreateRouteImport } from './routes/vehicles/create'
-import { Route as VehiclesIdRouteImport } from './routes/vehicles/$id'
-import { Route as TaxiparksIdRouteImport } from './routes/taxiparks/$id'
-import { Route as DriversAddRouteImport } from './routes/drivers/add'
-import { Route as DriversIdRouteImport } from './routes/drivers/$id'
-import { Route as VehiclesIdIndexRouteImport } from './routes/vehicles/$id/index'
-import { Route as DriversIdIndexRouteImport } from './routes/drivers/$id/index'
-import { Route as VehiclesIdEditRouteImport } from './routes/vehicles/$id/edit'
-import { Route as DriversIdEditRouteImport } from './routes/drivers/$id/edit'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as AuthIndexRouteImport } from './routes/auth/index'
+import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AuthRegisterRouteImport } from './routes/auth/register'
+import { Route as AuthLoginRouteImport } from './routes/auth/login'
+import { Route as AppVehiclesRouteImport } from './routes/_app/vehicles'
+import { Route as AppTaxiparksUiKitRouteImport } from './routes/_app/taxiparks-ui-kit'
+import { Route as AppTaxiparksRouteImport } from './routes/_app/taxiparks'
+import { Route as AppSettingsRouteImport } from './routes/_app/settings'
+import { Route as AppReportsRouteImport } from './routes/_app/reports'
+import { Route as AppFinanceRouteImport } from './routes/_app/finance'
+import { Route as AppDriversRouteImport } from './routes/_app/drivers'
+import { Route as AppVehiclesIndexRouteImport } from './routes/_app/vehicles/index'
+import { Route as AppTaxiparksIndexRouteImport } from './routes/_app/taxiparks/index'
+import { Route as AppDriversIndexRouteImport } from './routes/_app/drivers/index'
+import { Route as AppVehiclesCreateRouteImport } from './routes/_app/vehicles/create'
+import { Route as AppVehiclesIdRouteImport } from './routes/_app/vehicles/$id'
+import { Route as AppTaxiparksIdRouteImport } from './routes/_app/taxiparks/$id'
+import { Route as AppDriversAddRouteImport } from './routes/_app/drivers/add'
+import { Route as AppDriversIdRouteImport } from './routes/_app/drivers/$id'
+import { Route as AppVehiclesIdIndexRouteImport } from './routes/_app/vehicles/$id/index'
+import { Route as AppDriversIdIndexRouteImport } from './routes/_app/drivers/$id/index'
+import { Route as AppVehiclesIdEditRouteImport } from './routes/_app/vehicles/$id/edit'
+import { Route as AppDriversIdEditRouteImport } from './routes/_app/drivers/$id/edit'
 
-const VehiclesRoute = VehiclesRouteImport.update({
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthIndexRoute = AuthIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AuthRegisterRoute = AuthRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AppVehiclesRoute = AppVehiclesRouteImport.update({
   id: '/vehicles',
   path: '/vehicles',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
 } as any)
-const TaxiparksUiKitRoute = TaxiparksUiKitRouteImport.update({
+const AppTaxiparksUiKitRoute = AppTaxiparksUiKitRouteImport.update({
   id: '/taxiparks-ui-kit',
   path: '/taxiparks-ui-kit',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
 } as any)
-const TaxiparksRoute = TaxiparksRouteImport.update({
+const AppTaxiparksRoute = AppTaxiparksRouteImport.update({
   id: '/taxiparks',
   path: '/taxiparks',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
 } as any)
-const SettingsRoute = SettingsRouteImport.update({
+const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
 } as any)
-const ReportsRoute = ReportsRouteImport.update({
+const AppReportsRoute = AppReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
 } as any)
-const FinanceRoute = FinanceRouteImport.update({
+const AppFinanceRoute = AppFinanceRouteImport.update({
   id: '/finance',
   path: '/finance',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
 } as any)
-const DriversRoute = DriversRouteImport.update({
+const AppDriversRoute = AppDriversRouteImport.update({
   id: '/drivers',
   path: '/drivers',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
 } as any)
-const IndexRoute = IndexRouteImport.update({
+const AppVehiclesIndexRoute = AppVehiclesIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppVehiclesRoute,
 } as any)
-const VehiclesIndexRoute = VehiclesIndexRouteImport.update({
+const AppTaxiparksIndexRoute = AppTaxiparksIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => VehiclesRoute,
+  getParentRoute: () => AppTaxiparksRoute,
 } as any)
-const TaxiparksIndexRoute = TaxiparksIndexRouteImport.update({
+const AppDriversIndexRoute = AppDriversIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => TaxiparksRoute,
+  getParentRoute: () => AppDriversRoute,
 } as any)
-const DriversIndexRoute = DriversIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => DriversRoute,
-} as any)
-const VehiclesCreateRoute = VehiclesCreateRouteImport.update({
+const AppVehiclesCreateRoute = AppVehiclesCreateRouteImport.update({
   id: '/create',
   path: '/create',
-  getParentRoute: () => VehiclesRoute,
+  getParentRoute: () => AppVehiclesRoute,
 } as any)
-const VehiclesIdRoute = VehiclesIdRouteImport.update({
+const AppVehiclesIdRoute = AppVehiclesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
-  getParentRoute: () => VehiclesRoute,
+  getParentRoute: () => AppVehiclesRoute,
 } as any)
-const TaxiparksIdRoute = TaxiparksIdRouteImport.update({
+const AppTaxiparksIdRoute = AppTaxiparksIdRouteImport.update({
   id: '/$id',
   path: '/$id',
-  getParentRoute: () => TaxiparksRoute,
+  getParentRoute: () => AppTaxiparksRoute,
 } as any)
-const DriversAddRoute = DriversAddRouteImport.update({
+const AppDriversAddRoute = AppDriversAddRouteImport.update({
   id: '/add',
   path: '/add',
-  getParentRoute: () => DriversRoute,
+  getParentRoute: () => AppDriversRoute,
 } as any)
-const DriversIdRoute = DriversIdRouteImport.update({
+const AppDriversIdRoute = AppDriversIdRouteImport.update({
   id: '/$id',
   path: '/$id',
-  getParentRoute: () => DriversRoute,
+  getParentRoute: () => AppDriversRoute,
 } as any)
-const VehiclesIdIndexRoute = VehiclesIdIndexRouteImport.update({
+const AppVehiclesIdIndexRoute = AppVehiclesIdIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => VehiclesIdRoute,
+  getParentRoute: () => AppVehiclesIdRoute,
 } as any)
-const DriversIdIndexRoute = DriversIdIndexRouteImport.update({
+const AppDriversIdIndexRoute = AppDriversIdIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => DriversIdRoute,
+  getParentRoute: () => AppDriversIdRoute,
 } as any)
-const VehiclesIdEditRoute = VehiclesIdEditRouteImport.update({
+const AppVehiclesIdEditRoute = AppVehiclesIdEditRouteImport.update({
   id: '/edit',
   path: '/edit',
-  getParentRoute: () => VehiclesIdRoute,
+  getParentRoute: () => AppVehiclesIdRoute,
 } as any)
-const DriversIdEditRoute = DriversIdEditRouteImport.update({
+const AppDriversIdEditRoute = AppDriversIdEditRouteImport.update({
   id: '/edit',
   path: '/edit',
-  getParentRoute: () => DriversIdRoute,
+  getParentRoute: () => AppDriversIdRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/drivers': typeof DriversRouteWithChildren
-  '/finance': typeof FinanceRoute
-  '/reports': typeof ReportsRoute
-  '/settings': typeof SettingsRoute
-  '/taxiparks': typeof TaxiparksRouteWithChildren
-  '/taxiparks-ui-kit': typeof TaxiparksUiKitRoute
-  '/vehicles': typeof VehiclesRouteWithChildren
-  '/drivers/$id': typeof DriversIdRouteWithChildren
-  '/drivers/add': typeof DriversAddRoute
-  '/taxiparks/$id': typeof TaxiparksIdRoute
-  '/vehicles/$id': typeof VehiclesIdRouteWithChildren
-  '/vehicles/create': typeof VehiclesCreateRoute
-  '/drivers/': typeof DriversIndexRoute
-  '/taxiparks/': typeof TaxiparksIndexRoute
-  '/vehicles/': typeof VehiclesIndexRoute
-  '/drivers/$id/edit': typeof DriversIdEditRoute
-  '/vehicles/$id/edit': typeof VehiclesIdEditRoute
-  '/drivers/$id/': typeof DriversIdIndexRoute
-  '/vehicles/$id/': typeof VehiclesIdIndexRoute
+  '/': typeof AppIndexRoute
+  '/auth': typeof AuthRouteWithChildren
+  '/drivers': typeof AppDriversRouteWithChildren
+  '/finance': typeof AppFinanceRoute
+  '/reports': typeof AppReportsRoute
+  '/settings': typeof AppSettingsRoute
+  '/taxiparks': typeof AppTaxiparksRouteWithChildren
+  '/taxiparks-ui-kit': typeof AppTaxiparksUiKitRoute
+  '/vehicles': typeof AppVehiclesRouteWithChildren
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/register': typeof AuthRegisterRoute
+  '/auth/': typeof AuthIndexRoute
+  '/drivers/$id': typeof AppDriversIdRouteWithChildren
+  '/drivers/add': typeof AppDriversAddRoute
+  '/taxiparks/$id': typeof AppTaxiparksIdRoute
+  '/vehicles/$id': typeof AppVehiclesIdRouteWithChildren
+  '/vehicles/create': typeof AppVehiclesCreateRoute
+  '/drivers/': typeof AppDriversIndexRoute
+  '/taxiparks/': typeof AppTaxiparksIndexRoute
+  '/vehicles/': typeof AppVehiclesIndexRoute
+  '/drivers/$id/edit': typeof AppDriversIdEditRoute
+  '/vehicles/$id/edit': typeof AppVehiclesIdEditRoute
+  '/drivers/$id/': typeof AppDriversIdIndexRoute
+  '/vehicles/$id/': typeof AppVehiclesIdIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/finance': typeof FinanceRoute
-  '/reports': typeof ReportsRoute
-  '/settings': typeof SettingsRoute
-  '/taxiparks-ui-kit': typeof TaxiparksUiKitRoute
-  '/drivers/add': typeof DriversAddRoute
-  '/taxiparks/$id': typeof TaxiparksIdRoute
-  '/vehicles/create': typeof VehiclesCreateRoute
-  '/drivers': typeof DriversIndexRoute
-  '/taxiparks': typeof TaxiparksIndexRoute
-  '/vehicles': typeof VehiclesIndexRoute
-  '/drivers/$id/edit': typeof DriversIdEditRoute
-  '/vehicles/$id/edit': typeof VehiclesIdEditRoute
-  '/drivers/$id': typeof DriversIdIndexRoute
-  '/vehicles/$id': typeof VehiclesIdIndexRoute
+  '/finance': typeof AppFinanceRoute
+  '/reports': typeof AppReportsRoute
+  '/settings': typeof AppSettingsRoute
+  '/taxiparks-ui-kit': typeof AppTaxiparksUiKitRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/register': typeof AuthRegisterRoute
+  '/': typeof AppIndexRoute
+  '/auth': typeof AuthIndexRoute
+  '/drivers/add': typeof AppDriversAddRoute
+  '/taxiparks/$id': typeof AppTaxiparksIdRoute
+  '/vehicles/create': typeof AppVehiclesCreateRoute
+  '/drivers': typeof AppDriversIndexRoute
+  '/taxiparks': typeof AppTaxiparksIndexRoute
+  '/vehicles': typeof AppVehiclesIndexRoute
+  '/drivers/$id/edit': typeof AppDriversIdEditRoute
+  '/vehicles/$id/edit': typeof AppVehiclesIdEditRoute
+  '/drivers/$id': typeof AppDriversIdIndexRoute
+  '/vehicles/$id': typeof AppVehiclesIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/drivers': typeof DriversRouteWithChildren
-  '/finance': typeof FinanceRoute
-  '/reports': typeof ReportsRoute
-  '/settings': typeof SettingsRoute
-  '/taxiparks': typeof TaxiparksRouteWithChildren
-  '/taxiparks-ui-kit': typeof TaxiparksUiKitRoute
-  '/vehicles': typeof VehiclesRouteWithChildren
-  '/drivers/$id': typeof DriversIdRouteWithChildren
-  '/drivers/add': typeof DriversAddRoute
-  '/taxiparks/$id': typeof TaxiparksIdRoute
-  '/vehicles/$id': typeof VehiclesIdRouteWithChildren
-  '/vehicles/create': typeof VehiclesCreateRoute
-  '/drivers/': typeof DriversIndexRoute
-  '/taxiparks/': typeof TaxiparksIndexRoute
-  '/vehicles/': typeof VehiclesIndexRoute
-  '/drivers/$id/edit': typeof DriversIdEditRoute
-  '/vehicles/$id/edit': typeof VehiclesIdEditRoute
-  '/drivers/$id/': typeof DriversIdIndexRoute
-  '/vehicles/$id/': typeof VehiclesIdIndexRoute
+  '/_app': typeof AppRouteWithChildren
+  '/auth': typeof AuthRouteWithChildren
+  '/_app/drivers': typeof AppDriversRouteWithChildren
+  '/_app/finance': typeof AppFinanceRoute
+  '/_app/reports': typeof AppReportsRoute
+  '/_app/settings': typeof AppSettingsRoute
+  '/_app/taxiparks': typeof AppTaxiparksRouteWithChildren
+  '/_app/taxiparks-ui-kit': typeof AppTaxiparksUiKitRoute
+  '/_app/vehicles': typeof AppVehiclesRouteWithChildren
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/register': typeof AuthRegisterRoute
+  '/_app/': typeof AppIndexRoute
+  '/auth/': typeof AuthIndexRoute
+  '/_app/drivers/$id': typeof AppDriversIdRouteWithChildren
+  '/_app/drivers/add': typeof AppDriversAddRoute
+  '/_app/taxiparks/$id': typeof AppTaxiparksIdRoute
+  '/_app/vehicles/$id': typeof AppVehiclesIdRouteWithChildren
+  '/_app/vehicles/create': typeof AppVehiclesCreateRoute
+  '/_app/drivers/': typeof AppDriversIndexRoute
+  '/_app/taxiparks/': typeof AppTaxiparksIndexRoute
+  '/_app/vehicles/': typeof AppVehiclesIndexRoute
+  '/_app/drivers/$id/edit': typeof AppDriversIdEditRoute
+  '/_app/vehicles/$id/edit': typeof AppVehiclesIdEditRoute
+  '/_app/drivers/$id/': typeof AppDriversIdIndexRoute
+  '/_app/vehicles/$id/': typeof AppVehiclesIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
     | '/drivers'
     | '/finance'
     | '/reports'
@@ -204,6 +246,9 @@ export interface FileRouteTypes {
     | '/taxiparks'
     | '/taxiparks-ui-kit'
     | '/vehicles'
+    | '/auth/login'
+    | '/auth/register'
+    | '/auth/'
     | '/drivers/$id'
     | '/drivers/add'
     | '/taxiparks/$id'
@@ -218,11 +263,14 @@ export interface FileRouteTypes {
     | '/vehicles/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
     | '/finance'
     | '/reports'
     | '/settings'
     | '/taxiparks-ui-kit'
+    | '/auth/login'
+    | '/auth/register'
+    | '/'
+    | '/auth'
     | '/drivers/add'
     | '/taxiparks/$id'
     | '/vehicles/create'
@@ -235,266 +283,333 @@ export interface FileRouteTypes {
     | '/vehicles/$id'
   id:
     | '__root__'
-    | '/'
-    | '/drivers'
-    | '/finance'
-    | '/reports'
-    | '/settings'
-    | '/taxiparks'
-    | '/taxiparks-ui-kit'
-    | '/vehicles'
-    | '/drivers/$id'
-    | '/drivers/add'
-    | '/taxiparks/$id'
-    | '/vehicles/$id'
-    | '/vehicles/create'
-    | '/drivers/'
-    | '/taxiparks/'
-    | '/vehicles/'
-    | '/drivers/$id/edit'
-    | '/vehicles/$id/edit'
-    | '/drivers/$id/'
-    | '/vehicles/$id/'
+    | '/_app'
+    | '/auth'
+    | '/_app/drivers'
+    | '/_app/finance'
+    | '/_app/reports'
+    | '/_app/settings'
+    | '/_app/taxiparks'
+    | '/_app/taxiparks-ui-kit'
+    | '/_app/vehicles'
+    | '/auth/login'
+    | '/auth/register'
+    | '/_app/'
+    | '/auth/'
+    | '/_app/drivers/$id'
+    | '/_app/drivers/add'
+    | '/_app/taxiparks/$id'
+    | '/_app/vehicles/$id'
+    | '/_app/vehicles/create'
+    | '/_app/drivers/'
+    | '/_app/taxiparks/'
+    | '/_app/vehicles/'
+    | '/_app/drivers/$id/edit'
+    | '/_app/vehicles/$id/edit'
+    | '/_app/drivers/$id/'
+    | '/_app/vehicles/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  DriversRoute: typeof DriversRouteWithChildren
-  FinanceRoute: typeof FinanceRoute
-  ReportsRoute: typeof ReportsRoute
-  SettingsRoute: typeof SettingsRoute
-  TaxiparksRoute: typeof TaxiparksRouteWithChildren
-  TaxiparksUiKitRoute: typeof TaxiparksUiKitRoute
-  VehiclesRoute: typeof VehiclesRouteWithChildren
+  AppRoute: typeof AppRouteWithChildren
+  AuthRoute: typeof AuthRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/vehicles': {
-      id: '/vehicles'
-      path: '/vehicles'
-      fullPath: '/vehicles'
-      preLoaderRoute: typeof VehiclesRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/taxiparks-ui-kit': {
-      id: '/taxiparks-ui-kit'
-      path: '/taxiparks-ui-kit'
-      fullPath: '/taxiparks-ui-kit'
-      preLoaderRoute: typeof TaxiparksUiKitRouteImport
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/taxiparks': {
-      id: '/taxiparks'
-      path: '/taxiparks'
-      fullPath: '/taxiparks'
-      preLoaderRoute: typeof TaxiparksRouteImport
-      parentRoute: typeof rootRouteImport
+    '/auth/': {
+      id: '/auth/'
+      path: '/'
+      fullPath: '/auth/'
+      preLoaderRoute: typeof AuthIndexRouteImport
+      parentRoute: typeof AuthRoute
     }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reports': {
-      id: '/reports'
-      path: '/reports'
-      fullPath: '/reports'
-      preLoaderRoute: typeof ReportsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/finance': {
-      id: '/finance'
-      path: '/finance'
-      fullPath: '/finance'
-      preLoaderRoute: typeof FinanceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/drivers': {
-      id: '/drivers'
-      path: '/drivers'
-      fullPath: '/drivers'
-      preLoaderRoute: typeof DriversRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
+    '/_app/': {
+      id: '/_app/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/vehicles/': {
-      id: '/vehicles/'
+    '/auth/register': {
+      id: '/auth/register'
+      path: '/register'
+      fullPath: '/auth/register'
+      preLoaderRoute: typeof AuthRegisterRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/auth/login': {
+      id: '/auth/login'
+      path: '/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_app/vehicles': {
+      id: '/_app/vehicles'
+      path: '/vehicles'
+      fullPath: '/vehicles'
+      preLoaderRoute: typeof AppVehiclesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/taxiparks-ui-kit': {
+      id: '/_app/taxiparks-ui-kit'
+      path: '/taxiparks-ui-kit'
+      fullPath: '/taxiparks-ui-kit'
+      preLoaderRoute: typeof AppTaxiparksUiKitRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/taxiparks': {
+      id: '/_app/taxiparks'
+      path: '/taxiparks'
+      fullPath: '/taxiparks'
+      preLoaderRoute: typeof AppTaxiparksRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/reports': {
+      id: '/_app/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof AppReportsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/finance': {
+      id: '/_app/finance'
+      path: '/finance'
+      fullPath: '/finance'
+      preLoaderRoute: typeof AppFinanceRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/drivers': {
+      id: '/_app/drivers'
+      path: '/drivers'
+      fullPath: '/drivers'
+      preLoaderRoute: typeof AppDriversRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/vehicles/': {
+      id: '/_app/vehicles/'
       path: '/'
       fullPath: '/vehicles/'
-      preLoaderRoute: typeof VehiclesIndexRouteImport
-      parentRoute: typeof VehiclesRoute
+      preLoaderRoute: typeof AppVehiclesIndexRouteImport
+      parentRoute: typeof AppVehiclesRoute
     }
-    '/taxiparks/': {
-      id: '/taxiparks/'
+    '/_app/taxiparks/': {
+      id: '/_app/taxiparks/'
       path: '/'
       fullPath: '/taxiparks/'
-      preLoaderRoute: typeof TaxiparksIndexRouteImport
-      parentRoute: typeof TaxiparksRoute
+      preLoaderRoute: typeof AppTaxiparksIndexRouteImport
+      parentRoute: typeof AppTaxiparksRoute
     }
-    '/drivers/': {
-      id: '/drivers/'
+    '/_app/drivers/': {
+      id: '/_app/drivers/'
       path: '/'
       fullPath: '/drivers/'
-      preLoaderRoute: typeof DriversIndexRouteImport
-      parentRoute: typeof DriversRoute
+      preLoaderRoute: typeof AppDriversIndexRouteImport
+      parentRoute: typeof AppDriversRoute
     }
-    '/vehicles/create': {
-      id: '/vehicles/create'
+    '/_app/vehicles/create': {
+      id: '/_app/vehicles/create'
       path: '/create'
       fullPath: '/vehicles/create'
-      preLoaderRoute: typeof VehiclesCreateRouteImport
-      parentRoute: typeof VehiclesRoute
+      preLoaderRoute: typeof AppVehiclesCreateRouteImport
+      parentRoute: typeof AppVehiclesRoute
     }
-    '/vehicles/$id': {
-      id: '/vehicles/$id'
+    '/_app/vehicles/$id': {
+      id: '/_app/vehicles/$id'
       path: '/$id'
       fullPath: '/vehicles/$id'
-      preLoaderRoute: typeof VehiclesIdRouteImport
-      parentRoute: typeof VehiclesRoute
+      preLoaderRoute: typeof AppVehiclesIdRouteImport
+      parentRoute: typeof AppVehiclesRoute
     }
-    '/taxiparks/$id': {
-      id: '/taxiparks/$id'
+    '/_app/taxiparks/$id': {
+      id: '/_app/taxiparks/$id'
       path: '/$id'
       fullPath: '/taxiparks/$id'
-      preLoaderRoute: typeof TaxiparksIdRouteImport
-      parentRoute: typeof TaxiparksRoute
+      preLoaderRoute: typeof AppTaxiparksIdRouteImport
+      parentRoute: typeof AppTaxiparksRoute
     }
-    '/drivers/add': {
-      id: '/drivers/add'
+    '/_app/drivers/add': {
+      id: '/_app/drivers/add'
       path: '/add'
       fullPath: '/drivers/add'
-      preLoaderRoute: typeof DriversAddRouteImport
-      parentRoute: typeof DriversRoute
+      preLoaderRoute: typeof AppDriversAddRouteImport
+      parentRoute: typeof AppDriversRoute
     }
-    '/drivers/$id': {
-      id: '/drivers/$id'
+    '/_app/drivers/$id': {
+      id: '/_app/drivers/$id'
       path: '/$id'
       fullPath: '/drivers/$id'
-      preLoaderRoute: typeof DriversIdRouteImport
-      parentRoute: typeof DriversRoute
+      preLoaderRoute: typeof AppDriversIdRouteImport
+      parentRoute: typeof AppDriversRoute
     }
-    '/vehicles/$id/': {
-      id: '/vehicles/$id/'
+    '/_app/vehicles/$id/': {
+      id: '/_app/vehicles/$id/'
       path: '/'
       fullPath: '/vehicles/$id/'
-      preLoaderRoute: typeof VehiclesIdIndexRouteImport
-      parentRoute: typeof VehiclesIdRoute
+      preLoaderRoute: typeof AppVehiclesIdIndexRouteImport
+      parentRoute: typeof AppVehiclesIdRoute
     }
-    '/drivers/$id/': {
-      id: '/drivers/$id/'
+    '/_app/drivers/$id/': {
+      id: '/_app/drivers/$id/'
       path: '/'
       fullPath: '/drivers/$id/'
-      preLoaderRoute: typeof DriversIdIndexRouteImport
-      parentRoute: typeof DriversIdRoute
+      preLoaderRoute: typeof AppDriversIdIndexRouteImport
+      parentRoute: typeof AppDriversIdRoute
     }
-    '/vehicles/$id/edit': {
-      id: '/vehicles/$id/edit'
+    '/_app/vehicles/$id/edit': {
+      id: '/_app/vehicles/$id/edit'
       path: '/edit'
       fullPath: '/vehicles/$id/edit'
-      preLoaderRoute: typeof VehiclesIdEditRouteImport
-      parentRoute: typeof VehiclesIdRoute
+      preLoaderRoute: typeof AppVehiclesIdEditRouteImport
+      parentRoute: typeof AppVehiclesIdRoute
     }
-    '/drivers/$id/edit': {
-      id: '/drivers/$id/edit'
+    '/_app/drivers/$id/edit': {
+      id: '/_app/drivers/$id/edit'
       path: '/edit'
       fullPath: '/drivers/$id/edit'
-      preLoaderRoute: typeof DriversIdEditRouteImport
-      parentRoute: typeof DriversIdRoute
+      preLoaderRoute: typeof AppDriversIdEditRouteImport
+      parentRoute: typeof AppDriversIdRoute
     }
   }
 }
 
-interface DriversIdRouteChildren {
-  DriversIdEditRoute: typeof DriversIdEditRoute
-  DriversIdIndexRoute: typeof DriversIdIndexRoute
+interface AppDriversIdRouteChildren {
+  AppDriversIdEditRoute: typeof AppDriversIdEditRoute
+  AppDriversIdIndexRoute: typeof AppDriversIdIndexRoute
 }
 
-const DriversIdRouteChildren: DriversIdRouteChildren = {
-  DriversIdEditRoute: DriversIdEditRoute,
-  DriversIdIndexRoute: DriversIdIndexRoute,
+const AppDriversIdRouteChildren: AppDriversIdRouteChildren = {
+  AppDriversIdEditRoute: AppDriversIdEditRoute,
+  AppDriversIdIndexRoute: AppDriversIdIndexRoute,
 }
 
-const DriversIdRouteWithChildren = DriversIdRoute._addFileChildren(
-  DriversIdRouteChildren,
+const AppDriversIdRouteWithChildren = AppDriversIdRoute._addFileChildren(
+  AppDriversIdRouteChildren,
 )
 
-interface DriversRouteChildren {
-  DriversIdRoute: typeof DriversIdRouteWithChildren
-  DriversAddRoute: typeof DriversAddRoute
-  DriversIndexRoute: typeof DriversIndexRoute
+interface AppDriversRouteChildren {
+  AppDriversIdRoute: typeof AppDriversIdRouteWithChildren
+  AppDriversAddRoute: typeof AppDriversAddRoute
+  AppDriversIndexRoute: typeof AppDriversIndexRoute
 }
 
-const DriversRouteChildren: DriversRouteChildren = {
-  DriversIdRoute: DriversIdRouteWithChildren,
-  DriversAddRoute: DriversAddRoute,
-  DriversIndexRoute: DriversIndexRoute,
+const AppDriversRouteChildren: AppDriversRouteChildren = {
+  AppDriversIdRoute: AppDriversIdRouteWithChildren,
+  AppDriversAddRoute: AppDriversAddRoute,
+  AppDriversIndexRoute: AppDriversIndexRoute,
 }
 
-const DriversRouteWithChildren =
-  DriversRoute._addFileChildren(DriversRouteChildren)
-
-interface TaxiparksRouteChildren {
-  TaxiparksIdRoute: typeof TaxiparksIdRoute
-  TaxiparksIndexRoute: typeof TaxiparksIndexRoute
-}
-
-const TaxiparksRouteChildren: TaxiparksRouteChildren = {
-  TaxiparksIdRoute: TaxiparksIdRoute,
-  TaxiparksIndexRoute: TaxiparksIndexRoute,
-}
-
-const TaxiparksRouteWithChildren = TaxiparksRoute._addFileChildren(
-  TaxiparksRouteChildren,
+const AppDriversRouteWithChildren = AppDriversRoute._addFileChildren(
+  AppDriversRouteChildren,
 )
 
-interface VehiclesIdRouteChildren {
-  VehiclesIdEditRoute: typeof VehiclesIdEditRoute
-  VehiclesIdIndexRoute: typeof VehiclesIdIndexRoute
+interface AppTaxiparksRouteChildren {
+  AppTaxiparksIdRoute: typeof AppTaxiparksIdRoute
+  AppTaxiparksIndexRoute: typeof AppTaxiparksIndexRoute
 }
 
-const VehiclesIdRouteChildren: VehiclesIdRouteChildren = {
-  VehiclesIdEditRoute: VehiclesIdEditRoute,
-  VehiclesIdIndexRoute: VehiclesIdIndexRoute,
+const AppTaxiparksRouteChildren: AppTaxiparksRouteChildren = {
+  AppTaxiparksIdRoute: AppTaxiparksIdRoute,
+  AppTaxiparksIndexRoute: AppTaxiparksIndexRoute,
 }
 
-const VehiclesIdRouteWithChildren = VehiclesIdRoute._addFileChildren(
-  VehiclesIdRouteChildren,
+const AppTaxiparksRouteWithChildren = AppTaxiparksRoute._addFileChildren(
+  AppTaxiparksRouteChildren,
 )
 
-interface VehiclesRouteChildren {
-  VehiclesIdRoute: typeof VehiclesIdRouteWithChildren
-  VehiclesCreateRoute: typeof VehiclesCreateRoute
-  VehiclesIndexRoute: typeof VehiclesIndexRoute
+interface AppVehiclesIdRouteChildren {
+  AppVehiclesIdEditRoute: typeof AppVehiclesIdEditRoute
+  AppVehiclesIdIndexRoute: typeof AppVehiclesIdIndexRoute
 }
 
-const VehiclesRouteChildren: VehiclesRouteChildren = {
-  VehiclesIdRoute: VehiclesIdRouteWithChildren,
-  VehiclesCreateRoute: VehiclesCreateRoute,
-  VehiclesIndexRoute: VehiclesIndexRoute,
+const AppVehiclesIdRouteChildren: AppVehiclesIdRouteChildren = {
+  AppVehiclesIdEditRoute: AppVehiclesIdEditRoute,
+  AppVehiclesIdIndexRoute: AppVehiclesIdIndexRoute,
 }
 
-const VehiclesRouteWithChildren = VehiclesRoute._addFileChildren(
-  VehiclesRouteChildren,
+const AppVehiclesIdRouteWithChildren = AppVehiclesIdRoute._addFileChildren(
+  AppVehiclesIdRouteChildren,
 )
+
+interface AppVehiclesRouteChildren {
+  AppVehiclesIdRoute: typeof AppVehiclesIdRouteWithChildren
+  AppVehiclesCreateRoute: typeof AppVehiclesCreateRoute
+  AppVehiclesIndexRoute: typeof AppVehiclesIndexRoute
+}
+
+const AppVehiclesRouteChildren: AppVehiclesRouteChildren = {
+  AppVehiclesIdRoute: AppVehiclesIdRouteWithChildren,
+  AppVehiclesCreateRoute: AppVehiclesCreateRoute,
+  AppVehiclesIndexRoute: AppVehiclesIndexRoute,
+}
+
+const AppVehiclesRouteWithChildren = AppVehiclesRoute._addFileChildren(
+  AppVehiclesRouteChildren,
+)
+
+interface AppRouteChildren {
+  AppDriversRoute: typeof AppDriversRouteWithChildren
+  AppFinanceRoute: typeof AppFinanceRoute
+  AppReportsRoute: typeof AppReportsRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppTaxiparksRoute: typeof AppTaxiparksRouteWithChildren
+  AppTaxiparksUiKitRoute: typeof AppTaxiparksUiKitRoute
+  AppVehiclesRoute: typeof AppVehiclesRouteWithChildren
+  AppIndexRoute: typeof AppIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppDriversRoute: AppDriversRouteWithChildren,
+  AppFinanceRoute: AppFinanceRoute,
+  AppReportsRoute: AppReportsRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppTaxiparksRoute: AppTaxiparksRouteWithChildren,
+  AppTaxiparksUiKitRoute: AppTaxiparksUiKitRoute,
+  AppVehiclesRoute: AppVehiclesRouteWithChildren,
+  AppIndexRoute: AppIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
+interface AuthRouteChildren {
+  AuthLoginRoute: typeof AuthLoginRoute
+  AuthRegisterRoute: typeof AuthRegisterRoute
+  AuthIndexRoute: typeof AuthIndexRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthLoginRoute: AuthLoginRoute,
+  AuthRegisterRoute: AuthRegisterRoute,
+  AuthIndexRoute: AuthIndexRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  DriversRoute: DriversRouteWithChildren,
-  FinanceRoute: FinanceRoute,
-  ReportsRoute: ReportsRoute,
-  SettingsRoute: SettingsRoute,
-  TaxiparksRoute: TaxiparksRouteWithChildren,
-  TaxiparksUiKitRoute: TaxiparksUiKitRoute,
-  VehiclesRoute: VehiclesRouteWithChildren,
+  AppRoute: AppRouteWithChildren,
+  AuthRoute: AuthRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

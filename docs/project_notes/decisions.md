@@ -130,3 +130,24 @@ Each decision should include:
 - ✅ Feature folders stay minimal by default.
 - ✅ When needed, `ui/` provides an obvious place for internal subcomponents.
 - ❌ One-time refactor cost when splitting a large `*.tsx` into `ui/` parts.
+
+### ADR-006: Split Routing Into Pathless App Shell And Real `/auth` Branch (2026-06-05)
+
+**Context:**
+- The persistent sidebar shell previously lived in `src/routes/__root.tsx`, which forced every route, including auth screens, into the same layout.
+- We needed `/auth/login` and `/auth/register` to share one auth card layout without the business sidebar while keeping all existing business URLs unchanged.
+
+**Decision:**
+- Keep `src/routes/__root.tsx` shell-free and render only the root `<Outlet />`.
+- Move the sidebar shell and pathname-based scroll reset into a pathless `/_app` layout branch that owns all existing business routes.
+- Add a real `/auth` parent route with nested `/auth/login` and `/auth/register` children, and redirect `/auth` to `/auth/login`.
+
+**Alternatives Considered:**
+- Keep the sidebar in `__root` and hide it conditionally for `/auth/*` → Rejected: mixes unrelated layout concerns into the root and makes auth layout reuse awkward.
+- Put login and register on separate top-level routes without an `/auth` parent → Rejected: loses the shared mounted auth shell and does not satisfy the `/auth` landing route requirement.
+
+**Consequences:**
+- ✅ Auth routes now have an isolated layout branch with no sidebar.
+- ✅ Existing app URLs remain stable while sharing the same persistent shell under `/_app`.
+- ✅ Route files stay thin: layout ownership moved into page components instead of conditional logic in root routing.
+- ❌ This supersedes the earlier part of ADR-004 that placed the persistent shell in `src/routes/__root.tsx`.

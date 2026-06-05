@@ -38,3 +38,8 @@ Use bullet lists for simplicity. This is not a replacement for your ticket syste
 - **Status**: Completed
 - **Description**: Added a UI-only `/vehicles/:id/edit` page based on the create form and wired the vehicle detail `Редактировать` action back to the vehicle detail flow.
 - **URL**: N/A
+
+### 2026-06-05 - UI-auth-layout-routes: Split app shell and add nested auth routes
+- **Status**: Completed
+- **Description**: Moved the sidebar shell into a pathless app branch, added `/auth` with nested `login` and `register` routes, and implemented UI-only auth forms with shared validation schemas.
+- **URL**: N/A
