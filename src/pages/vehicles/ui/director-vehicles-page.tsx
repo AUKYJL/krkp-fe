@@ -5,15 +5,17 @@ import { DataTable } from "@/features/data-table";
 import { KpiCard } from "@/features/kpi-card";
 import { PageHeader } from "@/features/page-header/page-header";
 import { TitledBlock } from "@/features/titled-block";
+import { CarBrandsAnalyticsSection } from "@/features/vehicle-brands-analytics";
 import {
   useDirectorVehiclesCatalog,
   type DirectorVehicleListItem,
   getVehicleStateMeta,
+  useVehicleAnalyticsPeriod,
 } from "@/pages/vehicles/model";
 import { AppText } from "@/shared/ui/app-text";
 
 import { TAXIPARKS_SIDEBAR_NAV_BY_ID } from "@/features/taxiparks-sidebar";
-import { AnalyticsStateCard, StatusBadge } from "@/pages/taxiparks/ui";
+import { AnalyticsStateCard, StatusBadge, TaxiparksPeriodFilter } from "@/pages/taxiparks/ui";
 
 const directorVehicleColumns: ColumnDef<DirectorVehicleListItem>[] = [
   {
@@ -65,6 +67,7 @@ const directorVehicleColumns: ColumnDef<DirectorVehicleListItem>[] = [
 
 export const DirectorVehiclesPage = () => {
   const navigate = useNavigate();
+  const { range, period, onRangeChange } = useVehicleAnalyticsPeriod();
   const catalogQuery = useDirectorVehiclesCatalog();
 
   return (
@@ -76,6 +79,7 @@ export const DirectorVehiclesPage = () => {
           { label: "Главная", href: "/" },
           { label: TAXIPARKS_SIDEBAR_NAV_BY_ID.vehicles.label },
         ]}
+        actions={<TaxiparksPeriodFilter value={range} onChange={onRangeChange} />}
       />
 
       {catalogQuery.isLoading ? (
@@ -112,6 +116,17 @@ export const DirectorVehiclesPage = () => {
               meta={`${catalogQuery.data.summary.withoutAssignedDriver} без водителя`}
             />
           </section>
+
+          {period.from && period.to ? (
+            <CarBrandsAnalyticsSection
+              from={period.from}
+              to={period.to}
+              taxiParks={catalogQuery.data.taxiParks.map((taxiPark) => ({
+                taxiParkId: taxiPark.taxiParkId,
+                name: taxiPark.taxiParkName,
+              }))}
+            />
+          ) : null}
 
           <TitledBlock
             title="Список автомобилей"

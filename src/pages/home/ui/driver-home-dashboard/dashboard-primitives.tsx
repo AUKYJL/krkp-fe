@@ -1,5 +1,6 @@
 import { AppText } from "@/shared/ui/app-text";
 import { cn } from "@/shared/utils";
+import type { ReactNode } from "react";
 
 type DashboardPillProps = {
   label: string;
@@ -8,7 +9,7 @@ type DashboardPillProps = {
 
 type SummaryRowProps = {
   label: string;
-  value: string;
+  value: ReactNode;
 };
 
 export const DashboardPill = ({
@@ -38,6 +39,34 @@ export const SummaryRow = ({ label, value }: SummaryRowProps) => {
       </AppText>
       <AppText className="text-text-primary text-sm font-semibold tabular-nums">
         {value}
+      </AppText>
+    </div>
+  );
+};
+
+type DashboardEmptyStateProps = {
+  title: string;
+  description: string;
+  className?: string;
+};
+
+export const DashboardEmptyState = ({
+  title,
+  description,
+  className,
+}: DashboardEmptyStateProps) => {
+  return (
+    <div
+      className={cn(
+        "border-border-default bg-background-page flex min-h-36 flex-col items-center justify-center rounded-[16px] border border-dashed px-4 py-6 text-center",
+        className,
+      )}
+    >
+      <AppText className="text-text-primary text-sm font-semibold">
+        {title}
+      </AppText>
+      <AppText className="text-text-secondary mt-1 max-w-[420px] text-sm font-medium">
+        {description}
       </AppText>
     </div>
   );

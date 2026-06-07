@@ -1,7 +1,6 @@
-import type {
-  DriverHomeCarStatus,
-  DriverHomeRecentDayStatus,
-} from "../../consts/driver-home-mock-data";
+import type { components } from "@/shared/api/apiTypes";
+
+type AssignedCarState = components["schemas"]["DriverAnalyticsAssignedCarDto"]["state"];
 
 export const formatDashboardDate = (date: Date) => {
   const formatted = date.toLocaleDateString("ru-RU", {
@@ -25,15 +24,30 @@ export const sanitizeRevenueInput = (value: string) => {
   return value.replaceAll(/\D/g, "");
 };
 
-export const getCarStatusConfig = (status: DriverHomeCarStatus) => {
-  if (status === "ok") {
+export const formatShortDate = (value: string) => {
+  return new Date(value).toLocaleDateString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+  });
+};
+
+export const formatFullDate = (value: string) => {
+  return new Date(value).toLocaleDateString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
+
+export const getCarStatusConfig = (status?: AssignedCarState | null) => {
+  if (status === "WORKING") {
     return {
       label: "Исправен",
       tone: "default" as const,
     };
   }
 
-  if (status === "risk") {
+  if (status === "EMERGENCY") {
     return {
       label: "Требует внимания",
       tone: "accent" as const,
@@ -46,16 +60,16 @@ export const getCarStatusConfig = (status: DriverHomeCarStatus) => {
   };
 };
 
-export const getRecentDayStatusConfig = (status: DriverHomeRecentDayStatus) => {
-  if (status === "filled") {
+export const getRecentDayStatusConfig = (carOnLine: boolean) => {
+  if (carOnLine) {
     return {
-      label: "Заполнено",
+      label: "На линии",
       tone: "default" as const,
     };
   }
 
   return {
-    label: "Не заполнено",
+    label: "Простой",
     tone: "muted" as const,
   };
 };

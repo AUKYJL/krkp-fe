@@ -6,12 +6,14 @@ import { Spinner } from "@/shared/ui/spinner";
 import { ROLES } from "@/shared/types";
 import { can } from "@/shared/utils";
 
+import { useHomeAnalyticsPeriod } from "./model";
 import { DirectorHomeDashboard } from "./ui/director-home-dashboard";
 import { DriverHomeDashboard } from "./ui/driver-home-dashboard";
 
 export const HomePage = () => {
   const navigate = useNavigate();
   const { data: currentUser, error, isLoading } = useCurrentUserQuery();
+  const { range, period, onRangeChange } = useHomeAnalyticsPeriod();
 
   useEffect(() => {
     if (!error) {
@@ -35,8 +37,22 @@ export const HomePage = () => {
   }
 
   if (can(currentUser.role, [ROLES.DIRECTOR])) {
-    return <DirectorHomeDashboard />;
+    return (
+      <DirectorHomeDashboard
+        currentUser={currentUser}
+        range={range}
+        period={period}
+        onRangeChange={onRangeChange}
+      />
+    );
   }
 
-  return <DriverHomeDashboard currentUser={currentUser} />;
+  return (
+    <DriverHomeDashboard
+      currentUser={currentUser}
+      range={range}
+      period={period}
+      onRangeChange={onRangeChange}
+    />
+  );
 };

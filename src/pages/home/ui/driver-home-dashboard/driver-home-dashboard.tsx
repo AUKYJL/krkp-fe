@@ -1,7 +1,21 @@
-import { useNavigate } from "@tanstack/react-router";
-import { Building2, CarFront, TriangleAlert } from "lucide-react";
+import type { ColumnDef } from "@tanstack/react-table";
+import { CarFront } from "lucide-react";
 import { useState } from "react";
 
+import type { DateRangePickerValue } from "@/features/date-range-picker";
+import { DataTable } from "@/features/data-table";
+import { DriverTodayRevenueCard } from "@/features/driver-today-revenue-card";
+import { KpiCard } from "@/features/kpi-card";
+import { PageHeader } from "@/features/page-header/page-header";
+import { TitledBlock } from "@/features/titled-block";
+import { VerticalBarChart } from "@/features/vertical-bar-chart";
+import {
+  type DriverHomeDashboardViewModel,
+  type HomeAnalyticsPeriodState,
+  useDriverHomeDashboard,
+  useUnauthorizedHomeRedirect,
+} from "@/pages/home/model";
+import { AnalyticsStateCard, TaxiparksPeriodFilter } from "@/pages/taxiparks/ui";
 import type { CurrentUser } from "@/shared/api/auth";
 import {
   AppText,
@@ -12,38 +26,216 @@ import {
 import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
 import { CardSurface } from "@/shared/ui/card-surface";
 
-import { buildDriverHomeDashboardData } from "../../consts/driver-home-mock-data";
-
-import { DashboardPill, SummaryRow } from "./dashboard-primitives";
+import { DashboardEmptyState, DashboardPill, SummaryRow } from "./dashboard-primitives";
 import {
   formatDashboardDate,
+  formatFullDate,
+  formatShortDate,
   getCarStatusConfig,
   getRecentDayStatusConfig,
 } from "./driver-home-dashboard.utils";
-import { DriverTodayRevenueCard } from "@/features/driver-today-revenue-card";
-import { KpiCard } from "@/features/kpi-card";
-import { TitledBlock } from "@/features/titled-block";
-import { VerticalBarChart } from "@/features/vertical-bar-chart";
 
 const moneyFormatter = new Intl.NumberFormat("ru-RU");
+const compactMoneyFormatter = new Intl.NumberFormat("ru-RU", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+const percentFormatter = new Intl.NumberFormat("ru-RU", {
+  maximumFractionDigits: 1,
+});
 
 type DriverHomeDashboardProps = {
   currentUser: CurrentUser;
+  range: DateRangePickerValue;
+  period: HomeAnalyticsPeriodState;
+  onRangeChange: (value: DateRangePickerValue) => void;
 };
+
+type DriverWorkDayRow = DriverHomeDashboardViewModel["workDays"][number];
+
+const formatCurrency = (value?: number) => {
+  if (value == null) {
+    return "—";
+  }
+
+  return `₽ ${moneyFormatter.format(value)}`;
+};
+
+const formatSignedCurrency = (value?: number) => {
+  if (value == null) {
+    return "—";
+  }
+
+  const sign = value > 0 ? "+" : "";
+
+  return `${sign}₽ ${moneyFormatter.format(value)}`;
+};
+
+const formatSignedPercent = (value?: number) => {
+  if (value == null) {
+    return "—";
+  }
+
+  const sign = value > 0 ? "+" : "";
+
+  return `${sign}${percentFormatter.format(value)}%`;
+};
+
+const workDayColumns: ColumnDef<DriverWorkDayRow>[] = [
+  {
+    accessorKey: "date",
+    header: "Дата",
+    cell: ({ row }) => (
+      <span className="tabular-nums">{formatFullDate(row.original.date)}</span>
+    ),
+  },
+  {
+    accessorKey: "revenue",
+    header: "Выручка",
+    cell: ({ row }) => (
+      <span className="text-accent-primary font-semibold tabular-nums">
+        {formatCurrency(row.original.revenue)}
+      </span>
+    ),
+  },
+  {
+    accessorKey: "carOnLine",
+    header: "Статус",
+    cell: ({ row }) => {
+      const status = getRecentDayStatusConfig(row.original.carOnLine);
+
+      return <DashboardPill label={status.label} tone={status.tone} />;
+    },
+  },
+  {
+    accessorKey: "car",
+    header: "Авто",
+    cell: ({ row }) => (
+      <span className="text-sm font-medium">
+        {row.original.car.firm} {row.original.car.model} · {row.original.car.plateNumber}
+      </span>
+    ),
+  },
+];
 
 export const DriverHomeDashboard = ({
   currentUser,
+  range,
+  period,
+  onRangeChange,
 }: DriverHomeDashboardProps) => {
-  const navigate = useNavigate();
-  const dashboard = buildDriverHomeDashboardData(currentUser.fullName);
-  const [todayRevenue, setTodayRevenue] = useState(dashboard.todayRevenue);
+  const dashboardQuery = useDriverHomeDashboard(period);
+  const [todayRevenue, setTodayRevenue] = useState<{
+    amount?: number;
+    updatedAt?: string;
+    canEdit: boolean;
+  }>({
+    amount: undefined,
+    updatedAt: undefined,
+    canEdit: true,
+  });
+
+  useUnauthorizedHomeRedirect(dashboardQuery.error);
+
+  if (dashboardQuery.isLoading) {
+    return (
+      <main className="bg-background-page flex min-h-full w-full flex-col gap-6 p-6">
+        <PageHeader
+          title="Главная"
+          description={`Персональная аналитика для ${currentUser.fullName}.`}
+          actions={<TaxiparksPeriodFilter value={range} onChange={onRangeChange} />}
+        />
+        <AnalyticsStateCard
+          title="Загружаем водительский дашборд"
+          message="Подготавливаем показатели по выручке, рейтингу и рабочим дням."
+          tone="loading"
+        />
+      </main>
+    );
+  }
+
+  if (dashboardQuery.error || !dashboardQuery.data) {
+    return (
+      <main className="bg-background-page flex min-h-full w-full flex-col gap-6 p-6">
+        <PageHeader
+          title="Главная"
+          description={`Персональная аналитика для ${currentUser.fullName}.`}
+          actions={<TaxiparksPeriodFilter value={range} onChange={onRangeChange} />}
+        />
+        <AnalyticsStateCard
+          title="Не удалось загрузить водительский дашборд"
+          message={dashboardQuery.errorMessage}
+          tone="error"
+          actionLabel="Повторить"
+          onAction={() => {
+            void dashboardQuery.refetch();
+          }}
+        />
+      </main>
+    );
+  }
+
+  const dashboard = dashboardQuery.data;
   const currentDate = formatDashboardDate(new Date());
-  const carStatus = getCarStatusConfig(dashboard.car.status);
+  const carStatus = getCarStatusConfig(dashboard.driver.assignedCar?.state);
+  const kpiCards = [
+    {
+      label: "Общая выручка",
+      value: formatCurrency(dashboard.summary.totalRevenue),
+      meta: `${dashboard.period.from} - ${dashboard.period.to}`,
+    },
+    {
+      label: "Средняя за смену",
+      value: formatCurrency(dashboard.summary.averageRevenuePerShift),
+      meta: formatCurrency(dashboard.comparison.taxiParkAverageRevenuePerShift),
+    },
+    {
+      label: "Средняя за день",
+      value: formatCurrency(dashboard.summary.averageRevenuePerDay),
+      meta: `${dashboard.summary.workDaysCount} рабочих дней`,
+    },
+    {
+      label: "Рабочие дни",
+      value: String(dashboard.summary.workDaysCount),
+      meta: `${dashboard.summary.onlineDaysCount} онлайн`,
+    },
+    {
+      label: "Онлайн-дни / простой",
+      value: String(dashboard.summary.onlineDaysCount),
+      meta: `${dashboard.summary.downtimeDaysCount} дней простоя`,
+    },
+    {
+      label: "Место в рейтинге",
+      value: `#${dashboard.rating.rank}`,
+      meta: `из ${dashboard.rating.driversCount} водителей`,
+    },
+    {
+      label: "Efficiency score",
+      value: `${percentFormatter.format(dashboard.scorecard.driverEfficiency)}/100`,
+      meta: `${percentFormatter.format(dashboard.scorecard.stabilityScore)} стабильность`,
+    },
+    {
+      label: "Разница с парком по выручке",
+      value: formatSignedCurrency(dashboard.comparison.revenueDifferenceFromParkAverage),
+      meta: formatCurrency(dashboard.comparison.taxiParkAverageRevenuePerDriver),
+    },
+    {
+      label: "Разница с парком по активности",
+      value: formatSignedPercent(dashboard.comparison.activityDifferenceFromParkAverage),
+      meta: `${percentFormatter.format(dashboard.comparison.taxiParkAverageActivityRate)}% в среднем по парку`,
+    },
+  ];
 
   return (
     <main className="bg-background-page flex min-h-full w-full flex-col gap-6 p-6">
-      <div className="flex gap-2">
-        <CardSurface className="flex-1 gap-5 rounded-[24px] p-6 md:p-7">
+      <PageHeader
+        title="Главная"
+        description="Персональная аналитика по выручке, активности и рейтингу за выбранный период."
+        actions={<TaxiparksPeriodFilter value={range} onChange={onRangeChange} />}
+      />
+
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_350px]">
+        <CardSurface className="gap-5 rounded-[24px] p-6 md:p-7">
           <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
             <div className="min-w-0 flex-1">
               <AppText className="text-text-secondary text-xs font-semibold tracking-[0.12em] uppercase">
@@ -55,7 +247,7 @@ export const DriverHomeDashboard = ({
                 size={TEXT_SIZES_VARIABLES.large}
                 className="text-text-primary mt-2 font-bold"
               >
-                {dashboard.driverName}
+                {dashboard.driver.fullName || currentUser.fullName}
               </AppText>
 
               <AppText className="text-text-secondary mt-1 text-sm font-medium">
@@ -63,40 +255,51 @@ export const DriverHomeDashboard = ({
               </AppText>
 
               <div className="mt-4 flex flex-wrap items-center gap-2">
+                <DashboardPill label="Статус линии не подключен" tone="muted" />
                 <DashboardPill
-                  label={dashboard.statusLabel}
-                  tone={dashboard.statusTone}
+                  label={`Таксопарк: ${dashboard.driver.taxiParkName}`}
+                  tone="default"
                 />
-                <AppText
-                  variant={TEXT_VARIANTS_VARIABLES.main}
-                  size={TEXT_SIZES_VARIABLES.xs}
-                  className="text-text-secondary font-medium"
+              </div>
+
+              <AppText
+                variant={TEXT_VARIANTS_VARIABLES.main}
+                size={TEXT_SIZES_VARIABLES.xs}
+                className="text-text-secondary mt-3 font-medium"
+              >
+                Кнопки смены и ручной ввод выручки пока работают как UI-заглушки.
+                Данные по текущей линии будут подключены отдельной интеграцией.
+              </AppText>
+
+              <div className="mt-4 flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap">
+                <Button type="button" className="min-w-[168px]" onClick={() => undefined}>
+                  Выйти на линию
+                </Button>
+                <Button
+                  type="button"
+                  variant={BUTTON_VARIANTS_VARIABLES.secondary}
+                  className="min-w-[168px]"
+                  onClick={() => undefined}
                 >
-                  {dashboard.shiftHint}
-                </AppText>
+                  Завершить смену
+                </Button>
               </div>
-              <div className="mt-2 flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap xl:w-auto">
-                {dashboard.isOnLine ? (
-                  <Button
-                    type="button"
-                    className="min-w-[168px]"
-                    onClick={() => undefined}
-                  >
-                    Завершить смену
-                  </Button>
-                ) : (
-                  <Button
-                    type="button"
-                    className="min-w-[168px]"
-                    onClick={() => undefined}
-                  >
-                    Выйти на линию
-                  </Button>
-                )}
-              </div>
+            </div>
+
+            <div className="bg-background-page flex min-w-[220px] flex-col gap-2 rounded-[16px] px-4 py-3">
+              <AppText className="text-text-secondary text-xs font-semibold uppercase">
+                Рейтинг
+              </AppText>
+              <AppText className="text-text-primary text-[28px] font-bold tabular-nums">
+                #{dashboard.rating.rank}
+              </AppText>
+              <AppText className="text-text-secondary text-sm font-medium">
+                из {dashboard.rating.driversCount} водителей
+              </AppText>
             </div>
           </div>
         </CardSurface>
+
         <DriverTodayRevenueCard
           revenue={todayRevenue.amount}
           updatedAt={todayRevenue.updatedAt}
@@ -111,181 +314,174 @@ export const DriverHomeDashboard = ({
         />
       </div>
 
-      <TitledBlock
-        title="Назначенный автомобиль"
-        subtitle="Актуальные данные по автомобилю на смене"
-        topRightSlot={
-          <DashboardPill label={carStatus.label} tone={carStatus.tone} />
-        }
-        className="gap-5"
-      >
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
-          <div className="border-border-default bg-background-page flex h-[168px] w-full shrink-0 items-center justify-center rounded-[18px] border lg:w-[220px]">
-            <div className="flex flex-col items-center gap-3 text-center">
-              <div className="bg-accent-primary-soft text-accent-primary flex size-14 items-center justify-center rounded-full">
-                <CarFront className="size-7" />
+      <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {kpiCards.map((card) => (
+          <KpiCard
+            key={String(card.label)}
+            label={card.label}
+            value={card.value}
+            meta={card.meta}
+            className="min-w-0"
+            valueClassName="text-text-primary"
+            metaClassName="text-accent-primary"
+          />
+        ))}
+      </section>
+
+      <section className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)]">
+        <TitledBlock
+          title="Назначенный автомобиль"
+          subtitle="Актуальные данные по автомобилю на выбранный период"
+          topRightSlot={
+            dashboard.driver.assignedCar ? (
+              <DashboardPill label={carStatus.label} tone={carStatus.tone} />
+            ) : undefined
+          }
+          className="gap-5"
+        >
+          {dashboard.driver.assignedCar ? (
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
+              <div className="border-border-default bg-background-page flex h-[168px] w-full shrink-0 items-center justify-center rounded-[18px] border lg:w-[220px]">
+                <div className="flex flex-col items-center gap-3 text-center">
+                  <div className="bg-accent-primary-soft text-accent-primary flex size-14 items-center justify-center rounded-full">
+                    <CarFront className="size-7" />
+                  </div>
+                  <div>
+                    <AppText className="text-text-primary text-sm font-semibold">
+                      {dashboard.driver.assignedCar.firm} {dashboard.driver.assignedCar.model}
+                    </AppText>
+                    <AppText className="text-text-secondary text-xs font-medium">
+                      {dashboard.driver.assignedCar.plateNumber}
+                    </AppText>
+                  </div>
+                </div>
               </div>
-              <div>
-                <AppText className="text-text-primary text-sm font-semibold">
-                  {dashboard.car.brand} {dashboard.car.model}
-                </AppText>
-                <AppText className="text-text-secondary text-xs font-medium">
-                  Автомобиль на текущую смену
-                </AppText>
+
+              <div className="grid min-w-0 flex-1 grid-cols-1 gap-3 md:grid-cols-2">
+                <SummaryRow label="Марка" value={dashboard.driver.assignedCar.firm} />
+                <SummaryRow label="Модель" value={dashboard.driver.assignedCar.model} />
+                <SummaryRow
+                  label="Госномер"
+                  value={dashboard.driver.assignedCar.plateNumber}
+                />
+                <SummaryRow label="Статус" value={carStatus.label} />
               </div>
             </div>
-          </div>
+          ) : (
+            <DashboardEmptyState
+              title="Автомобиль не назначен"
+              description="В ответе API `assignedCar = null`. Показываем пустой блок без моковых значений."
+            />
+          )}
+        </TitledBlock>
 
-          <div className="grid min-w-0 flex-1 grid-cols-1 gap-3 md:grid-cols-2">
-            <SummaryRow label="Марка" value={dashboard.car.brand} />
-            <SummaryRow label="Модель" value={dashboard.car.model} />
-            <SummaryRow label="Госномер" value={dashboard.car.plate} />
-            <SummaryRow label="Статус" value={carStatus.label} />
+        <TitledBlock
+          title="Сравнение с парком"
+          subtitle="Сводка относительно средних значений парка"
+          contentClassName="mt-2"
+        >
+          <div className="flex flex-col gap-3">
             <SummaryRow
-              label="Последнее ТО"
-              value={dashboard.car.lastMaintenanceDate}
+              label="Выручка"
+              value={formatSignedCurrency(dashboard.comparison.revenueDifferenceFromParkAverage)}
+            />
+            <SummaryRow
+              label="Средняя выручка / смена"
+              value={formatSignedCurrency(
+                dashboard.comparison.shiftRevenueDifferenceFromParkAverage,
+              )}
+            />
+            <SummaryRow
+              label="Активность"
+              value={formatSignedPercent(
+                dashboard.comparison.activityDifferenceFromParkAverage,
+              )}
+            />
+            <SummaryRow
+              label="Средняя по парку"
+              value={formatCurrency(dashboard.comparison.taxiParkAverageRevenuePerDriver)}
             />
           </div>
-        </div>
-
-        {dashboard.car.warning ? (
-          <div className="bg-background-page mt-4 flex items-start gap-3 rounded-[14px] px-4 py-3">
-            <TriangleAlert className="text-accent-primary mt-0.5 size-4 shrink-0" />
-            <AppText className="text-text-primary text-sm font-medium">
-              {dashboard.car.warning}
-            </AppText>
-          </div>
-        ) : null}
-      </TitledBlock>
-
-      <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {dashboard.kpiCards.map((card) => (
-          <KpiCard key={String(card.label)} {...card} />
-        ))}
+        </TitledBlock>
       </section>
 
       <TitledBlock
         title="Динамика выручки"
-        subtitle="Последние 7 дней"
-        topRightSlot={<DashboardPill label="7 дней" />}
+        subtitle={`Период ${dashboard.period.from} - ${dashboard.period.to}`}
+        topRightSlot={
+          <DashboardPill label={`${dashboard.summary.onlineDaysCount} онлайн-дней`} />
+        }
       >
-        <VerticalBarChart
-          data={dashboard.revenueByDayData}
-          valueLabel="Выручка, ₽"
-          height={300}
-          yTickFormatter={(value) =>
-            Intl.NumberFormat("ru-RU", {
-              notation: "compact",
-              maximumFractionDigits: 1,
-            }).format(value)
-          }
-          tooltipValueFormatter={(value) => `${moneyFormatter.format(value)} ₽`}
-        />
+        {dashboard.charts.revenueByDay.length > 0 ? (
+          <VerticalBarChart
+            data={dashboard.charts.revenueByDay.map((point) => ({
+              date: point.date,
+              value: point.revenue,
+            }))}
+            valueLabel="Выручка, ₽"
+            height={300}
+            xTickFormatter={formatShortDate}
+            yTickFormatter={(value) => compactMoneyFormatter.format(value)}
+            tooltipDateFormatter={(value) => formatFullDate(value)}
+            tooltipValueFormatter={(value) => formatCurrency(value)}
+          />
+        ) : (
+          <DashboardEmptyState
+            title="Нет графика выручки"
+            description="API не вернул ни одного значения `revenueByDay` за выбранный период."
+          />
+        )}
       </TitledBlock>
 
-      <TitledBlock
-        title="Последние рабочие дни"
-        subtitle="Последние 5 записей по выручке"
-      >
-        <div className="flex flex-col gap-2">
-          {dashboard.recentWorkDays.map((day) => {
-            const status = getRecentDayStatusConfig(day.status);
+      <section className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
+        <TitledBlock
+          title="Последние рабочие дни"
+          subtitle="История смен и выручки"
+        >
+          {dashboard.workDays.length > 0 ? (
+            <DataTable
+              columns={workDayColumns}
+              data={dashboard.workDays}
+              initialPageSize={5}
+            />
+          ) : (
+            <DashboardEmptyState
+              title="История рабочих дней пуста"
+              description="Массив `workDays` пуст. Проверьте другой диапазон дат."
+            />
+          )}
+        </TitledBlock>
 
-            return (
-              <div
-                key={day.date}
-                className="bg-background-page flex flex-col gap-3 rounded-[12px] px-4 py-3 md:flex-row md:items-center md:justify-between"
-              >
-                <div className="grid min-w-0 flex-1 grid-cols-1 gap-2 md:grid-cols-[120px_minmax(0,1fr)_auto] md:items-center">
-                  <AppText className="text-text-primary text-sm font-semibold">
-                    {day.date}
-                  </AppText>
-                  <AppText className="text-text-secondary text-sm font-medium">
-                    {day.revenue != null
-                      ? `${moneyFormatter.format(day.revenue)} ₽`
-                      : "Нет данных"}
-                  </AppText>
-                  <DashboardPill label={status.label} tone={status.tone} />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-4">
-          <Button
-            type="button"
-            variant={BUTTON_VARIANTS_VARIABLES.secondary}
-            onClick={() => navigate({ to: "/finance" })}
-          >
-            Перейти к истории выручки
-          </Button>
-        </div>
-      </TitledBlock>
-
-      {dashboard.fleet.type === "invited" ? (
-        <CardSurface className="gap-4">
-          <div className="flex items-start gap-3">
-            <div className="bg-accent-primary-soft text-accent-primary flex size-10 shrink-0 items-center justify-center rounded-full">
-              <Building2 className="size-5" />
-            </div>
-            <div className="min-w-0">
-              <AppText
-                tag={TAG.h2}
-                size={TEXT_SIZES_VARIABLES.default}
-                className="text-text-primary font-semibold"
-              >
-                Вас пригласили в таксопарк
-              </AppText>
-              <AppText className="text-text-secondary mt-1 text-sm font-medium">
-                Приглашение от {dashboard.fleet.name} ожидает вашего решения.
-              </AppText>
-            </div>
+        <TitledBlock
+          title="Scorecard"
+          subtitle="Компоненты эффективности"
+          contentClassName="mt-2"
+        >
+          <div className="flex flex-col gap-3">
+            <KpiCard
+              label="Revenue score"
+              value={`${percentFormatter.format(dashboard.scorecard.revenueScore)}/100`}
+              meta={`${dashboard.scorecard.daysWithRevenueAboveAverage} дней выше среднего`}
+              valueClassName="text-text-primary"
+              metaClassName="text-text-secondary"
+            />
+            <KpiCard
+              label="Activity score"
+              value={`${percentFormatter.format(dashboard.scorecard.activityScore)}/100`}
+              meta={`${percentFormatter.format(dashboard.summary.activityRate)}% активности`}
+              valueClassName="text-text-primary"
+              metaClassName="text-text-secondary"
+            />
+            <KpiCard
+              label="Stability score"
+              value={`${percentFormatter.format(dashboard.scorecard.stabilityScore)}/100`}
+              meta={formatCurrency(dashboard.scorecard.maxDriverRevenue)}
+              valueClassName="text-text-primary"
+              metaClassName="text-text-secondary"
+            />
           </div>
-
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Button type="button" className="sm:min-w-[168px]">
-              Принять приглашение
-            </Button>
-            <Button
-              type="button"
-              variant={BUTTON_VARIANTS_VARIABLES.secondary}
-              className="sm:min-w-[168px]"
-            >
-              Отклонить
-            </Button>
-          </div>
-        </CardSurface>
-      ) : (
-        <CardSurface className="gap-5 rounded-[24px] p-6 md:p-7">
-          <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-            <div className="min-w-0 flex-1">
-              <AppText className="text-text-secondary text-xs font-semibold tracking-[0.12em] uppercase">
-                Таксопарк
-              </AppText>
-
-              <AppText
-                tag={TAG.h2}
-                size={TEXT_SIZES_VARIABLES.medium}
-                className="text-text-primary mt-2 font-bold"
-              >
-                {dashboard.fleet.name}
-              </AppText>
-
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <DashboardPill label={dashboard.fleet.status} />
-                <AppText
-                  variant={TEXT_VARIANTS_VARIABLES.main}
-                  size={TEXT_SIZES_VARIABLES.xs}
-                  className="text-text-secondary font-medium"
-                >
-                  В таксопарке с {dashboard.fleet.joinedAt}
-                </AppText>
-              </div>
-            </div>
-          </div>
-        </CardSurface>
-      )}
+        </TitledBlock>
+      </section>
     </main>
   );
 };

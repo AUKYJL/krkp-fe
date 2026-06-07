@@ -15,6 +15,14 @@ export type AnalyticsPeriodState = {
 type TaxiParkAnalyticsResponse =
   components["schemas"]["GetTaxiParksAnalyticsResponseDto"];
 type CarAnalyticsResponse = components["schemas"]["GetCarAnalyticsResponseDto"];
+type CarBrandsAnalyticsResponse =
+  components["schemas"]["GetCarBrandsAnalyticsResponseDto"];
+type CarBrandAnalyticsItem =
+  components["schemas"]["CarBrandAnalyticsItemDto"];
+type MostProfitableCarBrandAnalyticsItem =
+  components["schemas"]["MostProfitableCarBrandAnalyticsItemDto"];
+type MostDowntimeCarBrandAnalyticsItem =
+  components["schemas"]["MostDowntimeCarBrandAnalyticsItemDto"];
 type CarState = components["schemas"]["CarAnalyticsCarDto"]["state"];
 
 export type DirectorVehicleListItem = {
@@ -66,6 +74,20 @@ const DEFAULT_PERIOD_DAYS = 30;
 
 const vehicleQueryKeys = {
   directorCatalog: ["vehicles", "director-catalog"] as const,
+  carBrandsAnalytics: (
+    period: AnalyticsPeriodState,
+    taxiParkId: string,
+    taxiParkIds: string[],
+  ) =>
+    [
+      "car-brands-analytics",
+      {
+        from: period.from,
+        to: period.to,
+        taxiParkId,
+        taxiParkIds,
+      },
+    ] as const,
   vehicleAnalytics: (
     taxiParkId: string,
     carId: string,
@@ -461,6 +483,209 @@ const getVehicleAnalytics = async ({
   return data as VehicleAnalyticsDetail;
 };
 
+export const getCarBrandsAnalytics = async ({
+  from,
+  to,
+  taxiParkId,
+}: {
+  from?: string;
+  to?: string;
+  taxiParkId?: string;
+}): Promise<CarBrandsAnalyticsResponse> => {
+  if (taxiParkId && taxiParkId !== "all") {
+    const data = await getResponseData(
+      fetchClient.GET("/api/taxi-parks/{taxiParkId}/cars/brands/analytics", {
+        params: {
+          path: { taxiParkId },
+          query: {
+            from,
+            to,
+          },
+        },
+      }),
+    );
+
+    return data as CarBrandsAnalyticsResponse;
+  }
+
+  const analytics = await getResponseData(
+    fetchClient.GET("/api/taxi-parks/analytics"),
+  );
+  const typedAnalytics = analytics as TaxiParkAnalyticsResponse;
+
+  const parkResponses: CarBrandsAnalyticsResponse[] = await Promise.all(
+    typedAnalytics.taxiParks.map((taxiPark) =>
+      getCarBrandsAnalytics({
+        from,
+        to,
+        taxiParkId: taxiPark.taxiParkId,
+      }),
+    ),
+  );
+
+  return aggregateCarBrandsAnalytics({
+    responses: parkResponses,
+    from,
+    to,
+  });
+};
+
+const aggregateCarBrandsAnalytics = ({
+  responses,
+  from,
+  to,
+}: {
+  responses: CarBrandsAnalyticsResponse[];
+  from?: string;
+  to?: string;
+}): CarBrandsAnalyticsResponse => {
+  const brandMap = new Map<
+    string,
+    Omit<CarBrandAnalyticsItem, "revenueRank" | "downtimeRank">
+  >();
+
+  for (const response of responses) {
+    for (const brand of response.brands) {
+      const current = brandMap.get(brand.firm);
+
+      if (current) {
+        current.carsCount += brand.carsCount;
+        current.totalRevenue += brand.totalRevenue;
+        current.onlineDaysCount += brand.onlineDaysCount;
+        current.downtimeDaysCount += brand.downtimeDaysCount;
+        continue;
+      }
+
+      brandMap.set(brand.firm, {
+        firm: brand.firm,
+        carsCount: brand.carsCount,
+        totalRevenue: brand.totalRevenue,
+        averageRevenuePerCar: 0,
+        averageRevenuePerOnlineDay: 0,
+        onlineDaysCount: brand.onlineDaysCount,
+        downtimeDaysCount: brand.downtimeDaysCount,
+        utilizationRate: 0,
+        downtimeRate: 0,
+      });
+    }
+  }
+
+  const aggregatedBrandsBase = Array.from(brandMap.values()).map((brand) => {
+    const totalTrackedDays = brand.onlineDaysCount + brand.downtimeDaysCount;
+
+    return {
+      ...brand,
+      averageRevenuePerCar:
+        brand.carsCount > 0 ? brand.totalRevenue / brand.carsCount : 0,
+      averageRevenuePerOnlineDay:
+        brand.onlineDaysCount > 0 ? brand.totalRevenue / brand.onlineDaysCount : 0,
+      utilizationRate:
+        totalTrackedDays > 0
+          ? (brand.onlineDaysCount / totalTrackedDays) * 100
+          : 0,
+      downtimeRate:
+        totalTrackedDays > 0
+          ? (brand.downtimeDaysCount / totalTrackedDays) * 100
+          : 0,
+    };
+  });
+
+  const revenueSorted = [...aggregatedBrandsBase].sort((left, right) => {
+    if (right.totalRevenue !== left.totalRevenue) {
+      return right.totalRevenue - left.totalRevenue;
+    }
+
+    return left.firm.localeCompare(right.firm, "ru");
+  });
+  const downtimeSorted = [...aggregatedBrandsBase].sort((left, right) => {
+    if (right.downtimeDaysCount !== left.downtimeDaysCount) {
+      return right.downtimeDaysCount - left.downtimeDaysCount;
+    }
+
+    return left.firm.localeCompare(right.firm, "ru");
+  });
+
+  const revenueRankMap = new Map(
+    revenueSorted.map((brand, index) => [brand.firm, index + 1]),
+  );
+  const downtimeRankMap = new Map(
+    downtimeSorted.map((brand, index) => [brand.firm, index + 1]),
+  );
+
+  const brands = revenueSorted.map<CarBrandAnalyticsItem>((brand) => ({
+    ...brand,
+    revenueRank: revenueRankMap.get(brand.firm) ?? 0,
+    downtimeRank: downtimeRankMap.get(brand.firm) ?? 0,
+  }));
+
+  const mostProfitableBrands = revenueSorted
+    .slice(0, 5)
+    .map<MostProfitableCarBrandAnalyticsItem>((brand) => ({
+      firm: brand.firm,
+      carsCount: brand.carsCount,
+      totalRevenue: brand.totalRevenue,
+      averageRevenuePerCar: brand.averageRevenuePerCar,
+      averageRevenuePerOnlineDay: brand.averageRevenuePerOnlineDay,
+      onlineDaysCount: brand.onlineDaysCount,
+      downtimeDaysCount: brand.downtimeDaysCount,
+      utilizationRate: brand.utilizationRate,
+      revenueRank: revenueRankMap.get(brand.firm) ?? 0,
+    }));
+
+  const mostDowntimeBrands = downtimeSorted
+    .slice(0, 5)
+    .map<MostDowntimeCarBrandAnalyticsItem>((brand) => ({
+      firm: brand.firm,
+      carsCount: brand.carsCount,
+      totalRevenue: brand.totalRevenue,
+      onlineDaysCount: brand.onlineDaysCount,
+      downtimeDaysCount: brand.downtimeDaysCount,
+      downtimeRate: brand.downtimeRate,
+      utilizationRate: brand.utilizationRate,
+      downtimeRank: downtimeRankMap.get(brand.firm) ?? 0,
+    }));
+
+  const carsCount = brands.reduce((sum, brand) => sum + brand.carsCount, 0);
+  const totalRevenue = brands.reduce((sum, brand) => sum + brand.totalRevenue, 0);
+  const totalDowntimeDaysCount = brands.reduce(
+    (sum, brand) => sum + brand.downtimeDaysCount,
+    0,
+  );
+
+  return {
+    period: {
+      from: from ?? responses[0]?.period.from ?? "",
+      to: to ?? responses[0]?.period.to ?? "",
+      daysCount: responses[0]?.period.daysCount ?? 0,
+    },
+    taxiPark: {
+      taxiParkId: "all",
+      name: "Все таксопарки",
+    },
+    summary: {
+      brandsCount: brands.length,
+      carsCount,
+      totalRevenue,
+      totalDowntimeDaysCount,
+      bestRevenueBrand: revenueSorted[0]
+        ? {
+            firm: revenueSorted[0].firm,
+            totalRevenue: revenueSorted[0].totalRevenue,
+          }
+        : null,
+      mostDowntimeBrand: downtimeSorted[0]
+        ? {
+            firm: downtimeSorted[0].firm,
+            downtimeDaysCount: downtimeSorted[0].downtimeDaysCount,
+          }
+        : null,
+    },
+    brands,
+    mostProfitableBrands,
+    mostDowntimeBrands,
+  };
+};
+
 const getDriverAssignedVehicleContext = async () => {
   const driverProfile = await getOptionalResponseData(
     fetchClient.GET("/api/drivers/me"),
@@ -603,6 +828,44 @@ export const useDriverAssignedVehicleContext = () => {
   const query = useQuery({
     queryKey: vehicleQueryKeys.driverAssignedVehicle,
     queryFn: getDriverAssignedVehicleContext,
+    retry: false,
+  });
+
+  return {
+    ...query,
+    errorMessage: getApiErrorMessage(query.error),
+  };
+};
+
+export const useCarBrandsAnalytics = ({
+  from,
+  to,
+  taxiParkId,
+  taxiParkIds = [],
+}: {
+  from?: string;
+  to?: string;
+  taxiParkId?: string;
+  taxiParkIds?: string[];
+}) => {
+  const uniqueTaxiParkIds = Array.from(new Set(taxiParkIds));
+  const resolvedTaxiParkId = taxiParkId ?? "all";
+  const query = useQuery({
+    queryKey: vehicleQueryKeys.carBrandsAnalytics(
+      { from, to },
+      resolvedTaxiParkId,
+      uniqueTaxiParkIds,
+    ),
+    enabled:
+      Boolean(from) &&
+      Boolean(to) &&
+      (resolvedTaxiParkId !== "all" || uniqueTaxiParkIds.length > 0),
+    queryFn: () =>
+      getCarBrandsAnalytics({
+        from,
+        to,
+        taxiParkId: resolvedTaxiParkId,
+      }),
     retry: false,
   });
 
