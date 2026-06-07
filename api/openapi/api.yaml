@@ -164,6 +164,77 @@ paths:
       security: *a4
       summary: Список моих таксопарков
       tags: *a5
+  /api/taxi-parks/me:
+    get:
+      operationId: TaxiParksController_getMe
+      parameters: []
+      responses:
+        "200":
+          description: ""
+      security: *a4
+      summary: Текущий таксопарк водителя
+      tags: *a5
+  /api/taxi-parks/analytics:
+    get:
+      operationId: TaxiParksController_getAllTaxiParksAnalytics
+      parameters:
+        - name: from
+          required: false
+          in: query
+          description: Дата начала периода в формате YYYY-MM-DD
+          schema:
+            example: 2025-04-01
+            type: string
+        - name: to
+          required: false
+          in: query
+          description: Дата окончания периода в формате YYYY-MM-DD
+          schema:
+            example: 2025-04-30
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetTaxiParksAnalyticsResponseDto"
+      security: *a4
+      summary: Общая аналитика по всем таксопаркам директора
+      tags: *a5
+  /api/taxi-parks/{taxiParkId}/analytics:
+    get:
+      operationId: TaxiParksController_getTaxiParkAnalytics
+      parameters:
+        - name: taxiParkId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: from
+          required: false
+          in: query
+          description: Дата начала периода в формате YYYY-MM-DD
+          schema:
+            example: 2025-04-01
+            type: string
+        - name: to
+          required: false
+          in: query
+          description: Дата окончания периода в формате YYYY-MM-DD
+          schema:
+            example: 2025-04-30
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetTaxiParkAnalyticsResponseDto"
+      security: *a4
+      summary: Аналитика по конкретному таксопарку за период
+      tags: *a5
   /api/taxi-parks/{id}:
     get:
       operationId: TaxiParksController_get
@@ -584,10 +655,15 @@ paths:
       security: *a12
       summary: Work-days авто (директор)
       tags: *a13
-  /api/analytics/driver/{driverId}/revenue:
+  /api/analytics/taxi-parks/{taxiParkId}/drivers/{driverId}/revenue:
     get:
       operationId: AnalyticsController_driverRevenue
       parameters:
+        - name: taxiParkId
+          required: true
+          in: path
+          schema:
+            type: string
         - name: driverId
           required: true
           in: path
@@ -596,14 +672,16 @@ paths:
         - name: from
           required: false
           in: query
+          description: Дата начала периода в формате YYYY-MM-DD
           schema:
-            example: 2026-05-01
+            example: 2025-04-01
             type: string
         - name: to
           required: false
           in: query
+          description: Дата окончания периода в формате YYYY-MM-DD
           schema:
-            example: 2026-05-31
+            example: 2025-04-30
             type: string
       responses:
         "200":
@@ -625,14 +703,16 @@ paths:
         - name: from
           required: false
           in: query
+          description: Дата начала периода в формате YYYY-MM-DD
           schema:
-            example: 2026-05-01
+            example: 2025-04-01
             type: string
         - name: to
           required: false
           in: query
+          description: Дата окончания периода в формате YYYY-MM-DD
           schema:
-            example: 2026-05-31
+            example: 2025-04-30
             type: string
       responses:
         "200":
@@ -644,11 +724,19 @@ paths:
     get:
       operationId: AnalyticsController_allRevenue
       parameters:
-        - name: date
-          required: true
+        - name: from
+          required: false
           in: query
+          description: Дата начала периода в формате YYYY-MM-DD
           schema:
-            example: 2026-05-02
+            example: 2025-04-01
+            type: string
+        - name: to
+          required: false
+          in: query
+          description: Дата окончания периода в формате YYYY-MM-DD
+          schema:
+            example: 2025-04-30
             type: string
       responses:
         "200":
@@ -663,14 +751,21 @@ paths:
         - name: from
           required: false
           in: query
+          description: Дата начала периода в формате YYYY-MM-DD
           schema:
-            example: 2026-05-01
+            example: 2025-04-01
             type: string
         - name: to
           required: false
           in: query
+          description: Дата окончания периода в формате YYYY-MM-DD
           schema:
-            example: 2026-05-31
+            example: 2025-04-30
+            type: string
+        - name: taxiParkId
+          required: true
+          in: query
+          schema:
             type: string
       responses:
         "200":
@@ -685,14 +780,21 @@ paths:
         - name: from
           required: false
           in: query
+          description: Дата начала периода в формате YYYY-MM-DD
           schema:
-            example: 2026-05-01
+            example: 2025-04-01
             type: string
         - name: to
           required: false
           in: query
+          description: Дата окончания периода в формате YYYY-MM-DD
           schema:
-            example: 2026-05-31
+            example: 2025-04-30
+            type: string
+        - name: taxiParkId
+          required: true
+          in: query
+          schema:
             type: string
       responses:
         "200":
@@ -707,14 +809,21 @@ paths:
         - name: from
           required: false
           in: query
+          description: Дата начала периода в формате YYYY-MM-DD
           schema:
-            example: 2026-05-01
+            example: 2025-04-01
             type: string
         - name: to
           required: false
           in: query
+          description: Дата окончания периода в формате YYYY-MM-DD
           schema:
-            example: 2026-05-31
+            example: 2025-04-30
+            type: string
+        - name: taxiParkId
+          required: true
+          in: query
+          schema:
             type: string
       responses:
         "200":
@@ -729,14 +838,21 @@ paths:
         - name: from
           required: false
           in: query
+          description: Дата начала периода в формате YYYY-MM-DD
           schema:
-            example: 2026-05-01
+            example: 2025-04-01
             type: string
         - name: to
           required: false
           in: query
+          description: Дата окончания периода в формате YYYY-MM-DD
           schema:
-            example: 2026-05-31
+            example: 2025-04-30
+            type: string
+        - name: taxiParkId
+          required: true
+          in: query
+          schema:
             type: string
       responses:
         "200":
@@ -751,14 +867,21 @@ paths:
         - name: from
           required: false
           in: query
+          description: Дата начала периода в формате YYYY-MM-DD
           schema:
-            example: 2026-05-01
+            example: 2025-04-01
             type: string
         - name: to
           required: false
           in: query
+          description: Дата окончания периода в формате YYYY-MM-DD
           schema:
-            example: 2026-05-31
+            example: 2025-04-30
+            type: string
+        - name: taxiParkId
+          required: true
+          in: query
+          schema:
             type: string
       responses:
         "200":
@@ -872,6 +995,714 @@ components:
       required:
         - name
         - address
+    TaxiParksAnalyticsPeriodDto:
+      type: object
+      properties:
+        from:
+          type: string
+          example: 2025-04-01
+        to:
+          type: string
+          example: 2025-04-30
+        daysCount:
+          type: number
+          example: 30
+      required:
+        - from
+        - to
+        - daysCount
+    TaxiParksAnalyticsSummaryDto:
+      type: object
+      properties:
+        taxiParksCount:
+          type: number
+          example: 3
+        driversCount:
+          type: number
+          example: 20
+        activeDriversCount:
+          type: number
+          example: 8
+        carsCount:
+          type: number
+          example: 15
+        totalRevenue:
+          type: number
+          example: 100000.55
+        averageRevenuePerDay:
+          type: number
+          example: 3333.35
+        averageRevenuePerTaxiPark:
+          type: number
+          example: 33333.52
+        averageRevenuePerActiveDriver:
+          type: number
+          example: 12500.07
+        averageRevenuePerCar:
+          type: number
+          example: 5000.03
+        workDaysCount:
+          type: number
+          example: 120
+        onlineDaysCount:
+          type: number
+          example: 95
+        downtimeDaysCount:
+          type: number
+          example: 25
+        onlineRate:
+          type: number
+          example: 79.17
+        downtimeRate:
+          type: number
+          example: 20.83
+        estimatedDowntimeLoss:
+          type: number
+          example: 26315.93
+      required:
+        - taxiParksCount
+        - driversCount
+        - activeDriversCount
+        - carsCount
+        - totalRevenue
+        - averageRevenuePerDay
+        - averageRevenuePerTaxiPark
+        - averageRevenuePerActiveDriver
+        - averageRevenuePerCar
+        - workDaysCount
+        - onlineDaysCount
+        - downtimeDaysCount
+        - onlineRate
+        - downtimeRate
+        - estimatedDowntimeLoss
+    TaxiParksRevenueByDayPointDto:
+      type: object
+      properties:
+        date:
+          type: string
+          example: 2025-04-01
+        revenue:
+          type: number
+          example: 4800.25
+        onlineCarsCount:
+          type: number
+          example: 7
+        downtimeCarsCount:
+          type: number
+          example: 2
+      required:
+        - date
+        - revenue
+        - onlineCarsCount
+        - downtimeCarsCount
+    TaxiParksRevenueByTaxiParkPointDto:
+      type: object
+      properties:
+        taxiParkId:
+          type: string
+        taxiParkName:
+          type: string
+        revenue:
+          type: number
+          example: 25000.5
+      required:
+        - taxiParkId
+        - taxiParkName
+        - revenue
+    TaxiParksDowntimeByDayPointDto:
+      type: object
+      properties:
+        date:
+          type: string
+          example: 2025-04-01
+        downtimeCarsCount:
+          type: number
+          example: 2
+      required:
+        - date
+        - downtimeCarsCount
+    TaxiParksAnalyticsChartsDto:
+      type: object
+      properties:
+        revenueByDay:
+          type: array
+          items:
+            $ref: "#/components/schemas/TaxiParksRevenueByDayPointDto"
+        revenueByTaxiPark:
+          type: array
+          items:
+            $ref: "#/components/schemas/TaxiParksRevenueByTaxiParkPointDto"
+        downtimeByDay:
+          type: array
+          items:
+            $ref: "#/components/schemas/TaxiParksDowntimeByDayPointDto"
+      required:
+        - revenueByDay
+        - revenueByTaxiPark
+        - downtimeByDay
+    TaxiParkAnalyticsItemDto:
+      type: object
+      properties:
+        taxiParkId:
+          type: string
+        name:
+          type: string
+        address:
+          type: string
+        driversCount:
+          type: number
+          example: 20
+        activeDriversCount:
+          type: number
+          example: 8
+        carsCount:
+          type: number
+          example: 15
+        totalRevenue:
+          type: number
+          example: 100000.55
+        averageRevenuePerDay:
+          type: number
+          example: 3333.35
+        averageRevenuePerActiveDriver:
+          type: number
+          example: 12500.07
+        averageRevenuePerCar:
+          type: number
+          example: 5000.03
+        workDaysCount:
+          type: number
+          example: 120
+        onlineDaysCount:
+          type: number
+          example: 95
+        downtimeDaysCount:
+          type: number
+          example: 25
+        onlineRate:
+          type: number
+          example: 79.17
+        downtimeRate:
+          type: number
+          example: 20.83
+        estimatedDowntimeLoss:
+          type: number
+          example: 26315.93
+      required:
+        - taxiParkId
+        - name
+        - address
+        - driversCount
+        - activeDriversCount
+        - carsCount
+        - totalRevenue
+        - averageRevenuePerDay
+        - averageRevenuePerActiveDriver
+        - averageRevenuePerCar
+        - workDaysCount
+        - onlineDaysCount
+        - downtimeDaysCount
+        - onlineRate
+        - downtimeRate
+        - estimatedDowntimeLoss
+    TopDriverAnalyticsItemDto:
+      type: object
+      properties:
+        driverId:
+          type: string
+        fullName:
+          type: string
+        taxiParkId:
+          type: string
+        taxiParkName:
+          type: string
+        totalRevenue:
+          type: number
+          example: 25000.5
+        averageRevenuePerOnlineDay:
+          type: number
+          example: 3125.06
+        onlineDaysCount:
+          type: number
+          example: 8
+        downtimeDaysCount:
+          type: number
+          example: 2
+        activityRate:
+          type: number
+          example: 26.67
+        rank:
+          type: number
+          example: 1
+      required:
+        - driverId
+        - fullName
+        - taxiParkId
+        - taxiParkName
+        - totalRevenue
+        - averageRevenuePerOnlineDay
+        - onlineDaysCount
+        - downtimeDaysCount
+        - activityRate
+        - rank
+    TopCarAnalyticsItemDto:
+      type: object
+      properties:
+        carId:
+          type: string
+        firm:
+          type: string
+        model:
+          type: string
+        plateNumber:
+          type: string
+        state:
+          type: string
+          enum:
+            - WORKING
+            - EMERGENCY
+            - REPAIR
+        taxiParkId:
+          type: string
+        taxiParkName:
+          type: string
+        totalRevenue:
+          type: number
+          example: 21000.2
+        averageRevenuePerOnlineDay:
+          type: number
+          example: 2625.03
+        onlineDaysCount:
+          type: number
+          example: 8
+        downtimeDaysCount:
+          type: number
+          example: 1
+        utilizationRate:
+          type: number
+          example: 26.67
+      required:
+        - carId
+        - firm
+        - model
+        - plateNumber
+        - state
+        - taxiParkId
+        - taxiParkName
+        - totalRevenue
+        - averageRevenuePerOnlineDay
+        - onlineDaysCount
+        - downtimeDaysCount
+        - utilizationRate
+    TopBrandAnalyticsItemDto:
+      type: object
+      properties:
+        firm:
+          type: string
+        carsCount:
+          type: number
+          example: 5
+        totalRevenue:
+          type: number
+          example: 65000.4
+        averageRevenuePerCar:
+          type: number
+          example: 13000.08
+        onlineDaysCount:
+          type: number
+          example: 42
+        downtimeDaysCount:
+          type: number
+          example: 8
+        utilizationRate:
+          type: number
+          example: 28
+      required:
+        - firm
+        - carsCount
+        - totalRevenue
+        - averageRevenuePerCar
+        - onlineDaysCount
+        - downtimeDaysCount
+        - utilizationRate
+    ProblemTaxiParkAnalyticsItemDto:
+      type: object
+      properties:
+        taxiParkId:
+          type: string
+        name:
+          type: string
+        downtimeDaysCount:
+          type: number
+          example: 12
+        downtimeRate:
+          type: number
+          example: 35.29
+        estimatedDowntimeLoss:
+          type: number
+          example: 18250.5
+      required:
+        - taxiParkId
+        - name
+        - downtimeDaysCount
+        - downtimeRate
+        - estimatedDowntimeLoss
+    ProblemCarAnalyticsItemDto:
+      type: object
+      properties:
+        carId:
+          type: string
+        firm:
+          type: string
+        model:
+          type: string
+        plateNumber:
+          type: string
+        taxiParkId:
+          type: string
+        taxiParkName:
+          type: string
+        downtimeDaysCount:
+          type: number
+          example: 4
+        estimatedLoss:
+          type: number
+          example: 11000.5
+      required:
+        - carId
+        - firm
+        - model
+        - plateNumber
+        - taxiParkId
+        - taxiParkName
+        - downtimeDaysCount
+        - estimatedLoss
+    GetTaxiParksAnalyticsResponseDto:
+      type: object
+      properties:
+        period:
+          $ref: "#/components/schemas/TaxiParksAnalyticsPeriodDto"
+        summary:
+          $ref: "#/components/schemas/TaxiParksAnalyticsSummaryDto"
+        charts:
+          $ref: "#/components/schemas/TaxiParksAnalyticsChartsDto"
+        taxiParks:
+          type: array
+          items:
+            $ref: "#/components/schemas/TaxiParkAnalyticsItemDto"
+        topDrivers:
+          type: array
+          items:
+            $ref: "#/components/schemas/TopDriverAnalyticsItemDto"
+        topCars:
+          type: array
+          items:
+            $ref: "#/components/schemas/TopCarAnalyticsItemDto"
+        topBrands:
+          type: array
+          items:
+            $ref: "#/components/schemas/TopBrandAnalyticsItemDto"
+        problemTaxiParks:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProblemTaxiParkAnalyticsItemDto"
+        problemCars:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProblemCarAnalyticsItemDto"
+      required:
+        - period
+        - summary
+        - charts
+        - taxiParks
+        - topDrivers
+        - topCars
+        - topBrands
+        - problemTaxiParks
+        - problemCars
+    AnalyticsPeriodDto:
+      type: object
+      properties:
+        from:
+          type: string
+          example: 2025-04-01
+        to:
+          type: string
+          example: 2025-04-30
+        daysCount:
+          type: number
+          example: 30
+      required:
+        - from
+        - to
+        - daysCount
+    TaxiParkAnalyticsSummaryDto:
+      type: object
+      properties:
+        totalRevenue:
+          type: number
+          example: 100000.55
+        averageRevenuePerDay:
+          type: number
+          example: 3333.35
+        averageRevenuePerActiveDriver:
+          type: number
+          example: 12500.07
+        averageRevenuePerCar:
+          type: number
+          example: 5000.03
+        driversCount:
+          type: number
+          example: 20
+        activeDriversCount:
+          type: number
+          example: 8
+        carsCount:
+          type: number
+          example: 15
+        workDaysCount:
+          type: number
+          example: 120
+        onlineDaysCount:
+          type: number
+          example: 95
+        downtimeDaysCount:
+          type: number
+          example: 25
+        onlineRate:
+          type: number
+          example: 79.17
+        downtimeRate:
+          type: number
+          example: 20.83
+        estimatedDowntimeLoss:
+          type: number
+          example: 26315.93
+      required:
+        - totalRevenue
+        - averageRevenuePerDay
+        - averageRevenuePerActiveDriver
+        - averageRevenuePerCar
+        - driversCount
+        - activeDriversCount
+        - carsCount
+        - workDaysCount
+        - onlineDaysCount
+        - downtimeDaysCount
+        - onlineRate
+        - downtimeRate
+        - estimatedDowntimeLoss
+    RevenueByDayPointDto:
+      type: object
+      properties:
+        date:
+          type: string
+          example: 2025-04-01
+        revenue:
+          type: number
+          example: 4800.25
+        onlineCarsCount:
+          type: number
+          example: 7
+        downtimeCarsCount:
+          type: number
+          example: 2
+      required:
+        - date
+        - revenue
+        - onlineCarsCount
+        - downtimeCarsCount
+    DowntimeByDayPointDto:
+      type: object
+      properties:
+        date:
+          type: string
+          example: 2025-04-01
+        downtimeCarsCount:
+          type: number
+          example: 2
+      required:
+        - date
+        - downtimeCarsCount
+    TaxiParkAnalyticsChartsDto:
+      type: object
+      properties:
+        revenueByDay:
+          type: array
+          items:
+            $ref: "#/components/schemas/RevenueByDayPointDto"
+        downtimeByDay:
+          type: array
+          items:
+            $ref: "#/components/schemas/DowntimeByDayPointDto"
+      required:
+        - revenueByDay
+        - downtimeByDay
+    TopDriverAnalyticsDto:
+      type: object
+      properties:
+        driverId:
+          type: string
+        fullName:
+          type: string
+        totalRevenue:
+          type: number
+          example: 25000.5
+        averageRevenuePerOnlineDay:
+          type: number
+          example: 3125.06
+        onlineDaysCount:
+          type: number
+          example: 8
+        downtimeDaysCount:
+          type: number
+          example: 2
+        activityRate:
+          type: number
+          example: 26.67
+        rank:
+          type: number
+          example: 1
+      required:
+        - driverId
+        - fullName
+        - totalRevenue
+        - averageRevenuePerOnlineDay
+        - onlineDaysCount
+        - downtimeDaysCount
+        - activityRate
+        - rank
+    TopCarAnalyticsDto:
+      type: object
+      properties:
+        carId:
+          type: string
+        firm:
+          type: string
+        model:
+          type: string
+        plateNumber:
+          type: string
+        state:
+          type: string
+          enum:
+            - WORKING
+            - EMERGENCY
+            - REPAIR
+        totalRevenue:
+          type: number
+          example: 21000.2
+        averageRevenuePerOnlineDay:
+          type: number
+          example: 2625.03
+        onlineDaysCount:
+          type: number
+          example: 8
+        downtimeDaysCount:
+          type: number
+          example: 1
+        utilizationRate:
+          type: number
+          example: 26.67
+      required:
+        - carId
+        - firm
+        - model
+        - plateNumber
+        - state
+        - totalRevenue
+        - averageRevenuePerOnlineDay
+        - onlineDaysCount
+        - downtimeDaysCount
+        - utilizationRate
+    TopBrandAnalyticsDto:
+      type: object
+      properties:
+        firm:
+          type: string
+        carsCount:
+          type: number
+          example: 5
+        totalRevenue:
+          type: number
+          example: 65000.4
+        averageRevenuePerCar:
+          type: number
+          example: 13000.08
+        onlineDaysCount:
+          type: number
+          example: 42
+        downtimeDaysCount:
+          type: number
+          example: 8
+        utilizationRate:
+          type: number
+          example: 28
+      required:
+        - firm
+        - carsCount
+        - totalRevenue
+        - averageRevenuePerCar
+        - onlineDaysCount
+        - downtimeDaysCount
+        - utilizationRate
+    ProblemCarAnalyticsDto:
+      type: object
+      properties:
+        carId:
+          type: string
+        firm:
+          type: string
+        model:
+          type: string
+        plateNumber:
+          type: string
+        downtimeDaysCount:
+          type: number
+          example: 4
+        estimatedLoss:
+          type: number
+          example: 11000.5
+      required:
+        - carId
+        - firm
+        - model
+        - plateNumber
+        - downtimeDaysCount
+        - estimatedLoss
+    GetTaxiParkAnalyticsResponseDto:
+      type: object
+      properties:
+        period:
+          $ref: "#/components/schemas/AnalyticsPeriodDto"
+        summary:
+          $ref: "#/components/schemas/TaxiParkAnalyticsSummaryDto"
+        charts:
+          $ref: "#/components/schemas/TaxiParkAnalyticsChartsDto"
+        topDrivers:
+          type: array
+          items:
+            $ref: "#/components/schemas/TopDriverAnalyticsDto"
+        topCars:
+          type: array
+          items:
+            $ref: "#/components/schemas/TopCarAnalyticsDto"
+        topBrands:
+          type: array
+          items:
+            $ref: "#/components/schemas/TopBrandAnalyticsDto"
+        problemCars:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProblemCarAnalyticsDto"
+      required:
+        - period
+        - summary
+        - charts
+        - topDrivers
+        - topCars
+        - topBrands
+        - problemCars
     UpdateTaxiParkDto:
       type: object
       properties:

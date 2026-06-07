@@ -53,3 +53,8 @@ Use bullet lists for simplicity. This is not a replacement for your ticket syste
 - **Status**: Completed
 - **Description**: Moved `DriverHomeDashboard` into a folder-based page-local module with local primitives, utils, and revenue card files while preserving the existing consumer import path via `index.ts`.
 - **URL**: N/A
+
+### 2026-06-06 - UI-driver-taxipark-page: Add driver taxipark membership and invitation page
+- **Status**: Completed
+- **Description**: Split `/taxiparks` by role, preserved the director analytics page, and added a driver-focused page with membership info, invitation accept/reject actions, loading, empty, and error states backed by the existing API endpoints.
+- **URL**: N/A

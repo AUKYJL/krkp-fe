@@ -1,9 +1,8 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Plus, Search } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 
 import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
 
 import {
   vehicleDowntimeTopItems,
@@ -32,18 +31,7 @@ const PERIODS: Array<{ key: PeriodKey; label: string }> = [
 
 export const DirectorVehiclesPage = () => {
   const navigate = useNavigate();
-  const [search, setSearch] = useState("");
   const [period, setPeriod] = useState<PeriodKey>("month");
-
-  const query = search.trim().toLowerCase();
-  const filteredRows =
-    query.length === 0
-      ? vehicleTableData
-      : vehicleTableData.filter((row) =>
-          [row.plate, row.brand, row.driver, row.park, row.status].some(
-            (value) => value.toLowerCase().includes(query),
-          ),
-        );
 
   return (
     <main className="bg-background-page flex min-h-full w-full flex-col gap-6 p-6">
@@ -115,7 +103,7 @@ export const DirectorVehiclesPage = () => {
       >
         <DataTable
           columns={vehicleTableColumns}
-          data={filteredRows}
+          data={vehicleTableData}
           initialPageSize={5}
           onRowClick={(row) =>
             navigate({
