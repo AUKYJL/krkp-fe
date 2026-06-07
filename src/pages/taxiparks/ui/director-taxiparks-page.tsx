@@ -1,9 +1,8 @@
 import { useNavigate } from "@tanstack/react-router";
-import { CalendarDays, Plus } from "lucide-react";
 import { useState } from "react";
 
 import { AppText } from "@/shared/ui/app-text";
-import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
+import { Button } from "@/shared/ui/button";
 
 import { CsvExportButton } from "@/features/csv-export-button";
 import { DataTable } from "@/features/data-table";
@@ -14,19 +13,111 @@ import { ProgressCard } from "@/features/progress-card";
 import { SearchInput } from "@/features/search-input";
 import { TAXIPARKS_SIDEBAR_NAV_BY_ID } from "@/features/taxiparks-sidebar";
 import { TitledBlock } from "@/features/titled-block";
+import { VerticalBarChart } from "@/features/vertical-bar-chart";
 
-import { columns, donutPieChartMockData, tableMockData } from "../consts";
-import { BestIndicatorItem, StatusBadge } from "../ui";
+import { columns } from "../consts";
+import {
+  useAnalyticsPeriod,
+  useDirectorOverviewAnalytics,
+} from "../model/taxiparks-analytics";
+import {
+  AnalyticsStateCard,
+  BestIndicatorItem,
+  StatusBadge,
+  TaxiparksPeriodFilter,
+} from "../ui";
+
+const moneyFormatter = new Intl.NumberFormat("ru-RU");
+const compactMoneyFormatter = new Intl.NumberFormat("ru-RU", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+const percentFormatter = new Intl.NumberFormat("ru-RU", {
+  maximumFractionDigits: 1,
+});
+
+const formatCurrency = (value?: number) => {
+  if (value == null) {
+    return "—";
+  }
+
+  return `₽ ${moneyFormatter.format(value)}`;
+};
+
+const formatCompactCurrency = (value: number) => {
+  return compactMoneyFormatter.format(value);
+};
 
 export const DirectorTaxiparksPage = () => {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
+  const { range, period, onRangeChange } = useAnalyticsPeriod();
+  const analyticsQuery = useDirectorOverviewAnalytics(period);
+  const analytics = analyticsQuery.data;
 
   const query = search.trim().toLowerCase();
   const filteredTableData =
-    query.length === 0
-      ? tableMockData
-      : tableMockData.filter((row) => row.name.toLowerCase().includes(query));
+    analytics == null
+      ? []
+      : query.length === 0
+        ? analytics.taxiParks
+        : analytics.taxiParks.filter((row) =>
+            [row.name, row.address].some((value) =>
+              value.toLowerCase().includes(query),
+            ),
+          );
+
+  const summaryCards =
+    analytics == null
+      ? []
+      : [
+          {
+            label: "Таксопарки",
+            value: String(analytics.summary.taxiParksCount),
+            meta: `${analytics.summary.carsCount} авто в управлении`,
+          },
+          {
+            label: "Общая выручка",
+            value: formatCurrency(analytics.summary.totalRevenue),
+            meta: `${formatCurrency(analytics.summary.averageRevenuePerDay)} в день`,
+          },
+          {
+            label: "Активные водители",
+            value: String(analytics.summary.activeDriversCount),
+            meta: `${analytics.summary.driversCount} всего водителей`,
+          },
+          {
+            label: "₽ / активный водитель",
+            value: formatCurrency(analytics.summary.averageRevenuePerActiveDriver),
+            meta: `${analytics.summary.workDaysCount} рабочих дней`,
+          },
+          {
+            label: "₽ / авто",
+            value: formatCurrency(analytics.summary.averageRevenuePerCar),
+            meta: `${analytics.summary.carsCount} автомобилей`,
+          },
+          {
+            label: "Выход на линию",
+            value: `${percentFormatter.format(analytics.summary.onlineRate)}%`,
+            meta: `${analytics.summary.onlineDaysCount} онлайн-дней`,
+          },
+          {
+            label: "Потери от простоя",
+            value: formatCurrency(analytics.summary.estimatedDowntimeLoss),
+            meta: `${percentFormatter.format(analytics.summary.downtimeRate)}% простоя`,
+          },
+        ];
+
+  const revenueChartData =
+    analytics?.charts.revenueByTaxiPark.map((item) => ({
+      label: item.label,
+      value: item.revenue,
+    })) ?? [];
+
+  const topProblemTaxiParks = analytics?.problemTaxiParks.slice(0, 3) ?? [];
+  const topDrivers = analytics?.topDrivers.slice(0, 3) ?? [];
+  const topBrands = analytics?.topBrands.slice(0, 3) ?? [];
+  const revenueByDay = analytics?.charts.revenueByDay ?? [];
 
   return (
     <main className="bg-background-page flex min-h-full w-full flex-col gap-6 p-6">
@@ -39,211 +130,234 @@ export const DirectorTaxiparksPage = () => {
         ]}
         actions={
           <>
-            <Button variant={BUTTON_VARIANTS_VARIABLES.secondary}>
-              <CalendarDays className="size-4" />
-              30 дней
-            </Button>
+            <TaxiparksPeriodFilter value={range} onChange={onRangeChange} />
 
             <Button>
-              <Plus className="size-4" />
               Создать таксопарк
             </Button>
           </>
         }
       />
 
-      <section className="flex flex-col gap-3">
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <KpiCard
-            label="Общее количество таксопарков"
-            value="24"
-            meta="+3 за месяц"
-            valueClassName="text-text-primary"
-            metaClassName="text-accent-primary"
-            className="min-w-0"
-          />
-          <KpiCard
-            label="Общая выручка"
-            value="₽ 18 420 000"
-            meta="+14.8%"
-            valueClassName="text-text-primary"
-            metaClassName="text-accent-primary"
-            className="min-w-0"
-          />
-          <KpiCard
-            label="Средняя выручка на водителя"
-            value="₽ 184 200"
-            meta="формула ниже"
-            valueClassName="text-text-primary"
-            metaClassName="text-accent-primary"
-            className="min-w-0"
-          />
-          <KpiCard
-            label="Активные автомобили"
-            value="1 248"
-            meta="86% парка"
-            valueClassName="text-text-primary"
-            metaClassName="text-accent-primary"
-            className="min-w-0"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 gap-3 xl:grid-cols-3">
-          <KpiCard
-            label="Аварийные автомобили"
-            value="37"
-            meta="требуют ремонта"
-            valueClassName="text-text-primary"
-            metaClassName="text-accent-primary"
-            className="min-w-0"
-          />
-          <KpiCard
-            label="Не вышли на линию"
-            value="11.4%"
-            meta="-2.1% к неделе"
-            valueClassName="text-text-primary"
-            metaClassName="text-accent-primary"
-            className="min-w-0"
-          />
-          <KpiCard
-            label="Потери от простоев"
-            value="₽ 942 000"
-            meta="важный показатель"
-            valueClassName="text-text-primary"
-            metaClassName="text-accent-primary"
-            className="min-w-0"
-          />
-        </div>
-      </section>
-
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-2 2xl:grid-cols-4">
-        <TitledBlock
-          title={
-            <span className="inline-flex flex-col">
-              <span>Распределение</span>
-              <span>выручки</span>
-            </span>
-          }
-          subtitle="По паркам за текущий месяц"
-          headerClassName="items-center"
-          topRightSlot={<StatusBadge label="Исправен" />}
-          className="min-w-0"
-        >
-          <DonutPieChart
-            data={donutPieChartMockData}
-            centerLabel="2.8M"
-            centerSubLabel="руб."
-          />
-        </TitledBlock>
-
-        <TitledBlock
-          title="Рейтинг таксопарков"
-          subtitle="Лидеры по выполнению плана"
-          className="min-w-0"
-        >
-          <div className="flex flex-col gap-3">
-            <div className="text-text-secondary grid grid-cols-[1fr_80px_120px] gap-3 text-xs font-semibold">
-              <span>Парк</span>
-              <span>План</span>
-              <span>Статус</span>
-            </div>
-
-            {[
-              { park: "Северный", plan: "118%", status: "Исправен" },
-              { park: "Город", plan: "104%", status: "Исправен" },
-              { park: "Экспресс", plan: "91%", status: "Исправен" },
-            ].map((row) => (
-              <div
-                key={row.park}
-                className="grid grid-cols-[1fr_80px_120px] items-center gap-3"
-              >
-                <AppText className="text-text-primary text-sm font-medium">
-                  {row.park}
-                </AppText>
-                <AppText className="text-text-primary text-sm font-medium tabular-nums">
-                  {row.plan}
-                </AppText>
-                <div>
-                  <StatusBadge label={row.status} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </TitledBlock>
-
-        <TitledBlock
-          title="Потери от простоя"
-          subtitle="Оценка за последние 7 дней"
-          headerClassName="items-center"
-          topRightSlot={
-            <AppText className="text-accent-primary text-3xl font-bold">
-              ₽ 184K
-            </AppText>
-          }
-          className="min-w-0"
-        >
-          <div className="flex flex-col gap-4">
-            <ProgressCard
-              title="Ожидание ремонта"
-              secondaryText="62%"
-              value={62}
-            />
-            <ProgressCard title="Нет водителя" secondaryText="24%" value={24} />
-            <ProgressCard title="Документы" secondaryText="14%" value={14} />
-          </div>
-        </TitledBlock>
-
-        <TitledBlock title="Лучшие показатели" className="min-w-0">
-          <div className="flex flex-col gap-3">
-            <BestIndicatorItem
-              title="Парк Северный"
-              subtitle="Самый высокий чек"
-              value="₽ 1 940"
-            />
-            <BestIndicatorItem
-              title="Город Такси"
-              subtitle="Минимальный простой"
-              value="1.8 ч"
-            />
-            <BestIndicatorItem
-              title="Экспресс"
-              subtitle="Выполнение SLA"
-              value="98%"
-            />
-          </div>
-        </TitledBlock>
-      </section>
-
-      <TitledBlock
-        title="Мои Таксопарки"
-        subtitle="Список таксопарков с финансовыми и операционными показателями"
-        headerClassName="items-center"
-        topRightSlot={
-          <div className="flex items-center gap-3">
-            <SearchInput
-              value={search}
-              onChange={(value) => setSearch(value)}
-              className="w-96"
-              placeholder="Поиск по таксопаркам"
-            />
-            <CsvExportButton
-              columns={columns}
-              data={filteredTableData}
-              fileName="taxiparks"
-            />
-          </div>
-        }
-      >
-        <DataTable
-          columns={columns}
-          data={filteredTableData}
-          initialPageSize={10}
-          onRowClick={(row) => {
-            navigate({ to: "/taxiparks/$id", params: { id: row.id } });
+      {analyticsQuery.isLoading ? (
+        <AnalyticsStateCard
+          title="Загружаем аналитику"
+          message="Собираем сводные показатели по таксопаркам за выбранный период."
+          tone="loading"
+        />
+      ) : analyticsQuery.error ? (
+        <AnalyticsStateCard
+          title="Не удалось загрузить аналитику"
+          message={analyticsQuery.errorMessage}
+          tone="error"
+          actionLabel="Повторить"
+          onAction={() => {
+            void analyticsQuery.refetch();
           }}
         />
-      </TitledBlock>
+      ) : analytics == null ? (
+        <AnalyticsStateCard
+          title="Нет данных"
+          message="За выбранный период аналитика по таксопаркам не найдена."
+        />
+      ) : (
+        <>
+          <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {summaryCards.map((card) => (
+              <KpiCard
+                key={card.label}
+                label={card.label}
+                value={card.value}
+                meta={card.meta}
+                valueClassName="text-text-primary"
+                metaClassName="text-accent-primary"
+                className="min-w-0"
+              />
+            ))}
+          </section>
+
+          <section className="grid grid-cols-1 gap-4 xl:grid-cols-2 2xl:grid-cols-4">
+            <TitledBlock
+              title="Распределение выручки"
+              subtitle={`По паркам за период ${analytics.period.from} - ${analytics.period.to}`}
+              headerClassName="items-center"
+              topRightSlot={<StatusBadge label={`${analytics.period.daysCount} дн.`} />}
+              className="min-w-0"
+            >
+              {revenueChartData.length > 0 ? (
+                <DonutPieChart
+                  data={revenueChartData}
+                  centerLabel={formatCompactCurrency(analytics.summary.totalRevenue)}
+                  centerSubLabel="выручка"
+                />
+              ) : (
+                <AnalyticsStateCard
+                  title="Нет разреза по паркам"
+                  message="Сервис не вернул данные по распределению выручки."
+                />
+              )}
+            </TitledBlock>
+
+            <TitledBlock
+              title="Топ водители"
+              subtitle="Лидеры по выручке за выбранный период"
+              className="min-w-0"
+            >
+              <div className="flex flex-col gap-3">
+                {topDrivers.length > 0 ? (
+                  topDrivers.map((driver) => (
+                    <BestIndicatorItem
+                      key={driver.driverId}
+                      title={driver.fullName}
+                      subtitle={driver.taxiParkName}
+                      value={formatCurrency(driver.totalRevenue)}
+                    />
+                  ))
+                ) : (
+                  <AppText className="text-text-secondary text-sm font-medium">
+                    Нет данных по водителям за выбранный период.
+                  </AppText>
+                )}
+              </div>
+            </TitledBlock>
+
+            <TitledBlock
+              title="Проблемные таксопарки"
+              subtitle="Парки с самым высоким простоем"
+              headerClassName="items-center"
+              topRightSlot={
+                <AppText className="text-accent-primary text-2xl font-bold">
+                  {formatCurrency(analytics.summary.estimatedDowntimeLoss)}
+                </AppText>
+              }
+              className="min-w-0"
+            >
+              <div className="flex flex-col gap-4">
+                {topProblemTaxiParks.length > 0 ? (
+                  topProblemTaxiParks.map((item) => (
+                    <ProgressCard
+                      key={item.taxiParkId}
+                      title={item.name}
+                      secondaryText={`${percentFormatter.format(item.downtimeRate)}%`}
+                      value={item.downtimeRate}
+                      footnote={`Потери ${formatCurrency(item.estimatedDowntimeLoss)}`}
+                    />
+                  ))
+                ) : (
+                  <AppText className="text-text-secondary text-sm font-medium">
+                    Нет проблемных таксопарков за выбранный период.
+                  </AppText>
+                )}
+              </div>
+            </TitledBlock>
+
+            <TitledBlock
+              title="Лучшие бренды"
+              subtitle="Самые прибыльные марки автопарка"
+              className="min-w-0"
+            >
+              <div className="flex flex-col gap-3">
+                {topBrands.length > 0 ? (
+                  topBrands.map((brand) => (
+                    <BestIndicatorItem
+                      key={brand.firm}
+                      title={brand.firm}
+                      subtitle={`${brand.carsCount} авто, ${percentFormatter.format(brand.utilizationRate)}% утилизации`}
+                      value={formatCurrency(brand.totalRevenue)}
+                    />
+                  ))
+                ) : (
+                  <AppText className="text-text-secondary text-sm font-medium">
+                    Нет данных по брендам за выбранный период.
+                  </AppText>
+                )}
+              </div>
+            </TitledBlock>
+          </section>
+
+          <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+            <TitledBlock
+              title="Динамика выручки"
+              subtitle="Изменение выручки по дням"
+              className="gap-5"
+            >
+              {revenueByDay.length > 0 ? (
+                <VerticalBarChart
+                  data={revenueByDay.map((point) => ({
+                    date: point.date,
+                    value: point.revenue,
+                  }))}
+                  valueLabel="Выручка, ₽"
+                  height={320}
+                  yTickFormatter={(value) => formatCompactCurrency(value)}
+                  tooltipValueFormatter={(value) => formatCurrency(value)}
+                />
+              ) : (
+                <AnalyticsStateCard
+                  title="Нет данных по дням"
+                  message="По выбранному периоду не найдено ни одного дня с выручкой."
+                />
+              )}
+            </TitledBlock>
+
+            <TitledBlock
+              title="Проблемные автомобили"
+              subtitle="Авто с максимальными потерями от простоя"
+              className="min-w-0"
+            >
+              <div className="flex flex-col gap-3">
+                {analytics.problemCars.slice(0, 3).length > 0 ? (
+                  analytics.problemCars.slice(0, 3).map((car) => (
+                    <BestIndicatorItem
+                      key={car.carId}
+                      title={`${car.firm} ${car.model} · ${car.plateNumber}`}
+                      subtitle={`${car.taxiParkName}, ${car.downtimeDaysCount} дн. простоя`}
+                      value={formatCurrency(car.estimatedLoss)}
+                    />
+                  ))
+                ) : (
+                  <AppText className="text-text-secondary text-sm font-medium">
+                    Нет автомобилей с потерями за выбранный период.
+                  </AppText>
+                )}
+              </div>
+            </TitledBlock>
+          </section>
+
+          <TitledBlock
+            title="Таксопарки"
+            subtitle="Финансовые и операционные показатели по каждому таксопарку"
+            headerClassName="items-center"
+            topRightSlot={
+              <div className="flex w-full flex-col gap-3 lg:w-auto lg:flex-row lg:items-center">
+                <SearchInput
+                  value={search}
+                  onChange={(value) => setSearch(value)}
+                  className="w-full lg:w-96"
+                  placeholder="Поиск по названию или адресу"
+                />
+                <CsvExportButton
+                  columns={columns}
+                  data={filteredTableData}
+                  fileName="taxiparks-analytics"
+                />
+              </div>
+            }
+          >
+            <DataTable
+              columns={columns}
+              data={filteredTableData}
+              initialPageSize={10}
+              onRowClick={(row) => {
+                navigate({
+                  to: "/taxiparks/$id",
+                  params: { id: row.taxiParkId },
+                });
+              }}
+            />
+          </TitledBlock>
+        </>
+      )}
     </main>
   );
 };
-

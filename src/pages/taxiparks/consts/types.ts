@@ -13,3 +13,21 @@ export type TaxiParkRow = {
   status: TaxiParkStatus;
 };
 
+export type TaxiParkHealthStatus = "stable" | "attention";
+
+export type DirectorTaxiParkTableRow = {
+  taxiParkId: string;
+  name: string;
+  address: string;
+  driversCount: number;
+  activeDriversCount: number;
+  carsCount: number;
+  totalRevenue: number;
+  averageRevenuePerDay: number;
+  averageRevenuePerActiveDriver: number;
+  averageRevenuePerCar: number;
+  onlineRate: number;
+  downtimeRate: number;
+  estimatedDowntimeLoss: number;
+  healthStatus: TaxiParkHealthStatus;
+};
