@@ -1,171 +1,140 @@
-import { Link, useNavigate } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
-import { useState } from "react";
-
-import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
-
-import {
-  vehicleDowntimeTopItems,
-  vehicleEfficiencyTopItems,
-  vehicleKpiCards,
-  vehicleProfitabilityTopItems,
-  vehicleTableColumns,
-  vehicleTableData,
-} from "../consts";
+import { useNavigate } from "@tanstack/react-router";
+import type { ColumnDef } from "@tanstack/react-table";
 
 import { DataTable } from "@/features/data-table";
 import { KpiCard } from "@/features/kpi-card";
 import { PageHeader } from "@/features/page-header/page-header";
-import { ProgressCard } from "@/features/progress-card";
-import { TAXIPARKS_SIDEBAR_NAV_BY_ID } from "@/features/taxiparks-sidebar";
 import { TitledBlock } from "@/features/titled-block";
+import {
+  useDirectorVehiclesCatalog,
+  type DirectorVehicleListItem,
+  getVehicleStateMeta,
+} from "@/pages/vehicles/model";
+import { AppText } from "@/shared/ui/app-text";
 
-type PeriodKey = "today" | "week" | "month" | "custom";
+import { TAXIPARKS_SIDEBAR_NAV_BY_ID } from "@/features/taxiparks-sidebar";
+import { AnalyticsStateCard, StatusBadge } from "@/pages/taxiparks/ui";
 
-const PERIODS: Array<{ key: PeriodKey; label: string }> = [
-  { key: "today", label: "Today" },
-  { key: "week", label: "Week" },
-  { key: "month", label: "Month" },
-  { key: "custom", label: "Custom" },
+const directorVehicleColumns: ColumnDef<DirectorVehicleListItem>[] = [
+  {
+    accessorKey: "plateNumber",
+    header: "Номер",
+    cell: ({ row }) => (
+      <span className="text-sm font-semibold tabular-nums">
+        {row.original.plateNumber}
+      </span>
+    ),
+  },
+  {
+    id: "vehicle",
+    header: "Автомобиль",
+    cell: ({ row }) => (
+      <div className="flex flex-col">
+        <span className="text-sm font-semibold">
+          {row.original.firm} {row.original.model}
+        </span>
+        <span className="text-text-secondary text-xs font-medium">
+          ID: {row.original.carId}
+        </span>
+      </div>
+    ),
+  },
+  {
+    accessorKey: "state",
+    header: "Состояние",
+    cell: ({ row }) => {
+      const state = getVehicleStateMeta(row.original.state);
+
+      return <StatusBadge label={state.label} tone={state.tone} />;
+    },
+  },
+  {
+    accessorKey: "taxiParkName",
+    header: "Таксопарк",
+  },
+  {
+    accessorKey: "assignedDriverName",
+    header: "Назначенный водитель",
+    cell: ({ row }) => (
+      <span className="text-sm font-medium">
+        {row.original.assignedDriverName ?? "Не назначен"}
+      </span>
+    ),
+  },
 ];
 
 export const DirectorVehiclesPage = () => {
   const navigate = useNavigate();
-  const [period, setPeriod] = useState<PeriodKey>("month");
+  const catalogQuery = useDirectorVehiclesCatalog();
 
   return (
     <main className="bg-background-page flex min-h-full w-full flex-col gap-6 p-6">
       <PageHeader
         title={TAXIPARKS_SIDEBAR_NAV_BY_ID.vehicles.label}
-        description="Управление автомобилями и анализ эффективности автопарка"
+        description="Каталог автомобилей из доступных вам таксопарков."
         breadcrumbs={[
           { label: "Главная", href: "/" },
           { label: TAXIPARKS_SIDEBAR_NAV_BY_ID.vehicles.label },
         ]}
-        actions={
-          <div className="flex flex-wrap items-center justify-end gap-3">
-            <div className="flex flex-wrap items-center gap-2">
-              {PERIODS.map((item) => {
-                const isActive = period === item.key;
-
-                return (
-                  <Button
-                    key={item.key}
-                    type="button"
-                    variant={
-                      isActive
-                        ? BUTTON_VARIANTS_VARIABLES.tertiary
-                        : BUTTON_VARIANTS_VARIABLES.secondary
-                    }
-                    className="h-10 rounded-[12px] px-3.5"
-                    onClick={() => setPeriod(item.key)}
-                  >
-                    {item.label}
-                  </Button>
-                );
-              })}
-            </div>
-
-            <Button type="button" asChild className="h-10 rounded-[12px] px-4">
-              <Link to="/vehicles/create">
-                <Plus className="size-4" />
-                Добавить автомобиль
-              </Link>
-            </Button>
-          </div>
-        }
       />
 
-      <section className="flex flex-col gap-3">
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {vehicleKpiCards.map((card) => (
-            <KpiCard key={String(card.label)} {...card} />
-          ))}
-        </div>
-      </section>
-
-      <TitledBlock
-        title="Список автомобилей"
-        topRightSlot={
-          <Button
-            type="button"
-            variant={BUTTON_VARIANTS_VARIABLES.tertiary}
-            className="h-9 rounded-[12px] px-3.5"
-            asChild
-          >
-            <Link to="/vehicles/create">
-              <Plus className="size-4" />
-              Добавить
-            </Link>
-          </Button>
-        }
-        className="min-w-0"
-      >
-        <DataTable
-          columns={vehicleTableColumns}
-          data={vehicleTableData}
-          initialPageSize={5}
-          onRowClick={(row) =>
-            navigate({
-              to: "/vehicles/$id",
-              params: { id: row.plate },
-            })
-          }
+      {catalogQuery.isLoading ? (
+        <AnalyticsStateCard
+          title="Загружаем каталог автомобилей"
+          message="Собираем машины из доступных вам таксопарков."
+          tone="loading"
         />
-      </TitledBlock>
+      ) : catalogQuery.error ? (
+        <AnalyticsStateCard
+          title="Не удалось загрузить каталог автомобилей"
+          message={catalogQuery.errorMessage}
+          tone="error"
+          actionLabel="Повторить"
+          onAction={() => {
+            void catalogQuery.refetch();
+          }}
+        />
+      ) : catalogQuery.data == null || catalogQuery.data.vehicles.length === 0 ? (
+        <AnalyticsStateCard
+          title="Автомобили не найдены"
+          message="В доступных вам таксопарках пока нет автомобилей."
+        />
+      ) : (
+        <>
+          <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+            <KpiCard label="Всего автомобилей" value={catalogQuery.data.summary.total} />
+            <KpiCard label="На линии" value={catalogQuery.data.summary.working} />
+            <KpiCard label="В ремонте" value={catalogQuery.data.summary.repair} />
+            <KpiCard label="Аварийные" value={catalogQuery.data.summary.emergency} />
+            <KpiCard
+              label="С назначенным водителем"
+              value={catalogQuery.data.summary.withAssignedDriver}
+              meta={`${catalogQuery.data.summary.withoutAssignedDriver} без водителя`}
+            />
+          </section>
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        <TitledBlock
-          title="Топ автомобилей по эффективности"
-          className="min-w-0"
-          contentClassName="mt-2"
-        >
-          <div className="flex flex-col gap-3">
-            {vehicleEfficiencyTopItems.map((item) => (
-              <ProgressCard
-                key={item.place}
-                title={`${item.place}. ${item.title}`}
-                secondaryText={item.secondaryText}
-                value={item.value}
-              />
-            ))}
-          </div>
-        </TitledBlock>
+          <TitledBlock
+            title="Список автомобилей"
+            subtitle={`${catalogQuery.data.taxiParks.length} таксопарков в каталоге`}
+          >
+            <DataTable
+              columns={directorVehicleColumns}
+              data={catalogQuery.data.vehicles}
+              initialPageSize={10}
+              onRowClick={(row) => {
+                navigate({
+                  to: "/vehicles/$id",
+                  params: { id: row.carId },
+                });
+              }}
+            />
+          </TitledBlock>
 
-        <TitledBlock
-          title="Самые прибыльные марки"
-          className="min-w-0"
-          contentClassName="mt-2"
-        >
-          <div className="flex flex-col gap-3">
-            {vehicleProfitabilityTopItems.map((item) => (
-              <ProgressCard
-                key={item.place}
-                title={`${item.place}. ${item.title}`}
-                secondaryText={item.secondaryText}
-                value={item.value}
-              />
-            ))}
-          </div>
-        </TitledBlock>
-
-        <TitledBlock
-          title="Минимальные простои"
-          className="min-w-0"
-          contentClassName="mt-2"
-        >
-          <div className="flex flex-col gap-3">
-            {vehicleDowntimeTopItems.map((item) => (
-              <ProgressCard
-                key={item.place}
-                title={`${item.place}. ${item.title}`}
-                secondaryText={item.secondaryText}
-                value={item.value}
-              />
-            ))}
-          </div>
-        </TitledBlock>
-      </section>
+          <AppText className="text-text-secondary text-sm font-medium">
+            Клик по строке открывает аналитику автомобиля за выбранный период.
+          </AppText>
+        </>
+      )}
     </main>
   );
 };

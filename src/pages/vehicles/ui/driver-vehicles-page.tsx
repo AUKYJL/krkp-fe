@@ -1,50 +1,101 @@
-import { CarFront, CircleCheckBig, TriangleAlert, Wrench } from "lucide-react";
+import type { ColumnDef } from "@tanstack/react-table";
+import { CarFront } from "lucide-react";
 
 import type { CurrentUser } from "@/shared/api/auth";
-import { ROLES } from "@/shared/types";
 import { AppText, TAG, TEXT_SIZES_VARIABLES } from "@/shared/ui/app-text";
-import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
 import { CardSurface } from "@/shared/ui/card-surface";
-import { can, cn } from "@/shared/utils";
 
+import { DataTable } from "@/features/data-table";
+import { KpiCard } from "@/features/kpi-card";
 import { PageHeader } from "@/features/page-header/page-header";
+import { TitledBlock } from "@/features/titled-block";
+import { VerticalBarChart } from "@/features/vertical-bar-chart";
 import { TAXIPARKS_SIDEBAR_NAV_BY_ID } from "@/features/taxiparks-sidebar";
-
+import { AnalyticsStateCard, StatusBadge, TaxiparksPeriodFilter } from "@/pages/taxiparks/ui";
 import {
-  buildDriverVehiclePageData,
-  formatVehicleMileage,
-  getDriverVehicleStatusConfig,
-} from "./driver-vehicles-page.utils";
+  getVehicleStateMeta,
+  isVehicleAnalyticsEmpty,
+  useDriverAssignedVehicleContext,
+  useVehicleAnalyticsDetail,
+  useVehicleAnalyticsPeriod,
+} from "@/pages/vehicles/model";
 
 type DriverVehiclesPageProps = {
   currentUser: CurrentUser;
 };
 
+type WorkDayRow = {
+  id: string;
+  date: string;
+  revenue: number;
+  carOnLine: boolean;
+  driverName: string;
+};
+
+const moneyFormatter = new Intl.NumberFormat("ru-RU");
+const compactMoneyFormatter = new Intl.NumberFormat("ru-RU", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+const percentFormatter = new Intl.NumberFormat("ru-RU", {
+  maximumFractionDigits: 1,
+});
+
+const formatCurrency = (value?: number) => {
+  if (value == null) {
+    return "—";
+  }
+
+  return `₽ ${moneyFormatter.format(value)}`;
+};
+
+const formatCompactCurrency = (value: number) => {
+  return compactMoneyFormatter.format(value);
+};
+
+const formatShortDate = (value: string) => {
+  return new Date(value).toLocaleDateString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+  });
+};
+
+const workDayColumns: ColumnDef<WorkDayRow>[] = [
+  {
+    accessorKey: "date",
+    header: "Дата",
+    cell: ({ row }) => (
+      <span className="tabular-nums">{formatShortDate(row.original.date)}</span>
+    ),
+  },
+  {
+    accessorKey: "revenue",
+    header: "Выручка",
+    cell: ({ row }) => (
+      <span className="text-accent-primary font-semibold tabular-nums">
+        {formatCurrency(row.original.revenue)}
+      </span>
+    ),
+  },
+  {
+    accessorKey: "carOnLine",
+    header: "Статус",
+    cell: ({ row }) => (
+      <StatusBadge
+        label={row.original.carOnLine ? "На линии" : "Простой"}
+        tone={row.original.carOnLine ? "default" : "muted"}
+      />
+    ),
+  },
+  {
+    accessorKey: "driverName",
+    header: "Водитель",
+  },
+];
+
 type SummaryRowProps = {
   label: string;
   value: string;
-};
-
-const DriverVehicleStatusBadge = ({
-  label,
-  tone,
-}: {
-  label: string;
-  tone: "default" | "accent" | "muted";
-}) => {
-  return (
-    <span
-      className={cn(
-        "inline-flex h-8 items-center rounded-[10px] px-3 text-xs font-semibold",
-        tone === "default" && "bg-accent-primary-soft text-text-primary",
-        tone === "accent" && "bg-dark-primary-soft text-text-primary",
-        tone === "muted" &&
-          "border-border-default bg-background-page text-text-secondary border",
-      )}
-    >
-      {label}
-    </span>
-  );
 };
 
 const SummaryRow = ({ label, value }: SummaryRowProps) => {
@@ -63,21 +114,63 @@ const SummaryRow = ({ label, value }: SummaryRowProps) => {
 export const DriverVehiclesPage = ({
   currentUser,
 }: DriverVehiclesPageProps) => {
-  const data = buildDriverVehiclePageData(currentUser);
-  const vehicle = data.vehicle;
+  const { range, period, onRangeChange } = useVehicleAnalyticsPeriod();
+  const assignedVehicleQuery = useDriverAssignedVehicleContext();
+  const analyticsQuery = useVehicleAnalyticsDetail({
+    taxiParkId: assignedVehicleQuery.data?.taxiParkId,
+    carId: assignedVehicleQuery.data?.carId,
+    period,
+    enabled:
+      Boolean(assignedVehicleQuery.data?.taxiParkId) &&
+      Boolean(assignedVehicleQuery.data?.carId),
+  });
 
-  if (!vehicle) {
-    return (
-      <main className="bg-background-page flex min-h-full w-full flex-col gap-6 p-6">
-        <PageHeader
-          title="Мой автомобиль"
-          description="Информация о назначенном автомобиле и его текущем состоянии"
-          breadcrumbs={[
-            { label: "Главная", href: "/" },
-            { label: TAXIPARKS_SIDEBAR_NAV_BY_ID.vehicles.label },
-          ]}
+  const analytics = analyticsQuery.data;
+  const vehicleState = analytics ? getVehicleStateMeta(analytics.car.state) : null;
+  const workDays: WorkDayRow[] =
+    analytics?.workDays.map((workDay) => ({
+      id: workDay.workDayId,
+      date: workDay.date,
+      revenue: workDay.revenue,
+      carOnLine: workDay.carOnLine,
+      driverName: workDay.driver.fullName,
+    })) ?? [];
+
+  const isContextLoading = assignedVehicleQuery.isLoading;
+  const isContextMissing =
+    !assignedVehicleQuery.isLoading &&
+    !assignedVehicleQuery.error &&
+    (!assignedVehicleQuery.data?.carId || !assignedVehicleQuery.data?.taxiParkId);
+
+  return (
+    <main className="bg-background-page flex min-h-full w-full flex-col gap-6 p-6">
+      <PageHeader
+        title="Мой автомобиль"
+        description="Реальная аналитика по назначенному автомобилю."
+        breadcrumbs={[
+          { label: "Главная", href: "/" },
+          { label: TAXIPARKS_SIDEBAR_NAV_BY_ID.vehicles.label },
+        ]}
+        actions={<TaxiparksPeriodFilter value={range} onChange={onRangeChange} />}
+      />
+
+      {isContextLoading ? (
+        <AnalyticsStateCard
+          title="Определяем назначенный автомобиль"
+          message="Проверяем профиль водителя и текущий таксопарк."
+          tone="loading"
         />
-
+      ) : assignedVehicleQuery.error ? (
+        <AnalyticsStateCard
+          title="Не удалось определить автомобиль"
+          message={assignedVehicleQuery.errorMessage}
+          tone="error"
+          actionLabel="Повторить"
+          onAction={() => {
+            void assignedVehicleQuery.refetch();
+          }}
+        />
+      ) : isContextMissing ? (
         <CardSurface className="items-center justify-center gap-3 rounded-[24px] px-6 py-12 text-center">
           <div className="bg-accent-primary-soft text-accent-primary flex size-14 items-center justify-center rounded-full">
             <CarFront className="size-7" />
@@ -87,210 +180,174 @@ export const DriverVehiclesPage = ({
             size={TEXT_SIZES_VARIABLES.medium}
             className="text-text-primary font-semibold"
           >
-            У вас пока нет назначенного автомобиля
+            Автомобиль не назначен
           </AppText>
           <AppText className="text-text-secondary max-w-[440px] text-sm font-medium">
-            Обратитесь к директору таксопарка для назначения автомобиля
+            Профиль водителя не содержит `carId`, поэтому аналитика автомобиля
+            недоступна. Обратитесь к директору таксопарка.
           </AppText>
         </CardSurface>
-      </main>
-    );
-  }
+      ) : analyticsQuery.isLoading ? (
+        <AnalyticsStateCard
+          title="Загружаем аналитику автомобиля"
+          message="Подготавливаем показатели, график и историю рабочих дней."
+          tone="loading"
+        />
+      ) : analyticsQuery.error ? (
+        <AnalyticsStateCard
+          title={
+            analyticsQuery.notFound
+              ? "Автомобиль недоступен"
+              : "Не удалось загрузить аналитику автомобиля"
+          }
+          message={
+            analyticsQuery.notFound
+              ? "Назначенный автомобиль не найден или больше недоступен для просмотра."
+              : analyticsQuery.errorMessage
+          }
+          tone="error"
+          actionLabel="Повторить"
+          onAction={() => {
+            void analyticsQuery.refetch();
+          }}
+        />
+      ) : analytics == null || isVehicleAnalyticsEmpty(analytics) ? (
+        <AnalyticsStateCard
+          title="Нет аналитики по автомобилю"
+          message="За выбранный период сервис не вернул рабочие дни или выручку."
+        />
+      ) : (
+        <>
+          <section className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.85fr)]">
+            <CardSurface className="gap-6 rounded-[24px] p-6 md:p-7">
+              <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                <div className="flex min-w-0 flex-1 gap-4">
+                  <div className="bg-accent-primary-soft text-accent-primary flex size-16 shrink-0 items-center justify-center rounded-[18px]">
+                    <CarFront className="size-8" />
+                  </div>
 
-  const status = getDriverVehicleStatusConfig(vehicle.status);
-  const hasActiveProblems = vehicle.activeProblems.length > 0;
-  const canManageShift = can(currentUser.role, [ROLES.DRIVER]);
-  const canGoOnLine =
-    canManageShift &&
-    !data.isOnLine &&
-    vehicle.canGoOnLine &&
-    !hasActiveProblems;
-  const disabledReason = vehicle.restrictionReason ?? "Автомобиль временно недоступен для выхода на линию.";
+                  <div className="min-w-0">
+                    <AppText className="text-text-secondary text-xs font-semibold tracking-[0.12em] uppercase">
+                      Назначенный автомобиль
+                    </AppText>
+                    <AppText
+                      tag={TAG.h2}
+                      size={TEXT_SIZES_VARIABLES.medium}
+                      className="text-text-primary mt-2 font-bold"
+                    >
+                      {analytics.car.firm} {analytics.car.model}
+                    </AppText>
+                    <AppText className="text-text-secondary mt-1 text-sm font-medium">
+                      Госномер: {analytics.car.plateNumber}
+                    </AppText>
+                  </div>
+                </div>
 
-  return (
-    <main className="bg-background-page flex min-h-full w-full flex-col gap-6 p-6">
-      <PageHeader
-        title="Мой автомобиль"
-        description="Информация о назначенном автомобиле и его текущем состоянии"
-        breadcrumbs={[
-          { label: "Главная", href: "/" },
-          { label: TAXIPARKS_SIDEBAR_NAV_BY_ID.vehicles.label },
-        ]}
-      />
-
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.85fr)]">
-        <CardSurface className="gap-6 rounded-[24px] p-6 md:p-7">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-            <div className="flex min-w-0 flex-1 gap-4">
-              <div className="bg-accent-primary-soft text-accent-primary flex size-16 shrink-0 items-center justify-center rounded-[18px]">
-                <CarFront className="size-8" />
-              </div>
-
-              <div className="min-w-0">
-                <AppText className="text-text-secondary text-xs font-semibold tracking-[0.12em] uppercase">
-                  Назначенный автомобиль
-                </AppText>
-                <AppText
-                  tag={TAG.h2}
-                  size={TEXT_SIZES_VARIABLES.medium}
-                  className="text-text-primary mt-2 font-bold"
-                >
-                  {vehicle.brand} {vehicle.model}
-                </AppText>
-                <AppText className="text-text-secondary mt-1 text-sm font-medium">
-                  Госномер: {vehicle.plate}
-                </AppText>
-              </div>
-            </div>
-
-            <DriverVehicleStatusBadge label={status.label} tone={status.tone} />
-          </div>
-
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <SummaryRow label="Статус" value={status.label} />
-            <SummaryRow
-              label="Пробег"
-              value={formatVehicleMileage(vehicle.mileageKm)}
-            />
-            <SummaryRow
-              label="Последнее ТО"
-              value={vehicle.lastMaintenanceDate}
-            />
-            <SummaryRow
-              label="Следующее ТО"
-              value={vehicle.nextMaintenanceDate}
-            />
-            <SummaryRow
-              label="Выход на линию"
-              value={canGoOnLine || data.isOnLine ? "Разрешен" : "Ограничен"}
-            />
-            <SummaryRow label="Водитель" value={data.driverName} />
-          </div>
-
-          <div className="flex flex-col gap-3">
-            {data.isOnLine ? (
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <DriverVehicleStatusBadge label="Вы на линии" tone="default" />
-                {data.canCompleteShift ? (
-                  <Button
-                    type="button"
-                    variant={BUTTON_VARIANTS_VARIABLES.secondary}
-                    className="sm:min-w-[168px]"
-                  >
-                    Завершить смену
-                  </Button>
+                {vehicleState ? (
+                  <StatusBadge label={vehicleState.label} tone={vehicleState.tone} />
                 ) : null}
               </div>
+
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <SummaryRow label="Таксопарк" value={analytics.car.taxiParkName} />
+                <SummaryRow
+                  label="Водитель"
+                  value={
+                    analytics.car.assignedDriver?.fullName ??
+                    assignedVehicleQuery.data?.driverName ??
+                    currentUser.fullName
+                  }
+                />
+                <SummaryRow label="Онлайн-дней" value={String(analytics.summary.onlineDaysCount)} />
+                <SummaryRow label="Рабочих дней" value={String(analytics.summary.workDaysCount)} />
+                <SummaryRow
+                  label="Простой"
+                  value={`${analytics.summary.downtimeDaysCount} дн.`}
+                />
+                <SummaryRow
+                  label="Утилизация"
+                  value={`${percentFormatter.format(analytics.summary.utilizationRate)}%`}
+                />
+              </div>
+            </CardSurface>
+
+            <CardSurface className="gap-3 rounded-[24px] p-6">
+              <KpiCard
+                label="Выручка"
+                value={formatCurrency(analytics.summary.totalRevenue)}
+              />
+              <KpiCard
+                label="₽ / онлайн-день"
+                value={formatCurrency(analytics.summary.averageRevenuePerOnlineDay)}
+              />
+              <KpiCard
+                label="Потери от простоя"
+                value={formatCurrency(analytics.summary.estimatedDowntimeLoss)}
+              />
+            </CardSurface>
+          </section>
+
+          <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <KpiCard label="Выручка" value={formatCurrency(analytics.summary.totalRevenue)} />
+            <KpiCard
+              label="₽ / онлайн-день"
+              value={formatCurrency(analytics.summary.averageRevenuePerOnlineDay)}
+            />
+            <KpiCard
+              label="Онлайн-дней"
+              value={analytics.summary.onlineDaysCount}
+              meta={`${analytics.summary.workDaysCount} рабочих дней`}
+            />
+            <KpiCard
+              label="Утилизация"
+              value={`${percentFormatter.format(analytics.summary.utilizationRate)}%`}
+              meta={`${analytics.summary.downtimeDaysCount} дн. простоя`}
+            />
+          </section>
+
+          <TitledBlock
+            title="Выручка по дням"
+            subtitle={`Период ${analytics.period.from} - ${analytics.period.to}`}
+          >
+            {analytics.charts.revenueByDay.length > 0 ? (
+              <VerticalBarChart
+                data={analytics.charts.revenueByDay.map((point) => ({
+                  date: point.date,
+                  value: point.revenue,
+                }))}
+                valueLabel="Выручка, ₽"
+                height={300}
+                xTickFormatter={formatShortDate}
+                yTickFormatter={(value) => formatCompactCurrency(value)}
+                tooltipValueFormatter={(value) => formatCurrency(value)}
+              />
             ) : (
-              <div className="flex flex-col gap-2">
-                <Button
-                  type="button"
-                  className="w-full sm:w-auto sm:min-w-[168px]"
-                  disabled={!canGoOnLine}
-                >
-                  Выйти на линию
-                </Button>
-                {!canGoOnLine ? (
-                  <AppText className="text-text-secondary text-sm font-medium">
-                    {disabledReason}
-                  </AppText>
-                ) : null}
-              </div>
+              <AnalyticsStateCard
+                title="Нет графика выручки"
+                message="Сервис не вернул данные по дням за выбранный период."
+              />
             )}
-          </div>
-        </CardSurface>
+          </TitledBlock>
 
-        <CardSurface className="gap-4 rounded-[24px] p-6">
-          <div className="flex items-start gap-3">
-            <div className="bg-background-page flex size-11 shrink-0 items-center justify-center rounded-[14px]">
-              {vehicle.canGoOnLine && !hasActiveProblems ? (
-                <CircleCheckBig className="text-accent-primary size-5" />
-              ) : hasActiveProblems ? (
-                <TriangleAlert className="text-dark-primary size-5" />
-              ) : (
-                <Wrench className="text-text-secondary size-5" />
-              )}
-            </div>
-            <div className="min-w-0">
-              <AppText
-                tag={TAG.h2}
-                size={TEXT_SIZES_VARIABLES.default}
-                className="text-text-primary font-semibold"
-              >
-                Состояние
-              </AppText>
-
-              {vehicle.canGoOnLine && !hasActiveProblems ? (
-                <AppText className="text-text-secondary mt-1 text-sm font-medium">
-                  Автомобиль исправен. Можно выходить на линию.
-                </AppText>
-              ) : (
-                <>
-                  <AppText className="text-text-primary mt-1 text-sm font-semibold">
-                    {status.label}
-                  </AppText>
-                  <AppText className="text-text-secondary mt-1 text-sm font-medium">
-                    Причина:{" "}
-                    {vehicle.restrictionReason ??
-                      vehicle.activeProblems[0] ??
-                      "Есть ограничения по состоянию автомобиля."}
-                  </AppText>
-                </>
-              )}
-            </div>
-          </div>
-
-          <div className="bg-background-page rounded-[16px] px-4 py-3">
-            <AppText className="text-text-secondary text-xs font-semibold tracking-[0.12em] uppercase">
-              Доступ к смене
-            </AppText>
-            <AppText className="text-text-primary mt-2 text-sm font-semibold">
-              {canGoOnLine
-                ? "Выход на линию доступен"
-                : data.isOnLine
-                  ? "Смена уже начата"
-                  : "Выход на линию ограничен"}
-            </AppText>
-            {!canGoOnLine && !data.isOnLine ? (
-              <AppText className="text-text-secondary mt-1 text-sm font-medium">
-                {disabledReason}
-              </AppText>
-            ) : null}
-          </div>
-        </CardSurface>
-      </section>
-
-      <CardSurface className="gap-4 rounded-[24px] p-6">
-        <AppText
-          tag={TAG.h2}
-          size={TEXT_SIZES_VARIABLES.default}
-          className="text-text-primary font-semibold"
-        >
-          Активные проблемы
-        </AppText>
-
-        {hasActiveProblems ? (
-          <div className="flex flex-col gap-2">
-            {vehicle.activeProblems.map((problem) => (
-              <div
-                key={problem}
-                className="bg-background-page flex items-start gap-3 rounded-[14px] px-4 py-3"
-              >
-                <TriangleAlert className="text-dark-primary mt-0.5 size-4 shrink-0" />
-                <AppText className="text-text-primary text-sm font-medium">
-                  {problem}
-                </AppText>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="bg-background-page rounded-[14px] px-4 py-3">
-            <AppText className="text-text-secondary text-sm font-medium">
-              Активных проблем нет
-            </AppText>
-          </div>
-        )}
-      </CardSurface>
+          <TitledBlock
+            title="История рабочих дней"
+            subtitle="Выручка, статус выхода на линию и водитель по дням"
+          >
+            {workDays.length > 0 ? (
+              <DataTable
+                columns={workDayColumns}
+                data={workDays}
+                initialPageSize={10}
+              />
+            ) : (
+              <AnalyticsStateCard
+                title="История рабочих дней пуста"
+                message="За выбранный период сервис не вернул записи по рабочим дням."
+              />
+            )}
+          </TitledBlock>
+        </>
+      )}
     </main>
   );
 };

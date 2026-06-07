@@ -273,6 +273,44 @@ paths:
       security: *a4
       summary: Аналитика по конкретному автомобилю за период
       tags: *a5
+  /api/taxi-parks/{taxiParkId}/drivers/{driverId}/analytics:
+    get:
+      operationId: TaxiParksController_getDriverAnalytics
+      parameters:
+        - name: taxiParkId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: driverId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: from
+          required: false
+          in: query
+          description: Дата начала периода в формате YYYY-MM-DD
+          schema:
+            example: 2025-04-01
+            type: string
+        - name: to
+          required: false
+          in: query
+          description: Дата окончания периода в формате YYYY-MM-DD
+          schema:
+            example: 2025-04-30
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetDriverAnalyticsResponseDto"
+      security: *a4
+      summary: Аналитика по конкретному водителю за период
+      tags: *a5
   /api/taxi-parks/{id}:
     get:
       operationId: TaxiParksController_get
@@ -1845,6 +1883,49 @@ components:
         - taxiParkAverageUtilizationRate
         - revenueDifferenceFromParkAverage
         - utilizationDifferenceFromParkAverage
+    CarBrandAnalyticsDto:
+      type: object
+      properties:
+        firm:
+          type: string
+        carsCount:
+          type: number
+          example: 5
+        totalRevenue:
+          type: number
+          example: 65000.4
+        averageRevenuePerCar:
+          type: number
+          example: 13000.08
+        onlineDaysCount:
+          type: number
+          example: 42
+        downtimeDaysCount:
+          type: number
+          example: 8
+        utilizationRate:
+          type: number
+          example: 28
+        rankByRevenue:
+          type: number
+          example: 1
+        currentCarRevenueShare:
+          type: number
+          example: 24.75
+        currentCarRevenueDifferenceFromBrandAverage:
+          type: number
+          example: 3000.05
+      required:
+        - firm
+        - carsCount
+        - totalRevenue
+        - averageRevenuePerCar
+        - onlineDaysCount
+        - downtimeDaysCount
+        - utilizationRate
+        - rankByRevenue
+        - currentCarRevenueShare
+        - currentCarRevenueDifferenceFromBrandAverage
     CarAnalyticsRevenueByDayPointDto:
       type: object
       properties:
@@ -1913,6 +1994,8 @@ components:
           $ref: "#/components/schemas/CarAnalyticsSummaryDto"
         comparison:
           $ref: "#/components/schemas/CarAnalyticsComparisonDto"
+        brandAnalytics:
+          $ref: "#/components/schemas/CarBrandAnalyticsDto"
         charts:
           $ref: "#/components/schemas/CarAnalyticsChartsDto"
         workDays:
@@ -1923,6 +2006,252 @@ components:
         - period
         - car
         - summary
+        - comparison
+        - brandAnalytics
+        - charts
+        - workDays
+    DriverAnalyticsAssignedCarDto:
+      type: object
+      properties:
+        carId:
+          type: string
+        firm:
+          type: string
+        model:
+          type: string
+        plateNumber:
+          type: string
+        state:
+          type: string
+          enum:
+            - WORKING
+            - EMERGENCY
+            - REPAIR
+      required:
+        - carId
+        - firm
+        - model
+        - plateNumber
+        - state
+    DriverAnalyticsDriverDto:
+      type: object
+      properties:
+        driverId:
+          type: string
+        fullName:
+          type: string
+        taxiParkId:
+          type: string
+        taxiParkName:
+          type: string
+        assignedCar:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/DriverAnalyticsAssignedCarDto"
+      required:
+        - driverId
+        - fullName
+        - taxiParkId
+        - taxiParkName
+        - assignedCar
+    DriverAnalyticsSummaryDto:
+      type: object
+      properties:
+        totalRevenue:
+          type: number
+          example: 21000.2
+        averageRevenuePerShift:
+          type: number
+          example: 2625.03
+        averageRevenuePerDay:
+          type: number
+          example: 700.01
+        workDaysCount:
+          type: number
+          example: 9
+        onlineDaysCount:
+          type: number
+          example: 8
+        downtimeDaysCount:
+          type: number
+          example: 1
+        activityRate:
+          type: number
+          example: 26.67
+        downtimeRate:
+          type: number
+          example: 11.11
+        revenueDifferenceFromParkAverage:
+          type: number
+          example: 3000.05
+      required:
+        - totalRevenue
+        - averageRevenuePerShift
+        - averageRevenuePerDay
+        - workDaysCount
+        - onlineDaysCount
+        - downtimeDaysCount
+        - activityRate
+        - downtimeRate
+        - revenueDifferenceFromParkAverage
+    DriverAnalyticsScorecardDto:
+      type: object
+      properties:
+        driverEfficiency:
+          type: number
+          example: 73.25
+        revenueScore:
+          type: number
+          example: 84.12
+        activityScore:
+          type: number
+          example: 26.67
+        stabilityScore:
+          type: number
+          example: 50
+        maxDriverRevenue:
+          type: number
+          example: 25000.5
+        daysWithRevenueAboveAverage:
+          type: number
+          example: 4
+      required:
+        - driverEfficiency
+        - revenueScore
+        - activityScore
+        - stabilityScore
+        - maxDriverRevenue
+        - daysWithRevenueAboveAverage
+    DriverAnalyticsRatingDto:
+      type: object
+      properties:
+        rank:
+          type: number
+          example: 1
+        driversCount:
+          type: number
+          example: 20
+      required:
+        - rank
+        - driversCount
+    DriverAnalyticsComparisonDto:
+      type: object
+      properties:
+        taxiParkAverageRevenuePerDriver:
+          type: number
+          example: 18000.15
+        taxiParkAverageRevenuePerShift:
+          type: number
+          example: 2300.11
+        taxiParkAverageActivityRate:
+          type: number
+          example: 64.44
+        revenueDifferenceFromParkAverage:
+          type: number
+          example: 3000.05
+        shiftRevenueDifferenceFromParkAverage:
+          type: number
+          example: 324.92
+        activityDifferenceFromParkAverage:
+          type: number
+          example: -4.25
+      required:
+        - taxiParkAverageRevenuePerDriver
+        - taxiParkAverageRevenuePerShift
+        - taxiParkAverageActivityRate
+        - revenueDifferenceFromParkAverage
+        - shiftRevenueDifferenceFromParkAverage
+        - activityDifferenceFromParkAverage
+    DriverAnalyticsRevenueByDayPointDto:
+      type: object
+      properties:
+        date:
+          type: string
+          example: 2025-04-01
+        revenue:
+          type: number
+          example: 3000
+        carOnLine:
+          type: boolean
+          example: true
+      required:
+        - date
+        - revenue
+        - carOnLine
+    DriverAnalyticsChartsDto:
+      type: object
+      properties:
+        revenueByDay:
+          type: array
+          items:
+            $ref: "#/components/schemas/DriverAnalyticsRevenueByDayPointDto"
+      required:
+        - revenueByDay
+    DriverAnalyticsWorkDayCarDto:
+      type: object
+      properties:
+        carId:
+          type: string
+        firm:
+          type: string
+        model:
+          type: string
+        plateNumber:
+          type: string
+      required:
+        - carId
+        - firm
+        - model
+        - plateNumber
+    DriverAnalyticsWorkDayDto:
+      type: object
+      properties:
+        workDayId:
+          type: string
+        date:
+          type: string
+          example: 2025-04-01
+        revenue:
+          type: number
+          example: 3000
+        carOnLine:
+          type: boolean
+          example: true
+        car:
+          $ref: "#/components/schemas/DriverAnalyticsWorkDayCarDto"
+      required:
+        - workDayId
+        - date
+        - revenue
+        - carOnLine
+        - car
+    GetDriverAnalyticsResponseDto:
+      type: object
+      properties:
+        period:
+          $ref: "#/components/schemas/AnalyticsPeriodDto"
+        driver:
+          $ref: "#/components/schemas/DriverAnalyticsDriverDto"
+        summary:
+          $ref: "#/components/schemas/DriverAnalyticsSummaryDto"
+        scorecard:
+          $ref: "#/components/schemas/DriverAnalyticsScorecardDto"
+        rating:
+          $ref: "#/components/schemas/DriverAnalyticsRatingDto"
+        comparison:
+          $ref: "#/components/schemas/DriverAnalyticsComparisonDto"
+        charts:
+          $ref: "#/components/schemas/DriverAnalyticsChartsDto"
+        workDays:
+          type: array
+          items:
+            $ref: "#/components/schemas/DriverAnalyticsWorkDayDto"
+      required:
+        - period
+        - driver
+        - summary
+        - scorecard
+        - rating
         - comparison
         - charts
         - workDays

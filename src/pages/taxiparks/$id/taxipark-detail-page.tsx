@@ -498,6 +498,12 @@ export const TaxiparkDetailPage = ({ taxiparkId }: TaxiparkDetailPageProps) => {
                 columns={carColumns}
                 data={filteredCars}
                 initialPageSize={10}
+                onRowClick={(row) => {
+                  navigate({
+                    to: "/vehicles/$id",
+                    params: { id: row.id },
+                  });
+                }}
               />
             ) : (
               <AnalyticsStateCard
@@ -525,6 +531,12 @@ export const TaxiparkDetailPage = ({ taxiparkId }: TaxiparkDetailPageProps) => {
                 columns={problemCarColumns}
                 data={filteredProblemCars}
                 initialPageSize={10}
+                onRowClick={(row) => {
+                  navigate({
+                    to: "/vehicles/$id",
+                    params: { id: row.id },
+                  });
+                }}
               />
             ) : (
               <AnalyticsStateCard

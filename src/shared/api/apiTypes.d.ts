@@ -158,6 +158,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/taxi-parks/{taxiParkId}/cars/{carId}/analytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Аналитика по конкретному автомобилю за период */
+        get: operations["TaxiParksController_getCarAnalytics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/taxi-parks/{id}": {
         parameters: {
             query?: never;
@@ -175,6 +192,142 @@ export interface paths {
         head?: never;
         /** Обновить таксопарк */
         patch: operations["TaxiParksController_update"];
+        trace?: never;
+    };
+    "/api/analytics/taxi-parks/{taxiParkId}/drivers/{driverId}/revenue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Выручка водителя */
+        get: operations["AnalyticsController_driverRevenue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analytics/taxi-parks/{taxiParkId}/revenue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Выручка таксопарка */
+        get: operations["AnalyticsController_taxiParkRevenue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analytics/revenue/all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Выручка всех */
+        get: operations["AnalyticsController_allRevenue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analytics/cars/most-profitable-brands": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Самые прибыльные бренды */
+        get: operations["AnalyticsController_mostProfitableBrands"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analytics/cars/not-on-line": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Авто не на линии */
+        get: operations["AnalyticsController_carsNotOnLine"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analytics/cars/most-broken-brands": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Самые ломающиеся бренды */
+        get: operations["AnalyticsController_mostBrokenBrands"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analytics/drivers/rating": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Рейтинг водителей */
+        get: operations["AnalyticsController_driversRating"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analytics/downtime-losses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Потери от простоя */
+        get: operations["AnalyticsController_downtimeLosses"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/taxi-parks/{taxiParkId}/cars": {
@@ -480,142 +633,6 @@ export interface paths {
         };
         /** Work-days авто (директор) */
         get: operations["WorkDaysController_listByCar"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/analytics/taxi-parks/{taxiParkId}/drivers/{driverId}/revenue": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Выручка водителя */
-        get: operations["AnalyticsController_driverRevenue"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/analytics/taxi-parks/{taxiParkId}/revenue": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Выручка таксопарка */
-        get: operations["AnalyticsController_taxiParkRevenue"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/analytics/revenue/all": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Выручка всех */
-        get: operations["AnalyticsController_allRevenue"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/analytics/cars/most-profitable-brands": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Самые прибыльные бренды */
-        get: operations["AnalyticsController_mostProfitableBrands"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/analytics/cars/not-on-line": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Авто не на линии */
-        get: operations["AnalyticsController_carsNotOnLine"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/analytics/cars/most-broken-brands": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Самые ломающиеся бренды */
-        get: operations["AnalyticsController_mostBrokenBrands"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/analytics/drivers/rating": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Рейтинг водителей */
-        get: operations["AnalyticsController_driversRating"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/analytics/downtime-losses": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Потери от простоя */
-        get: operations["AnalyticsController_downtimeLosses"];
         put?: never;
         post?: never;
         delete?: never;
@@ -984,6 +1001,84 @@ export interface components {
             topBrands: components["schemas"]["TopBrandAnalyticsDto"][];
             problemCars: components["schemas"]["ProblemCarAnalyticsDto"][];
         };
+        CarAnalyticsAssignedDriverDto: {
+            driverId: string;
+            fullName: string;
+        };
+        CarAnalyticsCarDto: {
+            carId: string;
+            firm: string;
+            model: string;
+            plateNumber: string;
+            /** @enum {string} */
+            state: "WORKING" | "EMERGENCY" | "REPAIR";
+            taxiParkId: string;
+            taxiParkName: string;
+            assignedDriver: components["schemas"]["CarAnalyticsAssignedDriverDto"] | null;
+        };
+        CarAnalyticsSummaryDto: {
+            /** @example 21000.2 */
+            totalRevenue: number;
+            /** @example 2625.03 */
+            averageRevenuePerOnlineDay: number;
+            /** @example 8 */
+            onlineDaysCount: number;
+            /** @example 1 */
+            downtimeDaysCount: number;
+            /** @example 9 */
+            workDaysCount: number;
+            /** @example 26.67 */
+            utilizationRate: number;
+            /** @example 11.11 */
+            downtimeRate: number;
+            /** @example 2625.03 */
+            estimatedDowntimeLoss: number;
+        };
+        CarAnalyticsComparisonDto: {
+            /** @example 18000.15 */
+            taxiParkAverageRevenuePerCar: number;
+            /** @example 2300.11 */
+            taxiParkAverageRevenuePerOnlineDay: number;
+            /** @example 64.44 */
+            taxiParkAverageUtilizationRate: number;
+            /** @example 3000.05 */
+            revenueDifferenceFromParkAverage: number;
+            /** @example -4.25 */
+            utilizationDifferenceFromParkAverage: number;
+        };
+        CarAnalyticsRevenueByDayPointDto: {
+            /** @example 2025-04-01 */
+            date: string;
+            /** @example 3000 */
+            revenue: number;
+            /** @example true */
+            carOnLine: boolean;
+        };
+        CarAnalyticsChartsDto: {
+            revenueByDay: components["schemas"]["CarAnalyticsRevenueByDayPointDto"][];
+        };
+        CarAnalyticsWorkDayDriverDto: {
+            driverId: string;
+            fullName: string;
+        };
+        CarAnalyticsWorkDayDto: {
+            workDayId: string;
+            /** @example 2025-04-01 */
+            date: string;
+            /** @example 3000 */
+            revenue: number;
+            /** @example true */
+            carOnLine: boolean;
+            driver: components["schemas"]["CarAnalyticsWorkDayDriverDto"];
+        };
+        GetCarAnalyticsResponseDto: {
+            period: components["schemas"]["AnalyticsPeriodDto"];
+            car: components["schemas"]["CarAnalyticsCarDto"];
+            summary: components["schemas"]["CarAnalyticsSummaryDto"];
+            comparison: components["schemas"]["CarAnalyticsComparisonDto"];
+            charts: components["schemas"]["CarAnalyticsChartsDto"];
+            workDays: components["schemas"]["CarAnalyticsWorkDayDto"][];
+        };
         UpdateTaxiParkDto: {
             /** @example Таксопарк №1 */
             name?: string;
@@ -1307,6 +1402,33 @@ export interface operations {
             };
         };
     };
+    TaxiParksController_getCarAnalytics: {
+        parameters: {
+            query?: {
+                /** @description Дата начала периода в формате YYYY-MM-DD */
+                from?: string;
+                /** @description Дата окончания периода в формате YYYY-MM-DD */
+                to?: string;
+            };
+            header?: never;
+            path: {
+                taxiParkId: string;
+                carId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetCarAnalyticsResponseDto"];
+                };
+            };
+        };
+    };
     TaxiParksController_get: {
         parameters: {
             query?: never;
@@ -1360,6 +1482,192 @@ export interface operations {
                 "application/json": components["schemas"]["UpdateTaxiParkDto"];
             };
         };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AnalyticsController_driverRevenue: {
+        parameters: {
+            query?: {
+                /** @description Дата начала периода в формате YYYY-MM-DD */
+                from?: string;
+                /** @description Дата окончания периода в формате YYYY-MM-DD */
+                to?: string;
+            };
+            header?: never;
+            path: {
+                taxiParkId: string;
+                driverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AnalyticsController_taxiParkRevenue: {
+        parameters: {
+            query?: {
+                /** @description Дата начала периода в формате YYYY-MM-DD */
+                from?: string;
+                /** @description Дата окончания периода в формате YYYY-MM-DD */
+                to?: string;
+            };
+            header?: never;
+            path: {
+                taxiParkId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AnalyticsController_allRevenue: {
+        parameters: {
+            query?: {
+                /** @description Дата начала периода в формате YYYY-MM-DD */
+                from?: string;
+                /** @description Дата окончания периода в формате YYYY-MM-DD */
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AnalyticsController_mostProfitableBrands: {
+        parameters: {
+            query: {
+                /** @description Дата начала периода в формате YYYY-MM-DD */
+                from?: string;
+                /** @description Дата окончания периода в формате YYYY-MM-DD */
+                to?: string;
+                taxiParkId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AnalyticsController_carsNotOnLine: {
+        parameters: {
+            query: {
+                /** @description Дата начала периода в формате YYYY-MM-DD */
+                from?: string;
+                /** @description Дата окончания периода в формате YYYY-MM-DD */
+                to?: string;
+                taxiParkId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AnalyticsController_mostBrokenBrands: {
+        parameters: {
+            query: {
+                /** @description Дата начала периода в формате YYYY-MM-DD */
+                from?: string;
+                /** @description Дата окончания периода в формате YYYY-MM-DD */
+                to?: string;
+                taxiParkId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AnalyticsController_driversRating: {
+        parameters: {
+            query: {
+                /** @description Дата начала периода в формате YYYY-MM-DD */
+                from?: string;
+                /** @description Дата окончания периода в формате YYYY-MM-DD */
+                to?: string;
+                taxiParkId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AnalyticsController_downtimeLosses: {
+        parameters: {
+            query: {
+                /** @description Дата начала периода в формате YYYY-MM-DD */
+                from?: string;
+                /** @description Дата окончания периода в формате YYYY-MM-DD */
+                to?: string;
+                taxiParkId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {
@@ -1819,192 +2127,6 @@ export interface operations {
             path: {
                 carId: string;
             };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AnalyticsController_driverRevenue: {
-        parameters: {
-            query?: {
-                /** @description Дата начала периода в формате YYYY-MM-DD */
-                from?: string;
-                /** @description Дата окончания периода в формате YYYY-MM-DD */
-                to?: string;
-            };
-            header?: never;
-            path: {
-                taxiParkId: string;
-                driverId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AnalyticsController_taxiParkRevenue: {
-        parameters: {
-            query?: {
-                /** @description Дата начала периода в формате YYYY-MM-DD */
-                from?: string;
-                /** @description Дата окончания периода в формате YYYY-MM-DD */
-                to?: string;
-            };
-            header?: never;
-            path: {
-                taxiParkId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AnalyticsController_allRevenue: {
-        parameters: {
-            query?: {
-                /** @description Дата начала периода в формате YYYY-MM-DD */
-                from?: string;
-                /** @description Дата окончания периода в формате YYYY-MM-DD */
-                to?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AnalyticsController_mostProfitableBrands: {
-        parameters: {
-            query: {
-                /** @description Дата начала периода в формате YYYY-MM-DD */
-                from?: string;
-                /** @description Дата окончания периода в формате YYYY-MM-DD */
-                to?: string;
-                taxiParkId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AnalyticsController_carsNotOnLine: {
-        parameters: {
-            query: {
-                /** @description Дата начала периода в формате YYYY-MM-DD */
-                from?: string;
-                /** @description Дата окончания периода в формате YYYY-MM-DD */
-                to?: string;
-                taxiParkId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AnalyticsController_mostBrokenBrands: {
-        parameters: {
-            query: {
-                /** @description Дата начала периода в формате YYYY-MM-DD */
-                from?: string;
-                /** @description Дата окончания периода в формате YYYY-MM-DD */
-                to?: string;
-                taxiParkId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AnalyticsController_driversRating: {
-        parameters: {
-            query: {
-                /** @description Дата начала периода в формате YYYY-MM-DD */
-                from?: string;
-                /** @description Дата окончания периода в формате YYYY-MM-DD */
-                to?: string;
-                taxiParkId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AnalyticsController_downtimeLosses: {
-        parameters: {
-            query: {
-                /** @description Дата начала периода в формате YYYY-MM-DD */
-                from?: string;
-                /** @description Дата окончания периода в формате YYYY-MM-DD */
-                to?: string;
-                taxiParkId: string;
-            };
-            header?: never;
-            path?: never;
             cookie?: never;
         };
         requestBody?: never;
