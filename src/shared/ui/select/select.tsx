@@ -4,15 +4,6 @@ import type { ComponentProps } from "react";
 
 import { cn } from "@/shared/utils";
 
-const getPortalContainer = () => {
-  if (typeof document === "undefined") return undefined;
-  const themeRoot =
-    document.querySelector<HTMLElement>('[class^="theme-"]') ??
-    document.querySelector<HTMLElement>('[class*=" theme-"]');
-
-  return themeRoot ?? document.getElementById("root") ?? document.body;
-};
-
 const Select = (props: ComponentProps<typeof SelectPrimitive.Root>) => {
   return <SelectPrimitive.Root data-slot="select" {...props} />;
 };
@@ -57,13 +48,8 @@ const SelectContent = ({
   position = "popper",
   ...props
 }: ComponentProps<typeof SelectPrimitive.Content>) => {
-  const portalContainer = getPortalContainer();
-
   return (
-    <SelectPrimitive.Portal
-      data-slot="select-portal"
-      container={portalContainer}
-    >
+    <SelectPrimitive.Portal data-slot="select-portal">
       <SelectPrimitive.Content
         data-slot="select-content"
         position={position}

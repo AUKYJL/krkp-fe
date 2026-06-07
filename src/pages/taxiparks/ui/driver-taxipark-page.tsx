@@ -1,17 +1,24 @@
-import { AlertCircle, Building2, Phone, UserRound } from "lucide-react";
-import { useState } from "react";
+import { AlertCircle, Building2, UserRound } from "lucide-react";
+import { useEffect, useState } from "react";
 
+import { PageHeader } from "@/features/page-header/page-header";
+import { TAXIPARKS_SIDEBAR_NAV_BY_ID } from "@/features/taxiparks-sidebar";
 import { formatDateDots } from "@/shared/lib/format-date";
 import { AppText, TAG, TEXT_SIZES_VARIABLES } from "@/shared/ui/app-text";
 import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
 import { CardSurface } from "@/shared/ui/card-surface";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/shared/ui/drawer";
 import { Spinner } from "@/shared/ui/spinner";
 import { cn } from "@/shared/utils";
 
-import { PageHeader } from "@/features/page-header/page-header";
-import { TAXIPARKS_SIDEBAR_NAV_BY_ID } from "@/features/taxiparks-sidebar";
-
 import {
+  type DriverTaxiParkInvitation,
   type DriverTaxiParkMembership,
   type DriverTaxiParkStatusTone,
   useDriverTaxiParkPageData,
@@ -76,6 +83,45 @@ const InfoRow = ({
   );
 };
 
+const SectionErrorState = ({
+  title,
+  message,
+  onRetry,
+}: {
+  title: string;
+  message: string;
+  onRetry: () => Promise<unknown>;
+}) => {
+  return (
+    <CardSurface className="items-center gap-4 rounded-[24px] px-6 py-10 text-center">
+      <div className="bg-dark-primary-soft text-text-primary flex size-14 items-center justify-center rounded-full">
+        <AlertCircle className="size-7" />
+      </div>
+      <div className="flex max-w-[480px] flex-col gap-2">
+        <AppText
+          tag={TAG.h2}
+          size={TEXT_SIZES_VARIABLES.medium}
+          className="text-text-primary font-semibold"
+        >
+          {title}
+        </AppText>
+        <AppText className="text-text-secondary text-sm font-medium">
+          {message}
+        </AppText>
+      </div>
+      <Button
+        type="button"
+        variant={BUTTON_VARIANTS_VARIABLES.secondary}
+        onClick={() => {
+          void onRetry();
+        }}
+      >
+        Повторить
+      </Button>
+    </CardSurface>
+  );
+};
+
 const MembershipCard = ({ membership }: { membership: DriverTaxiParkMembership }) => {
   return (
     <CardSurface className="gap-5 rounded-[24px] p-6 md:p-7">
@@ -134,17 +180,17 @@ const InvitationCard = ({
   invitation,
   isAcceptPending,
   isRejectPending,
+  actionError,
   onAccept,
   onReject,
 }: {
-  invitation: NonNullable<ReturnType<typeof useDriverTaxiParkPageData>["invitation"]>;
+  invitation: DriverTaxiParkInvitation;
   isAcceptPending: boolean;
   isRejectPending: boolean;
+  actionError?: string;
   onAccept: () => Promise<void>;
   onReject: () => Promise<void>;
 }) => {
-  const isPending = isAcceptPending || isRejectPending;
-
   return (
     <CardSurface className="gap-5 rounded-[24px] p-6 md:p-7">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
@@ -162,91 +208,65 @@ const InvitationCard = ({
               size={TEXT_SIZES_VARIABLES.medium}
               className="text-text-primary mt-2 font-bold"
             >
-              Вас пригласили в таксопарк “{invitation.parkName}”
+              {invitation.parkName}
             </AppText>
             <AppText className="text-text-secondary mt-1 text-sm font-medium">
-              Примите приглашение, чтобы связать аккаунт водителя с текущим таксопарком.
+              Ожидает вашего решения. После принятия приглашение исчезнет из этого списка.
             </AppText>
           </div>
         </div>
 
-        {invitation.statusLabel ? (
-          <DriverTaxiParkStatusBadge label={invitation.statusLabel} tone="accent" />
-        ) : null}
+        <DriverTaxiParkStatusBadge
+          label={invitation.statusLabel}
+          tone={invitation.statusTone}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <InfoRow label="Таксопарк" value={invitation.parkName} />
-        <InfoRow label="Директор" value={invitation.directorName} />
+        <InfoRow label="Статус приглашения" value={invitation.statusLabel} />
+        <InfoRow label="Адрес" value={invitation.address} />
         <InfoRow
           label="Дата приглашения"
-          value={formatDisplayDate(invitation.invitedAt)}
+          value={formatDisplayDate(invitation.createdAt)}
         />
-        <InfoRow label="Статус приглашения" value={invitation.statusLabel} />
       </div>
 
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <Button
-          type="button"
-          className="sm:min-w-[168px]"
-          disabled={isPending}
-          onClick={() => {
-            void onAccept();
-          }}
-        >
-          {isAcceptPending ? <Spinner className="size-4 min-h-0" /> : null}
-          Принять
-        </Button>
-        <Button
-          type="button"
-          variant={BUTTON_VARIANTS_VARIABLES.secondary}
-          className="sm:min-w-[168px]"
-          disabled={isPending}
-          onClick={() => {
-            void onReject();
-          }}
-        >
-          {isRejectPending ? <Spinner className="size-4 min-h-0" /> : null}
-          Отклонить
-        </Button>
-      </div>
-    </CardSurface>
-  );
-};
+      {invitation.isPending ? (
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button
+              type="button"
+              className="sm:min-w-[168px]"
+              disabled={isAcceptPending || isRejectPending}
+              onClick={() => {
+                void onAccept();
+              }}
+            >
+              {isAcceptPending ? <Spinner className="size-4 min-h-0" /> : null}
+              Принять
+            </Button>
+            <Button
+              type="button"
+              variant={BUTTON_VARIANTS_VARIABLES.secondary}
+              className="sm:min-w-[168px]"
+              disabled={isAcceptPending || isRejectPending}
+              onClick={() => {
+                void onReject();
+              }}
+            >
+              {isRejectPending ? <Spinner className="size-4 min-h-0" /> : null}
+              Отклонить
+            </Button>
+          </div>
 
-const ErrorState = ({
-  message,
-  onRetry,
-}: {
-  message: string;
-  onRetry: () => Promise<void>;
-}) => {
-  return (
-    <CardSurface className="items-center gap-4 rounded-[24px] px-6 py-12 text-center">
-      <div className="bg-dark-primary-soft text-text-primary flex size-14 items-center justify-center rounded-full">
-        <AlertCircle className="size-7" />
-      </div>
-      <div className="flex max-w-[480px] flex-col gap-2">
-        <AppText
-          tag={TAG.h2}
-          size={TEXT_SIZES_VARIABLES.medium}
-          className="text-text-primary font-semibold"
-        >
-          Не удалось загрузить данные
-        </AppText>
-        <AppText className="text-text-secondary text-sm font-medium">
-          {message}
-        </AppText>
-      </div>
-      <Button
-        type="button"
-        variant={BUTTON_VARIANTS_VARIABLES.secondary}
-        onClick={() => {
-          void onRetry();
-        }}
-      >
-        Повторить
-      </Button>
+          {actionError ? (
+            <AppText className="text-status-error text-sm font-medium">
+              {actionError}
+            </AppText>
+          ) : null}
+        </div>
+      ) : null}
     </CardSurface>
   );
 };
@@ -263,10 +283,10 @@ const EmptyState = () => {
           size={TEXT_SIZES_VARIABLES.medium}
           className="text-text-primary font-semibold"
         >
-          Вы пока не состоите в таксопарке
+          Пока нет активного таксопарка и ожидающих приглашений
         </AppText>
         <AppText className="text-text-secondary text-sm font-medium">
-          Когда директор отправит вам приглашение, оно появится на этой странице.
+          Когда появится членство или новое приглашение, оно отобразится здесь.
         </AppText>
       </div>
     </CardSurface>
@@ -276,39 +296,73 @@ const EmptyState = () => {
 export const DriverTaxiparkPage = () => {
   const {
     membership,
-    invitation,
+    invitations,
+    activeInvitations,
+    activeInvitationsCount,
     isLoading,
-    error,
-    errorMessage,
+    membershipError,
+    membershipErrorMessage,
+    invitationsError,
+    invitationsErrorMessage,
     isAcceptPending,
     isRejectPending,
+    acceptingInvitationId,
+    rejectingInvitationId,
     acceptInvitation,
     rejectInvitation,
-    refetch,
+    refetchMembership,
+    refetchInvitations,
   } = useDriverTaxiParkPageData();
-  const [actionError, setActionError] = useState<string | null>(null);
+  const [isInvitationsDrawerOpen, setIsInvitationsDrawerOpen] = useState(false);
+  const [drawerDirection, setDrawerDirection] = useState<"bottom" | "right">(
+    "right",
+  );
+  const [actionErrors, setActionErrors] = useState<Record<string, string | undefined>>(
+    {},
+  );
 
-  const handleAccept = async () => {
-    setActionError(null);
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 768px)");
+
+    const updateDirection = () => {
+      setDrawerDirection(mediaQuery.matches ? "right" : "bottom");
+    };
+
+    updateDirection();
+    mediaQuery.addEventListener("change", updateDirection);
+
+    return () => {
+      mediaQuery.removeEventListener("change", updateDirection);
+    };
+  }, []);
+
+  const handleAccept = async (invitationId: string) => {
+    setActionErrors((current) => ({ ...current, [invitationId]: undefined }));
 
     try {
-      await acceptInvitation(invitation?.id ?? "");
+      await acceptInvitation(invitationId);
     } catch {
-      setActionError("Не удалось принять приглашение. Попробуйте еще раз.");
+      setActionErrors((current) => ({
+        ...current,
+        [invitationId]: "Не удалось принять приглашение. Попробуйте еще раз.",
+      }));
     }
   };
 
-  const handleReject = async () => {
-    setActionError(null);
+  const handleReject = async (invitationId: string) => {
+    setActionErrors((current) => ({ ...current, [invitationId]: undefined }));
 
     try {
-      await rejectInvitation(invitation?.id ?? "");
+      await rejectInvitation(invitationId);
     } catch {
-      setActionError("Не удалось отклонить приглашение. Попробуйте еще раз.");
+      setActionErrors((current) => ({
+        ...current,
+        [invitationId]: "Не удалось отклонить приглашение. Попробуйте еще раз.",
+      }));
     }
   };
 
-  if (isLoading) {
+  if (isLoading && !membership && invitations.length === 0) {
     return (
       <main className="bg-background-page flex min-h-full w-full items-center justify-center p-6">
         <Spinner className="min-h-40" />
@@ -316,70 +370,169 @@ export const DriverTaxiparkPage = () => {
     );
   }
 
+  const hasContent = Boolean(membership) || activeInvitationsCount > 0;
+  const invitationsHasError = Boolean(invitationsError);
+  const showCompactInvitationError =
+    invitationsHasError && !isInvitationsDrawerOpen && activeInvitationsCount === 0;
+
   return (
     <main className="bg-background-page flex min-h-full w-full flex-col gap-6 p-6">
       <PageHeader
-        title="Таксопарк"
-        description="Информация о вашем таксопарке и приглашениях"
+        title={TAXIPARKS_SIDEBAR_NAV_BY_ID.taxiparks.label}
+        description="Ваш текущий таксопарк и ожидающие приглашения."
         breadcrumbs={[
           { label: "Главная", href: "/" },
           { label: TAXIPARKS_SIDEBAR_NAV_BY_ID.taxiparks.label },
         ]}
       />
 
-      {error && !invitation && !membership ? (
-        <ErrorState message={errorMessage} onRetry={refetch} />
-      ) : null}
+      <section className="flex flex-col gap-4">
+        <div className="flex flex-col gap-1">
+          <AppText className="text-text-primary text-lg font-semibold">
+            Мой таксопарк
+          </AppText>
+          <AppText className="text-text-secondary text-sm font-medium">
+            Текущая активная связь водителя с таксопарком.
+          </AppText>
+        </div>
 
-      {actionError ? (
-        <CardSurface className="gap-3 rounded-[20px] border border-status-error/20 bg-status-error/5 p-4">
-          <div className="flex items-start gap-3">
-            <div className="text-status-error flex size-9 shrink-0 items-center justify-center rounded-full bg-status-error/10">
-              <AlertCircle className="size-5" />
-            </div>
-            <div className="min-w-0">
-              <AppText className="text-text-primary text-sm font-semibold">
-                Действие не выполнено
-              </AppText>
-              <AppText className="text-text-secondary mt-1 text-sm font-medium">
-                {actionError}
-              </AppText>
-            </div>
+        {membership ? (
+          <MembershipCard membership={membership} />
+        ) : membershipError ? (
+          <SectionErrorState
+            title="Не удалось загрузить информацию о таксопарке"
+            message={membershipErrorMessage}
+            onRetry={refetchMembership}
+          />
+        ) : null}
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col gap-1">
+            <AppText className="text-text-primary text-lg font-semibold">
+              Приглашения
+            </AppText>
+            <AppText className="text-text-secondary text-sm font-medium">
+              Ожидающие приглашения не мешают основному содержанию и открываются по запросу.
+            </AppText>
           </div>
-        </CardSurface>
-      ) : null}
 
-      {invitation ? (
-        <InvitationCard
-          invitation={invitation}
-          isAcceptPending={isAcceptPending}
-          isRejectPending={isRejectPending}
-          onAccept={handleAccept}
-          onReject={handleReject}
-        />
-      ) : null}
-
-      {membership ? <MembershipCard membership={membership} /> : null}
-
-      {!invitation && !membership && !error ? <EmptyState /> : null}
-
-      {error && (invitation || membership) ? (
-        <CardSurface className="gap-3 rounded-[20px] border border-border-default bg-background-card p-4">
-          <div className="flex items-start gap-3">
-            <div className="bg-background-page text-text-secondary flex size-9 shrink-0 items-center justify-center rounded-full">
-              <Phone className="size-5" />
-            </div>
-            <div className="min-w-0">
-              <AppText className="text-text-primary text-sm font-semibold">
-                Часть данных может быть неактуальной
-              </AppText>
-              <AppText className="text-text-secondary mt-1 text-sm font-medium">
-                {errorMessage}
-              </AppText>
-            </div>
+          <div className="bg-dark-primary-soft text-text-primary flex h-11 min-w-11 items-center justify-center rounded-[14px] px-3 text-sm font-bold">
+            {activeInvitationsCount}
           </div>
-        </CardSurface>
-      ) : null}
+        </div>
+
+        {showCompactInvitationError ? (
+          <SectionErrorState
+            title="Не удалось загрузить приглашения"
+            message={invitationsErrorMessage}
+            onRetry={refetchInvitations}
+          />
+        ) : (
+          <CardSurface className="flex flex-col gap-4 rounded-[24px] p-6 md:p-7">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-1">
+                <AppText className="text-text-primary text-base font-semibold">
+                  {activeInvitationsCount > 0
+                    ? `${activeInvitationsCount} ожидающих приглашений`
+                    : "Ожидающих приглашений нет"}
+                </AppText>
+                <AppText className="text-text-secondary text-sm font-medium">
+                  {activeInvitationsCount > 0
+                    ? "Откройте список, чтобы принять или отклонить приглашения."
+                    : "Новые приглашения появятся здесь, когда директор их отправит."}
+                </AppText>
+              </div>
+
+              <Button
+                type="button"
+                variant={BUTTON_VARIANTS_VARIABLES.secondary}
+                disabled={activeInvitationsCount === 0 && !invitationsError}
+                onClick={() => {
+                  setIsInvitationsDrawerOpen(true);
+                }}
+              >
+                {activeInvitationsCount > 0 ? "Открыть список" : "Проверить позже"}
+              </Button>
+            </div>
+
+            {activeInvitationsCount > 0 ? (
+              <div className="text-text-secondary flex items-center gap-2 text-sm font-medium">
+                <span className="bg-accent-primary-soft text-text-primary inline-flex size-8 items-center justify-center rounded-full text-xs font-semibold">
+                  {activeInvitationsCount}
+                </span>
+                В списке учитываются только приглашения со статусом ожидания.
+              </div>
+            ) : null}
+          </CardSurface>
+        )}
+      </section>
+
+      {!hasContent && !membershipError && !invitationsError ? <EmptyState /> : null}
+
+      <Drawer
+        open={isInvitationsDrawerOpen}
+        direction={drawerDirection}
+        onOpenChange={setIsInvitationsDrawerOpen}
+      >
+        <DrawerContent showCloseButton className="max-h-[calc(100vh-1.5rem)]">
+          <DrawerHeader>
+            <DrawerTitle>Приглашения</DrawerTitle>
+            <DrawerDescription>
+              {activeInvitationsCount > 0
+                ? "Показаны только ожидающие приглашения."
+                : "Сюда попадут только активные приглашения со статусом ожидания."}
+            </DrawerDescription>
+          </DrawerHeader>
+
+          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-6 pb-6 md:px-7 md:pb-7">
+            {invitationsError && activeInvitationsCount === 0 ? (
+              <SectionErrorState
+                title="Не удалось загрузить приглашения"
+                message={invitationsErrorMessage}
+                onRetry={refetchInvitations}
+              />
+            ) : activeInvitationsCount > 0 ? (
+              <div className="grid grid-cols-1 gap-4">
+                {activeInvitations.map((invitation) => (
+                  <InvitationCard
+                    key={invitation.id}
+                    invitation={invitation}
+                    actionError={actionErrors[invitation.id]}
+                    isAcceptPending={
+                      isAcceptPending && acceptingInvitationId === invitation.id
+                    }
+                    isRejectPending={
+                      isRejectPending && rejectingInvitationId === invitation.id
+                    }
+                    onAccept={() => handleAccept(invitation.id)}
+                    onReject={() => handleReject(invitation.id)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <CardSurface className="items-center gap-4 rounded-[24px] px-6 py-10 text-center">
+                <div className="bg-background-page text-text-secondary flex size-14 items-center justify-center rounded-full">
+                  <UserRound className="size-7" />
+                </div>
+                <div className="flex max-w-[480px] flex-col gap-2">
+                  <AppText
+                    tag={TAG.h2}
+                    size={TEXT_SIZES_VARIABLES.medium}
+                    className="text-text-primary font-semibold"
+                  >
+                    Пока нет активных приглашений
+                  </AppText>
+                  <AppText className="text-text-secondary text-sm font-medium">
+                    Здесь появятся только приглашения, которые еще ждут вашего ответа.
+                  </AppText>
+                </div>
+              </CardSurface>
+            )}
+          </div>
+        </DrawerContent>
+      </Drawer>
     </main>
   );
 };

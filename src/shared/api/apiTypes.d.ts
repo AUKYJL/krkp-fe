@@ -469,6 +469,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/drivers/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Глобальный поиск водителей для директора */
+        get: operations["DriversController_search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/drivers/me": {
         parameters: {
             query?: never;
@@ -1547,6 +1564,20 @@ export interface components {
              */
             state: "WORKING" | "EMERGENCY" | "REPAIR";
         };
+        DriverSearchItemDto: {
+            /** @example 4af49d61-b9e2-48d9-a868-163d5379d73f */
+            driverId: string;
+            /** @example 6ab6c1a0-af7c-4af8-bf19-c8c3cd1dbdc5 */
+            userId: string;
+            /** @example Иван Иванов */
+            fullName: string;
+            /** @example driver@example.com */
+            email: string;
+            /** @example false */
+            isInTaxiPark: boolean;
+            /** @example 3dd4b7b5-4cd5-4636-ae62-df754edfe7e4 */
+            assignedTaxiParkId?: string;
+        };
         UpdateDriverDto: {
             /** @example 1234 567890 */
             passportNumber?: string;
@@ -1560,6 +1591,29 @@ export interface components {
         CreateDriverInvitationDto: {
             /** @example driver-uuid */
             driverId: string;
+        };
+        MyInvitationTaxiParkDto: {
+            /** @example 3dd4b7b5-4cd5-4636-ae62-df754edfe7e4 */
+            id: string;
+            /** @example Таксопарк №1 */
+            name: string;
+            /** @example Москва, ул. Пушкина 1 */
+            address: string;
+        };
+        MyInvitationItemDto: {
+            /** @example 8fcd6331-33a8-4f90-b6a0-e87ea8dc9a39 */
+            invitationId: string;
+            /**
+             * @example PENDING
+             * @enum {string}
+             */
+            status: "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELLED";
+            /**
+             * Format: date-time
+             * @example 2026-06-07T10:15:00.000Z
+             */
+            createdAt: string;
+            taxiPark: components["schemas"]["MyInvitationTaxiParkDto"];
         };
         CreateWorkDayDto: {
             /** @example 2026-05-02 */
@@ -2343,6 +2397,30 @@ export interface operations {
             };
         };
     };
+    DriversController_search: {
+        parameters: {
+            query?: {
+                /** @description Case-insensitive partial match by user's full name */
+                fullName?: string;
+                /** @description Filter drivers by belonging to any taxi park */
+                inTaxiPark?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverSearchItemDto"][];
+                };
+            };
+        };
+    };
     DriversController_getMe: {
         parameters: {
             query?: never;
@@ -2481,7 +2559,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MyInvitationItemDto"][];
+                };
             };
         };
     };
@@ -2500,7 +2580,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": unknown;
+                };
             };
         };
     };
@@ -2519,7 +2601,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": unknown;
+                };
             };
         };
     };

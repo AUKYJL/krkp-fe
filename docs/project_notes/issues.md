@@ -63,3 +63,13 @@ Use bullet lists for simplicity. This is not a replacement for your ticket syste
 - **Status**: Completed
 - **Description**: Added live driver analytics hooks and role-aware `/drivers` access, converted `/drivers/:id` to real analytics with self-only driver access semantics, hid the drivers sidebar item for `DRIVER`, and replaced low-signal vehicle comparison blocks with `brandAnalytics` insights.
 - **URL**: N/A
+
+### 2026-06-08 - UI-driver-search-and-invitations: Wire live driver search and invitation flows
+- **Status**: Completed
+- **Description**: Replaced `/drivers/add` mock search with API-backed driver search and invite actions, and refactored driver `/taxiparks` to render the full invitation list with per-card accept/reject behavior.
+- **URL**: N/A
+
+### 2026-06-08 - UI-driver-taxipark-invitations-de-emphasis: De-emphasize driver taxipark invitations
+- **Status**: Completed
+- **Description**: Moved the driver `/taxiparks` focus to `Мой таксопарк`, filtered invitations down to `pending` items, and moved invitation browsing/actions into a compact drawer-backed flow.
+- **URL**: N/A

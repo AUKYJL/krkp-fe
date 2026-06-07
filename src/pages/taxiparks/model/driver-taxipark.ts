@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { authQueryKeys, getApiErrorMessage } from "@/shared/api/auth";
 import { fetchClient } from "@/shared/api/apiInstance";
+import type { components } from "@/shared/api/apiTypes";
 
 export type DriverTaxiParkStatusTone = "default" | "accent" | "muted";
 
@@ -18,18 +19,32 @@ export type DriverTaxiParkMembership = {
   carsCount?: number;
 };
 
+export type DriverInvitationStatus =
+  | "pending"
+  | "accepted"
+  | "rejected"
+  | "cancelled";
+
 export type DriverTaxiParkInvitation = {
   id: string;
   parkName: string;
-  directorName?: string;
-  invitedAt?: string;
-  statusLabel?: string;
+  address?: string;
+  createdAt?: string;
+  status: DriverInvitationStatus;
+  statusLabel: string;
+  statusTone: DriverTaxiParkStatusTone;
+  isPending: boolean;
 };
 
 type DriverTaxiParkPageData = {
   membership: DriverTaxiParkMembership | null;
-  invitation: DriverTaxiParkInvitation | null;
+  invitations: DriverTaxiParkInvitation[];
+  activeInvitations: DriverTaxiParkInvitation[];
+  activeInvitationsCount: number;
 };
+
+type DriverProfileResponse = unknown;
+type MyInvitationItem = components["schemas"]["MyInvitationItemDto"];
 
 const driverTaxiParkQueryKeys = {
   driverProfile: ["get", "/api/drivers/me"] as const,
@@ -51,7 +66,7 @@ const getPathValue = (value: unknown, path: string) => {
   }, value);
 };
 
-const pickFirst = <T>(
+const pickFirst = <T,>(
   value: unknown,
   paths: string[],
   matcher: (candidate: unknown) => candidate is T,
@@ -105,7 +120,7 @@ const isNotFoundError = (error: unknown) => {
   return error.statusCode === 404;
 };
 
-const normalizeStatus = (
+const normalizeMembershipStatus = (
   value: string | undefined,
 ): Pick<DriverTaxiParkMembership, "statusLabel" | "statusTone"> => {
   const normalized = value?.trim().toLowerCase();
@@ -156,38 +171,47 @@ const normalizeStatus = (
   };
 };
 
-const normalizeInvitationStatus = (value: string | undefined) => {
+const normalizeInvitationStatus = (
+  value: MyInvitationItem["status"] | string | undefined,
+): Pick<
+  DriverTaxiParkInvitation,
+  "status" | "statusLabel" | "statusTone" | "isPending"
+> => {
   const normalized = value?.trim().toLowerCase();
 
-  if (
-    normalized &&
-    ["pending", "new", "sent", "invited", "ожидает", "ожидает ответа"].includes(
-      normalized,
-    )
-  ) {
-    return "Ожидает ответа";
+  if (normalized === "accepted") {
+    return {
+      status: "accepted",
+      statusLabel: "Принято",
+      statusTone: "default",
+      isPending: false,
+    };
   }
 
-  return value?.trim();
-};
-
-const isInvitationActive = (value: unknown) => {
-  const status = pickString(value, [
-    "status",
-    "invitationStatus",
-    "state",
-    "meta.status",
-  ]);
-
-  if (!status) {
-    return true;
+  if (normalized === "rejected" || normalized === "declined") {
+    return {
+      status: "rejected",
+      statusLabel: "Отклонено",
+      statusTone: "muted",
+      isPending: false,
+    };
   }
 
-  const normalized = status.trim().toLowerCase();
+  if (normalized === "cancelled" || normalized === "canceled") {
+    return {
+      status: "cancelled",
+      statusLabel: "Отменено",
+      statusTone: "muted",
+      isPending: false,
+    };
+  }
 
-  return !["accepted", "rejected", "declined", "cancelled", "canceled"].includes(
-    normalized,
-  );
+  return {
+    status: "pending",
+    statusLabel: "Ожидает ответа",
+    statusTone: "accent",
+    isPending: true,
+  };
 };
 
 const normalizeMembership = (
@@ -208,7 +232,8 @@ const normalizeMembership = (
       "currentMembership",
       "driverTaxiPark",
       "parkMembership",
-    ]) ?? null;
+    ]) ??
+    null;
 
   const parkSource =
     pickRecord(membershipSource, ["taxiPark", "park"]) ??
@@ -271,7 +296,7 @@ const normalizeMembership = (
     pickNumber(parkSource, ["carsCount", "carCount", "vehiclesCount"]) ??
     pickArray(parkSource, ["cars", "vehicles"])?.length;
 
-  const { statusLabel, statusTone } = normalizeStatus(rawStatus);
+  const { statusLabel, statusTone } = normalizeMembershipStatus(rawStatus);
 
   return {
     id:
@@ -294,53 +319,53 @@ const normalizeMembership = (
   };
 };
 
-const normalizeInvitation = (invitations: unknown): DriverTaxiParkInvitation | null => {
+const normalizeInvitations = (invitations: unknown): DriverTaxiParkInvitation[] => {
   const invitationItems = Array.isArray(invitations)
     ? invitations
     : pickArray(invitations, ["items", "data", "results", "invitations"]);
 
-  const invitationSource = invitationItems?.find(isInvitationActive);
-
-  if (!isRecord(invitationSource)) {
-    return null;
+  if (!invitationItems) {
+    return [];
   }
 
-  const parkSource =
-    pickRecord(invitationSource, ["taxiPark", "park", "fleet"]) ??
-    invitationSource;
+  return invitationItems.reduce<DriverTaxiParkInvitation[]>((result, item) => {
+    if (!isRecord(item)) {
+      return result;
+    }
 
-  const parkName =
-    pickString(parkSource, ["name", "title"]) ??
-    pickString(invitationSource, ["taxiParkName", "parkName"]);
-  const invitationId = pickString(invitationSource, ["id"]);
+    const parkSource = pickRecord(item, ["taxiPark", "park", "fleet"]) ?? item;
+    const parkName =
+      pickString(parkSource, ["name", "title"]) ??
+      pickString(item, ["taxiParkName", "parkName"]);
+    const invitationId =
+      pickString(item, ["invitationId", "id"]) ??
+      pickString(parkSource, ["invitationId"]);
 
-  if (!parkName || !invitationId) {
-    return null;
-  }
+    if (!parkName || !invitationId) {
+      return result;
+    }
 
-  return {
-    id: invitationId,
-    parkName,
-    directorName:
-      pickString(parkSource, [
-        "director.fullName",
-        "director.name",
-        "directorName",
-        "owner.fullName",
-        "owner.name",
-        "manager.fullName",
-        "manager.name",
-      ]) ?? pickString(invitationSource, ["directorName"]),
-    invitedAt: pickString(invitationSource, [
-      "createdAt",
-      "invitedAt",
-      "sentAt",
-      "updatedAt",
-    ]),
-    statusLabel: normalizeInvitationStatus(
-      pickString(invitationSource, ["status", "state", "invitationStatus"]),
-    ),
-  };
+    const status = normalizeInvitationStatus(
+      pickString(item, ["status", "state", "invitationStatus"]),
+    );
+
+    result.push({
+      id: invitationId,
+      parkName,
+      address:
+        pickString(parkSource, ["address", "location"]) ??
+        pickString(item, ["taxiParkAddress", "address"]),
+      createdAt: pickString(item, [
+        "createdAt",
+        "invitedAt",
+        "sentAt",
+        "updatedAt",
+      ]),
+      ...status,
+    });
+
+    return result;
+  }, []);
 };
 
 const getResponseData = async <T,>(
@@ -377,7 +402,7 @@ const getCurrentTaxiPark = async () => {
 };
 
 const getMyInvitations = async () => {
-  return getResponseData(fetchClient.GET("/api/invitations/my"));
+  return (await getResponseData(fetchClient.GET("/api/invitations/my"))) ?? [];
 };
 
 const acceptInvitation = async (id: string) => {
@@ -402,16 +427,19 @@ export const useDriverTaxiParkPageData = () => {
   const driverProfileQuery = useQuery({
     queryKey: driverTaxiParkQueryKeys.driverProfile,
     queryFn: getDriverProfile,
+    retry: false,
   });
 
   const currentTaxiParkQuery = useQuery({
     queryKey: driverTaxiParkQueryKeys.currentTaxiPark,
     queryFn: getCurrentTaxiPark,
+    retry: false,
   });
 
   const invitationsQuery = useQuery({
     queryKey: driverTaxiParkQueryKeys.invitations,
     queryFn: getMyInvitations,
+    retry: false,
   });
 
   const acceptMutation = useMutation({
@@ -452,27 +480,43 @@ export const useDriverTaxiParkPageData = () => {
 
   const pageData: DriverTaxiParkPageData = {
     membership: normalizeMembership(
-      driverProfileQuery.data,
+      driverProfileQuery.data as DriverProfileResponse,
       currentTaxiParkQuery.data,
     ),
-    invitation: normalizeInvitation(invitationsQuery.data),
+    invitations: normalizeInvitations(invitationsQuery.data),
+    activeInvitations: [],
+    activeInvitationsCount: 0,
   };
 
-  const pageError =
+  pageData.activeInvitations = pageData.invitations.filter(
+    (invitation) => invitation.isPending,
+  );
+  pageData.activeInvitationsCount = pageData.activeInvitations.length;
+
+  const membershipError =
     currentTaxiParkQuery.error ??
-    invitationsQuery.error ??
-    acceptMutation.error ??
-    rejectMutation.error;
+    (pageData.membership ? null : driverProfileQuery.error);
 
   return {
     ...pageData,
-    isLoading: currentTaxiParkQuery.isLoading || invitationsQuery.isLoading,
-    error: pageError,
-    errorMessage: getApiErrorMessage(pageError),
-    isAcceptPending: acceptMutation.isPending,
-    isRejectPending: rejectMutation.isPending,
+    isLoading:
+      driverProfileQuery.isLoading ||
+      currentTaxiParkQuery.isLoading ||
+      invitationsQuery.isLoading,
+    membershipError,
+    membershipErrorMessage: getApiErrorMessage(membershipError),
+    invitationsError: invitationsQuery.error,
+    invitationsErrorMessage: getApiErrorMessage(invitationsQuery.error),
     acceptInvitation: acceptMutation.mutateAsync,
     rejectInvitation: rejectMutation.mutateAsync,
+    isAcceptPending: acceptMutation.isPending,
+    isRejectPending: rejectMutation.isPending,
+    acceptingInvitationId: acceptMutation.variables,
+    rejectingInvitationId: rejectMutation.variables,
+    refetchMembership: async () => {
+      await Promise.all([driverProfileQuery.refetch(), currentTaxiParkQuery.refetch()]);
+    },
+    refetchInvitations: invitationsQuery.refetch,
     refetch: async () => {
       await Promise.all([
         driverProfileQuery.refetch(),

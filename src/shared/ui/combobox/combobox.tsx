@@ -7,16 +7,6 @@ import { type ButtonHTMLAttributes, useMemo, useState } from "react";
 
 import { cn } from "@/shared/utils";
 
-const getPortalContainer = () => {
-  if (typeof document === "undefined") return undefined;
-
-  const themeRoot =
-    document.querySelector<HTMLElement>('[class^="theme-"]') ??
-    document.querySelector<HTMLElement>('[class*=" theme-"]');
-
-  return themeRoot ?? document.getElementById("root") ?? document.body;
-};
-
 export type ComboboxOption = {
   value: string;
   label: string;
@@ -114,7 +104,7 @@ export const Combobox = ({
         </button>
       </Popover.Trigger>
 
-      <Popover.Portal container={getPortalContainer()}>
+      <Popover.Portal>
         <Popover.Content
           align="start"
           sideOffset={6}
