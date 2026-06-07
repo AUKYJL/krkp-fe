@@ -58,3 +58,8 @@ Use bullet lists for simplicity. This is not a replacement for your ticket syste
 - **Status**: Completed
 - **Description**: Split `/taxiparks` by role, preserved the director analytics page, and added a driver-focused page with membership info, invitation accept/reject actions, loading, empty, and error states backed by the existing API endpoints.
 - **URL**: N/A
+
+### 2026-06-07 - UI-driver-analytics-and-vehicle-brand-refresh: Wire real driver analytics and refresh vehicle insights
+- **Status**: Completed
+- **Description**: Added live driver analytics hooks and role-aware `/drivers` access, converted `/drivers/:id` to real analytics with self-only driver access semantics, hid the drivers sidebar item for `DRIVER`, and replaced low-signal vehicle comparison blocks with `brandAnalytics` insights.
+- **URL**: N/A

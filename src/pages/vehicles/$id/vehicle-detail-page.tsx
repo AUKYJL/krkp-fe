@@ -110,6 +110,16 @@ const SummaryRow = ({ label, value }: SummaryRowProps) => {
   );
 };
 
+const formatSignedCurrency = (value?: number) => {
+  if (value == null) {
+    return "—";
+  }
+
+  const sign = value > 0 ? "+" : "";
+
+  return `${sign}₽ ${moneyFormatter.format(value)}`;
+};
+
 export const VehicleDetailPage = ({ carId }: VehicleDetailPageProps) => {
   const navigate = useNavigate();
   const { range, period, onRangeChange } = useVehicleAnalyticsPeriod();
@@ -340,22 +350,35 @@ export const VehicleDetailPage = ({ carId }: VehicleDetailPageProps) => {
             />
           </section>
 
-          <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-            <KpiCard
-              label="Средняя выручка по парку"
-              value={formatCurrency(analytics.comparison.taxiParkAverageRevenuePerCar)}
-            />
-            <KpiCard
-              label="Разница с парком"
-              value={formatCurrency(analytics.comparison.revenueDifferenceFromParkAverage)}
-              meta={`${formatCurrency(analytics.comparison.taxiParkAverageRevenuePerOnlineDay)} за онлайн-день по парку`}
-            />
-            <KpiCard
-              label="Отклонение по утилизации"
-              value={`${percentFormatter.format(analytics.comparison.utilizationDifferenceFromParkAverage)}%`}
-              meta={`${percentFormatter.format(analytics.comparison.taxiParkAverageUtilizationRate)}% в среднем по парку`}
-            />
-          </section>
+          <TitledBlock
+            title={`Позиция в бренде ${analytics.brandAnalytics.firm}`}
+            subtitle="Срез по автомобилям той же марки вместо общих средних по парку"
+          >
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+              <KpiCard
+                label="Авто бренда"
+                value={analytics.brandAnalytics.carsCount}
+                meta={`Место по выручке: #${analytics.brandAnalytics.rankByRevenue}`}
+              />
+              <KpiCard
+                label="Средняя выручка бренда"
+                value={formatCurrency(analytics.brandAnalytics.averageRevenuePerCar)}
+                meta={formatSignedCurrency(
+                  analytics.brandAnalytics.currentCarRevenueDifferenceFromBrandAverage,
+                )}
+              />
+              <KpiCard
+                label="Доля в выручке бренда"
+                value={`${percentFormatter.format(analytics.brandAnalytics.currentCarRevenueShare)}%`}
+                meta={formatCurrency(analytics.brandAnalytics.totalRevenue)}
+              />
+              <KpiCard
+                label="Утилизация бренда"
+                value={`${percentFormatter.format(analytics.brandAnalytics.utilizationRate)}%`}
+                meta={`${analytics.brandAnalytics.onlineDaysCount} онлайн / ${analytics.brandAnalytics.downtimeDaysCount} простой`}
+              />
+            </div>
+          </TitledBlock>
 
           <TitledBlock
             title="Выручка по дням"

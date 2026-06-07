@@ -1,4 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
+import type { ColumnDef } from "@tanstack/react-table";
 import {
   ArrowLeft,
   Info,
@@ -7,21 +8,43 @@ import {
   UserRoundX,
 } from "lucide-react";
 import type { ReactNode } from "react";
+import { useEffect } from "react";
 
+import { ConfirmDialog } from "@/features/confirm-dialog";
+import { DataTable } from "@/features/data-table";
+import { KpiCard } from "@/features/kpi-card";
+import { PageHeader } from "@/features/page-header/page-header";
+import { TitledBlock } from "@/features/titled-block/titled-block";
+import { VerticalBarChart } from "@/features/vertical-bar-chart";
+import { TAXIPARKS_SIDEBAR_NAV_BY_ID } from "@/features/taxiparks-sidebar";
+import {
+  AnalyticsStateCard,
+  StatusBadge,
+  TaxiparksPeriodFilter,
+} from "@/pages/taxiparks/ui";
+import {
+  type DriverAnalyticsDetail,
+  isDriverAnalyticsEmpty,
+  useDriverAnalyticsDetail,
+  useDriverAnalyticsPeriod,
+  useDriverAnalyticsRouteContext,
+} from "@/pages/drivers/model";
+import { clearAuthToken, useCurrentUserQuery } from "@/shared/api/auth";
+import { ROLES } from "@/shared/types";
 import { AppText } from "@/shared/ui/app-text";
 import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
 import { CardSurface } from "@/shared/ui/card-surface";
+import { Spinner } from "@/shared/ui/spinner";
 import { cn } from "@/shared/utils";
+import { can } from "@/shared/utils";
 
-import { type DriverRow, getDriverMockById } from "../consts";
-import { ConfirmDialog } from "@/features/confirm-dialog";
-import { KpiCard } from "@/features/kpi-card";
-import { PageHeader } from "@/features/page-header/page-header";
-import { ProgressCard } from "@/features/progress-card";
-import { TitledBlock } from "@/features/titled-block/titled-block";
-import { VerticalBarChart } from "@/features/vertical-bar-chart";
+import { getDriverMockById } from "../consts";
 
 const moneyFormatter = new Intl.NumberFormat("ru-RU");
+const compactMoneyFormatter = new Intl.NumberFormat("ru-RU", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
 const percentFormatter = new Intl.NumberFormat("ru-RU", {
   minimumFractionDigits: 1,
   maximumFractionDigits: 1,
@@ -47,6 +70,19 @@ type ComparisonRowProps = {
   info: string;
 };
 
+type ScorecardMetricProps = {
+  label: string;
+  value: number;
+};
+
+type DriverWorkDayRow = {
+  id: string;
+  date: string;
+  revenue: number;
+  carOnLine: boolean;
+  carLabel: string;
+};
+
 const DetailChip = ({ children, tone = "default" }: DetailChipProps) => {
   return (
     <span
@@ -61,31 +97,6 @@ const DetailChip = ({ children, tone = "default" }: DetailChipProps) => {
     </span>
   );
 };
-
-const getInitials = (name: string) =>
-  name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
-
-const buildRevenueChartData = (driver: DriverRow) =>
-  Array.from({ length: 12 }).map((_, index) => {
-    const day = 18 + index;
-    const weekdayBoost = [
-      0, 60, 140, 210, 280, 120, -40, 90, 180, 240, 300, 160,
-    ][index];
-    const value = Math.max(
-      0,
-      Math.round(driver.avgPerDay * 0.78 + weekdayBoost + driver.rank * 115),
-    );
-
-    return {
-      date: `${String(day).padStart(2, "0")}.05`,
-      value,
-    };
-  });
 
 const ComparisonRow = ({
   label,
@@ -110,7 +121,7 @@ const ComparisonRow = ({
           </div>
         </div>
 
-        <AppText className="text-text-primary text-sm font-bold tabular-nums">
+        <AppText className="text-text-primary text-right text-sm font-bold tabular-nums">
           {score}
         </AppText>
       </div>
@@ -125,6 +136,19 @@ const ComparisonRow = ({
       <AppText className="text-text-secondary mt-2 text-xs font-medium">
         {caption}
       </AppText>
+    </div>
+  );
+};
+
+const ScorecardMetric = ({ label, value }: ScorecardMetricProps) => {
+  return (
+    <div className="bg-background-page flex items-center justify-between gap-3 rounded-[12px] px-4 py-3">
+      <AppText className="text-text-primary text-sm font-semibold">
+        {label}
+      </AppText>
+      <span className="bg-accent-primary-soft text-accent-primary inline-flex h-8 items-center rounded-full px-3 text-xs font-semibold tabular-nums">
+        {percentFormatter.format(value)}/100
+      </span>
     </div>
   );
 };
@@ -158,83 +182,130 @@ const ExternalDriverCard = ({
   );
 };
 
-const InternalDriverContent = ({
-  driver,
-  driverInitials,
-  driverStatusLabel,
+const formatCurrency = (value?: number) => {
+  if (value == null) {
+    return "—";
+  }
+
+  return `₽ ${moneyFormatter.format(value)}`;
+};
+
+const formatSignedCurrency = (value?: number) => {
+  if (value == null) {
+    return "—";
+  }
+
+  const sign = value > 0 ? "+" : "";
+
+  return `${sign}₽ ${moneyFormatter.format(value)}`;
+};
+
+const formatCompactCurrency = (value: number) => {
+  return compactMoneyFormatter.format(value);
+};
+
+const formatShortDate = (value: string) => {
+  return new Date(value).toLocaleDateString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+  });
+};
+
+const getInitials = (name: string) =>
+  name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+
+const getRatioPercent = (value: number, baseline: number) => {
+  if (baseline <= 0) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(100, (value / baseline) * 100));
+};
+
+const workDayColumns: ColumnDef<DriverWorkDayRow>[] = [
+  {
+    accessorKey: "date",
+    header: "Дата",
+    cell: ({ row }) => (
+      <span className="tabular-nums">{formatShortDate(row.original.date)}</span>
+    ),
+  },
+  {
+    accessorKey: "revenue",
+    header: "Выручка",
+    cell: ({ row }) => (
+      <span className="text-accent-primary font-semibold tabular-nums">
+        {formatCurrency(row.original.revenue)}
+      </span>
+    ),
+  },
+  {
+    accessorKey: "carOnLine",
+    header: "Статус",
+    cell: ({ row }) => (
+      <StatusBadge
+        label={row.original.carOnLine ? "На линии" : "Простой"}
+        tone={row.original.carOnLine ? "default" : "muted"}
+      />
+    ),
+  },
+  {
+    accessorKey: "carLabel",
+    header: "Автомобиль",
+  },
+];
+
+const DriverAnalyticsContent = ({
+  analytics,
 }: {
-  driver: DriverRow;
-  driverInitials: string;
-  driverStatusLabel: string;
+  analytics: DriverAnalyticsDetail;
 }) => {
-  const revenueByDayData = buildRevenueChartData(driver);
-  const revenueChartTotal = revenueByDayData.reduce(
-    (total, item) => total + item.value,
-    0,
-  );
-  const revenueMedian = Math.round(driver.avgPerDay * 0.89);
-  const lineMedian = Math.max(85, Math.round(driver.exitPercent - 3.4));
-  const idleMedian = Math.max(10, Math.round(driver.zeroDays * 4.5 + 8));
-  const idleLossTotal = Math.round(driver.revenue * 0.12);
-  const categoryRatings = [
-    {
-      label: "Пунктуальность",
-      value: Math.min(5, 4.6 + driver.rank * 0.01),
-    },
-    {
-      label: "Сервис",
-      value: Math.min(5, 4.7 + driver.rank * 0.008),
-    },
-    {
-      label: "Состояние авто",
-      value: Math.min(5, 4.5 + driver.zeroDays * 0.03),
-    },
-    {
-      label: "Стабильность",
-      value: Math.min(5, 4.55 + driver.workdays * 0.004),
-    },
-  ];
+  const driverInitials = getInitials(analytics.driver.fullName);
+  const assignedCarLabel = analytics.driver.assignedCar
+    ? `${analytics.driver.assignedCar.firm} ${analytics.driver.assignedCar.model} · ${analytics.driver.assignedCar.plateNumber}`
+    : "Автомобиль не назначен";
+  const workDays: DriverWorkDayRow[] = analytics.workDays.map((workDay) => ({
+    id: workDay.workDayId,
+    date: workDay.date,
+    revenue: workDay.revenue,
+    carOnLine: workDay.carOnLine,
+    carLabel: `${workDay.car.firm} ${workDay.car.model} · ${workDay.car.plateNumber}`,
+  }));
   const comparisonRows = [
     {
-      label: "Выручка / день",
-      score: `${Math.round((driver.avgPerDay / revenueMedian) * 100)}%`,
-      percent: Math.round((driver.avgPerDay / revenueMedian) * 100),
-      caption: `Медиана: ₽ ${moneyFormatter.format(revenueMedian)}`,
-      info: "Сравнение с медианой сегмента",
+      label: "Выручка за период",
+      score: formatCurrency(analytics.summary.totalRevenue),
+      percent: getRatioPercent(
+        analytics.summary.totalRevenue,
+        analytics.comparison.taxiParkAverageRevenuePerDriver,
+      ),
+      caption: `Среднее по парку: ${formatCurrency(analytics.comparison.taxiParkAverageRevenuePerDriver)}`,
+      info: "Сравнение суммарной выручки с типичным водителем в таксопарке.",
     },
     {
-      label: "Выход на линию",
-      score: `${percentFormatter.format(driver.exitPercent)}%`,
-      percent: driver.exitPercent,
-      caption: `Медиана: ${lineMedian}%`,
-      info: "Стабильность выхода на смены",
+      label: "Средняя / смена",
+      score: formatCurrency(analytics.summary.averageRevenuePerShift),
+      percent: getRatioPercent(
+        analytics.summary.averageRevenuePerShift,
+        analytics.comparison.taxiParkAverageRevenuePerShift,
+      ),
+      caption: `Среднее по парку: ${formatCurrency(analytics.comparison.taxiParkAverageRevenuePerShift)}`,
+      info: "Показывает, насколько смены водителя сильнее или слабее среднего по парку.",
     },
     {
-      label: "0-дней",
-      score: `${driver.zeroDays} дн.`,
-      percent: Math.min(100, driver.zeroDays * 20),
-      caption: `Медиана: ${Math.max(1, driver.zeroDays + 1)} дн.`,
-      info: "Паузы между рабочими днями",
-    },
-  ];
-  const idleLossRows = [
-    {
-      title: "Ожидание заказа",
-      secondaryText: "46%",
-      value: 46,
-      footnote: `Медиана: ${idleMedian + 6}%`,
-    },
-    {
-      title: "Пересменка",
-      secondaryText: "31%",
-      value: 31,
-      footnote: `Медиана: ${idleMedian}%`,
-    },
-    {
-      title: "Документы",
-      secondaryText: "23%",
-      value: 23,
-      footnote: `Медиана: ${idleMedian - 4}%`,
+      label: "Активность",
+      score: `${percentFormatter.format(analytics.summary.activityRate)}%`,
+      percent: getRatioPercent(
+        analytics.summary.activityRate,
+        analytics.comparison.taxiParkAverageActivityRate,
+      ),
+      caption: `Среднее по парку: ${percentFormatter.format(analytics.comparison.taxiParkAverageActivityRate)}%`,
+      info: "Доля активных дней относительно средней активности водителей таксопарка.",
     },
   ];
 
@@ -252,25 +323,23 @@ const InternalDriverContent = ({
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <AppText className="text-text-primary text-xl font-bold">
-                      {driver.driver}
+                      {analytics.driver.fullName}
                     </AppText>
-                    <DetailChip
-                      tone={driver.status === "risk" ? "accent" : "default"}
-                    >
-                      {driverStatusLabel}
-                    </DetailChip>
+                    <StatusBadge
+                      label={`#${analytics.rating.rank} из ${analytics.rating.driversCount}`}
+                    />
                   </div>
 
                   <AppText className="text-text-secondary mt-1 text-sm font-medium">
-                    Автомобиль: {driver.car}
+                    {assignedCarLabel}
                   </AppText>
 
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <DetailChip>Ранг #{driver.rank}</DetailChip>
-                    <DetailChip>{driver.workdays} смен</DetailChip>
-                    <DetailChip>0-дней: {driver.zeroDays}</DetailChip>
+                    <DetailChip>Таксопарк: {analytics.driver.taxiParkName}</DetailChip>
+                    <DetailChip>{analytics.summary.workDaysCount} смен</DetailChip>
+                    <DetailChip>Онлайн: {analytics.summary.onlineDaysCount} дн.</DetailChip>
                     <DetailChip tone="accent">
-                      {percentFormatter.format(driver.exitPercent)}% выхода
+                      {percentFormatter.format(analytics.summary.activityRate)}% активности
                     </DetailChip>
                   </div>
                 </div>
@@ -281,32 +350,34 @@ const InternalDriverContent = ({
           <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <KpiCard
               label="Выручка"
-              value={`₽ ${moneyFormatter.format(driver.revenue)}`}
-              meta="за текущий период"
+              value={formatCurrency(analytics.summary.totalRevenue)}
+              meta={`Период ${analytics.period.from} - ${analytics.period.to}`}
+              valueClassName="text-text-primary"
+              metaClassName="text-accent-primary"
+              className="min-w-0"
+            />
+            <KpiCard
+              label="Средняя / смена"
+              value={formatCurrency(analytics.summary.averageRevenuePerShift)}
+              meta="реальные рабочие смены"
               valueClassName="text-text-primary"
               metaClassName="text-accent-primary"
               className="min-w-0"
             />
             <KpiCard
               label="Средняя / день"
-              value={`₽ ${moneyFormatter.format(driver.avgPerDay)}`}
-              meta="выход по сменам"
+              value={formatCurrency(analytics.summary.averageRevenuePerDay)}
+              meta="с учетом периода"
               valueClassName="text-text-primary"
               metaClassName="text-accent-primary"
               className="min-w-0"
             />
             <KpiCard
-              label="Выход на линию"
-              value={`${percentFormatter.format(driver.exitPercent)}%`}
-              meta="от запланированных смен"
-              valueClassName="text-text-primary"
-              metaClassName="text-accent-primary"
-              className="min-w-0"
-            />
-            <KpiCard
-              label="Рабочих дней"
-              value={String(driver.workdays)}
-              meta={`${driver.zeroDays} нулевых дней`}
+              label="Разница с парком"
+              value={formatSignedCurrency(
+                analytics.summary.revenueDifferenceFromParkAverage,
+              )}
+              meta={`${analytics.summary.downtimeDaysCount} дн. простоя`}
               valueClassName="text-text-primary"
               metaClassName="text-accent-primary"
               className="min-w-0"
@@ -315,33 +386,36 @@ const InternalDriverContent = ({
         </div>
 
         <TitledBlock
-          title="Рейтинг по категориям"
-          subtitle="Оценка за последние 30 дней"
-          topRightSlot={<DetailChip tone="accent">4 категории</DetailChip>}
+          title="Скоринг водителя"
+          subtitle="Реальные оценки из аналитики за выбранный период"
+          topRightSlot={<DetailChip tone="accent">4 метрики</DetailChip>}
           className="min-w-0 gap-3"
         >
           <div className="flex flex-col gap-2">
-            {categoryRatings.map((item) => (
-              <div
-                key={item.label}
-                className="bg-background-page flex items-center justify-between gap-3 rounded-[12px] px-4 py-3"
-              >
-                <AppText className="text-text-primary text-sm font-semibold">
-                  {item.label}
-                </AppText>
-                <span className="bg-accent-primary-soft text-accent-primary inline-flex h-8 items-center rounded-full px-3 text-xs font-semibold tabular-nums">
-                  {item.value.toFixed(1)}/5
-                </span>
-              </div>
-            ))}
+            <ScorecardMetric
+              label="Эффективность"
+              value={analytics.scorecard.driverEfficiency}
+            />
+            <ScorecardMetric
+              label="Выручка"
+              value={analytics.scorecard.revenueScore}
+            />
+            <ScorecardMetric
+              label="Активность"
+              value={analytics.scorecard.activityScore}
+            />
+            <ScorecardMetric
+              label="Стабильность"
+              value={analytics.scorecard.stabilityScore}
+            />
           </div>
         </TitledBlock>
       </section>
 
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
         <TitledBlock
-          title="Сравнение с медианой"
-          subtitle="Ключевые показатели относительно сегмента"
+          title="Сравнение с парком"
+          subtitle="Ключевые показатели относительно среднего по таксопарку"
           topRightSlot={<DetailChip>3 метрики</DetailChip>}
           className="min-w-0 gap-3"
         >
@@ -360,174 +434,351 @@ const InternalDriverContent = ({
         </TitledBlock>
 
         <TitledBlock
-          title="Потери от простоев"
-          subtitle="Разбивка по основным причинам"
+          title="Сигналы периода"
+          subtitle="Самые заметные факты по водителю"
           topRightSlot={
             <div className="text-right">
               <AppText className="text-accent-primary text-3xl font-bold tabular-nums">
-                ₽ {moneyFormatter.format(idleLossTotal)}
+                {analytics.scorecard.daysWithRevenueAboveAverage}
               </AppText>
               <AppText className="text-text-secondary mt-1 text-sm font-medium">
-                +12% к медиане сегмента
+                дней выше среднего
               </AppText>
             </div>
           }
           className="min-w-0 gap-3"
         >
-          <div className="flex flex-col gap-3">
-            {idleLossRows.map((item) => (
-              <ProgressCard
-                key={item.title}
-                title={item.title}
-                secondaryText={item.secondaryText}
-                value={item.value}
-                footnote={item.footnote}
-              />
-            ))}
+          <div className="grid grid-cols-1 gap-3">
+            <KpiCard
+              label="Максимум по парку"
+              value={formatCurrency(analytics.scorecard.maxDriverRevenue)}
+              meta="лучший водитель периода"
+            />
+            <KpiCard
+              label="Отклонение по смене"
+              value={formatSignedCurrency(
+                analytics.comparison.shiftRevenueDifferenceFromParkAverage,
+              )}
+              meta={formatCurrency(
+                analytics.comparison.taxiParkAverageRevenuePerShift,
+              )}
+            />
+            <KpiCard
+              label="Отклонение по активности"
+              value={`${percentFormatter.format(analytics.comparison.activityDifferenceFromParkAverage)}%`}
+              meta={`${percentFormatter.format(analytics.summary.downtimeRate)}% простоя`}
+            />
           </div>
         </TitledBlock>
       </section>
 
-      <CardSurface className="min-w-0 gap-3">
-        <div className="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
-          <div className="min-w-0">
-            <AppText className="text-text-primary text-lg font-bold">
-              Выручка по дням
-            </AppText>
-            <AppText className="text-text-secondary mt-1 text-sm font-medium">
-              12 последних смен
-            </AppText>
-          </div>
+      <TitledBlock
+        title="Выручка по дням"
+        subtitle={`Период ${analytics.period.from} - ${analytics.period.to}`}
+      >
+        {analytics.charts.revenueByDay.length > 0 ? (
+          <VerticalBarChart
+            data={analytics.charts.revenueByDay.map((point) => ({
+              date: point.date,
+              value: point.revenue,
+            }))}
+            valueLabel="Выручка, ₽"
+            height={320}
+            xTickFormatter={formatShortDate}
+            yTickFormatter={(value) => formatCompactCurrency(value)}
+            tooltipValueFormatter={(value) => formatCurrency(value)}
+          />
+        ) : (
+          <AnalyticsStateCard
+            title="Нет графика выручки"
+            message="Сервис не вернул данные по выручке за выбранный период."
+          />
+        )}
+      </TitledBlock>
 
-          <AppText className="text-accent-primary text-3xl font-bold tabular-nums">
-            ₽ {moneyFormatter.format(Math.round(revenueChartTotal / 1000))}K
-          </AppText>
-        </div>
-
-        <VerticalBarChart
-          data={revenueByDayData}
-          valueLabel="₽ / день"
-          barFill="#ff7a0266"
-          activeBarFill="#ff7a02"
-          xTickFormatter={(date) => date}
-          yTickFormatter={(value) => `₽ ${Math.round(value / 1000)}K`}
-          tooltipDateFormatter={(date) => `День ${date}`}
-          tooltipValueFormatter={(value) => `₽ ${moneyFormatter.format(value)}`}
-          height={220}
-        />
-      </CardSurface>
+      <TitledBlock
+        title="История смен"
+        subtitle="Выручка, статус выхода на линию и автомобиль по дням"
+      >
+        {workDays.length > 0 ? (
+          <DataTable columns={workDayColumns} data={workDays} initialPageSize={10} />
+        ) : (
+          <AnalyticsStateCard
+            title="История смен пуста"
+            message="За выбранный период сервис не вернул записи по рабочим дням."
+          />
+        )}
+      </TitledBlock>
     </>
   );
 };
 
-export const DriverDetailPage = ({ driverId, mode }: DriverDetailPageProps) => {
+const ExternalDriverDetailContent = ({ driverId }: { driverId: string }) => {
   const navigate = useNavigate();
-
   const driver = getDriverMockById(driverId);
-  const driverStatusLabel = driver.status === "active" ? "Активен" : "Риск";
   const driverInitials = getInitials(driver.driver);
+
+  return (
+    <>
+      <PageHeader
+        title="Карточка водителя"
+        description="Профиль приглашения без аналитики."
+        breadcrumbs={[
+          { label: "Главная", href: "/" },
+          { label: TAXIPARKS_SIDEBAR_NAV_BY_ID.drivers.label, href: "/drivers" },
+        ]}
+        actions={
+          <>
+            <Button
+              type="button"
+              variant={BUTTON_VARIANTS_VARIABLES.secondary}
+              onClick={() => navigate({ to: "/drivers" })}
+            >
+              <ArrowLeft className="size-4" />
+              Назад
+            </Button>
+
+            <ConfirmDialog
+              title={`Пригласить ${driver.driver} в таксопарк?`}
+              description={
+                <>
+                  Мы отправим приглашение водителю {driver.driver}. В текущей
+                  версии это только UI-flow без изменения mock-данных.
+                </>
+              }
+              confirmText="Пригласить"
+              cancelText="Отмена"
+              confirmVariant={BUTTON_VARIANTS_VARIABLES.default}
+              media={
+                <div className="bg-accent-primary-soft text-accent-primary flex size-12 items-center justify-center rounded-full">
+                  <UserPlus className="size-6" />
+                </div>
+              }
+              onConfirm={() => {}}
+              trigger={
+                <Button type="button">
+                  <UserPlus className="size-4" />
+                  Пригласить в таксопарк
+                </Button>
+              }
+            />
+          </>
+        }
+      />
+
+      <ExternalDriverCard
+        driverName={driver.driver}
+        driverInitials={driverInitials}
+      />
+    </>
+  );
+};
+
+const InternalDriverDetailContent = ({ driverId }: { driverId: string }) => {
+  const navigate = useNavigate();
+  const { data: currentUser, error, isLoading } = useCurrentUserQuery();
+  const { range, period, onRangeChange } = useDriverAnalyticsPeriod();
+
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
+
+    clearAuthToken();
+    void navigate({ to: "/auth/login", replace: true });
+  }, [error, navigate]);
+
+  const contextQuery = useDriverAnalyticsRouteContext({
+    requestedDriverId: driverId,
+    role: currentUser?.role,
+  });
+  const analyticsQuery = useDriverAnalyticsDetail({
+    taxiParkId: contextQuery.data?.taxiParkId,
+    driverId: contextQuery.data?.driverId,
+    period,
+    enabled:
+      Boolean(contextQuery.data?.taxiParkId) &&
+      Boolean(contextQuery.data?.driverId) &&
+      !contextQuery.data?.shouldRedirect,
+  });
+
+  useEffect(() => {
+    if (!contextQuery.data?.shouldRedirect || !contextQuery.data.redirectDriverId) {
+      return;
+    }
+
+    void navigate({
+      to: "/drivers/$id",
+      params: { id: contextQuery.data.redirectDriverId },
+      replace: true,
+    });
+  }, [
+    contextQuery.data?.redirectDriverId,
+    contextQuery.data?.shouldRedirect,
+    navigate,
+  ]);
+
+  if (isLoading) {
+    return (
+      <main className="bg-background-page flex min-h-full w-full items-center justify-center p-6">
+        <Spinner className="min-h-40" />
+      </main>
+    );
+  }
+
+  if (!currentUser) {
+    return null;
+  }
+
+  const isDirector = can(currentUser.role, [ROLES.DIRECTOR]);
+  const breadcrumbs = isDirector
+    ? [
+        { label: "Главная", href: "/" },
+        { label: TAXIPARKS_SIDEBAR_NAV_BY_ID.drivers.label, href: "/drivers" },
+      ]
+    : [{ label: "Главная", href: "/" }, { label: "Моя аналитика" }];
 
   return (
     <main className="bg-background-page flex min-h-full w-full flex-col gap-6 p-6">
       <PageHeader
         title="Карточка водителя"
-        description="Обновлено: сегодня 09:40"
-        breadcrumbs={[
-          { label: "Главная", href: "/" },
-          { label: "Водители", href: "/drivers" },
-        ]}
+        description={
+          analyticsQuery.data
+            ? `Аналитика водителя за период ${analyticsQuery.data.period.from} - ${analyticsQuery.data.period.to}.`
+            : "Реальная аналитика водителя по выручке, активности и истории смен."
+        }
+        breadcrumbs={breadcrumbs}
         actions={
-          mode === "external" ? (
-            <>
-              <Button
-                type="button"
-                variant={BUTTON_VARIANTS_VARIABLES.secondary}
-                onClick={() => navigate({ to: "/drivers" })}
-              >
-                <ArrowLeft className="size-4" />
-                Назад
-              </Button>
+          <>
+            <TaxiparksPeriodFilter value={range} onChange={onRangeChange} />
+            <Button
+              type="button"
+              variant={BUTTON_VARIANTS_VARIABLES.secondary}
+              onClick={() =>
+                navigate({
+                  to: isDirector ? "/drivers" : "/",
+                })
+              }
+            >
+              <ArrowLeft className="size-4" />
+              Назад
+            </Button>
 
-              <ConfirmDialog
-                title={`Пригласить ${driver.driver} в таксопарк?`}
-                description={
-                  <>
-                    Мы отправим приглашение водителю {driver.driver}. В текущей
-                    версии это только UI-flow без изменения mock-данных.
-                  </>
-                }
-                confirmText={"Пригласить"}
-                cancelText={"Отмена"}
-                confirmVariant={BUTTON_VARIANTS_VARIABLES.default}
-                media={
-                  <div className="bg-accent-primary-soft text-accent-primary flex size-12 items-center justify-center rounded-full">
-                    <UserPlus className="size-6" />
-                  </div>
-                }
-                onConfirm={() => {}}
-                trigger={
-                  <Button type="button">
-                    <UserPlus className="size-4" />
-                    Пригласить в таксопарк
-                  </Button>
-                }
-              />
-            </>
-          ) : (
-            <>
-              <Button
-                type="button"
-                variant={BUTTON_VARIANTS_VARIABLES.secondary}
-                onClick={() => navigate({ to: "/drivers" })}
-              >
-                <ArrowLeft className="size-4" />
-                Назад
-              </Button>
+            {isDirector ? (
+              <>
+                <Button
+                  type="button"
+                  onClick={() =>
+                    navigate({
+                      to: "/drivers/$id/edit",
+                      params: { id: driverId },
+                    })
+                  }
+                >
+                  <PencilLine className="size-4" />
+                  Редактировать
+                </Button>
 
-              <Button
-                type="button"
-                onClick={() =>
-                  navigate({
-                    to: "/drivers/$id/edit",
-                    params: { id: driverId },
-                  })
-                }
-              >
-                <PencilLine className="size-4" />
-                Редактировать
-              </Button>
-
-              <ConfirmDialog
-                title={`Уволить водителя ${driver.driver}?`}
-                description={`В локальном UI-сценарии действие не изменит данные, но позволит проверить destructive flow для водителя ${driver.driver}.`}
-                confirmText="Уволить"
-                trigger={
-                  <Button
-                    type="button"
-                    variant={BUTTON_VARIANTS_VARIABLES.destructive}
-                  >
-                    <UserRoundX className="size-4" />
-                    Уволить
-                  </Button>
-                }
-              />
-            </>
-          )
+                <ConfirmDialog
+                  title={`Уволить водителя ${analyticsQuery.data?.driver.fullName ?? "?"}?`}
+                  description="Действие пока остается UI-сценарием, но позволяет проверить destructive flow на карточке водителя."
+                  confirmText="Уволить"
+                  trigger={
+                    <Button
+                      type="button"
+                      variant={BUTTON_VARIANTS_VARIABLES.destructive}
+                    >
+                      <UserRoundX className="size-4" />
+                      Уволить
+                    </Button>
+                  }
+                />
+              </>
+            ) : null}
+          </>
         }
       />
 
-      {mode === "external" ? (
-        <ExternalDriverCard
-          driverName={driver.driver}
-          driverInitials={driverInitials}
+      {contextQuery.isLoading ? (
+        <AnalyticsStateCard
+          title="Определяем доступ к аналитике"
+          message="Проверяем профиль водителя и привязку к таксопарку."
+          tone="loading"
+        />
+      ) : contextQuery.error ? (
+        <AnalyticsStateCard
+          title={
+            contextQuery.notFound
+              ? "Водитель недоступен"
+              : "Не удалось определить контекст водителя"
+          }
+          message={
+            contextQuery.notFound
+              ? "Этот водитель не найден или недоступен для просмотра."
+              : contextQuery.errorMessage
+          }
+          tone="error"
+          actionLabel="Повторить"
+          onAction={() => {
+            void contextQuery.refetch();
+          }}
+        />
+      ) : contextQuery.data?.shouldRedirect ? (
+        <AnalyticsStateCard
+          title="Открываем вашу карточку"
+          message="Для роли водителя доступна только собственная аналитика."
+          tone="loading"
+        />
+      ) : !contextQuery.data?.driverId || !contextQuery.data.taxiParkId ? (
+        <AnalyticsStateCard
+          title="Не удалось определить водителя"
+          message="Профиль не содержит достаточных данных для загрузки аналитики. Проверьте привязку к таксопарку."
+          tone="error"
+        />
+      ) : analyticsQuery.isLoading ? (
+        <AnalyticsStateCard
+          title="Загружаем аналитику водителя"
+          message="Подготавливаем выручку, сравнение с парком и историю смен."
+          tone="loading"
+        />
+      ) : analyticsQuery.error ? (
+        <AnalyticsStateCard
+          title={
+            analyticsQuery.notFound
+              ? "Аналитика водителя недоступна"
+              : "Не удалось загрузить аналитику водителя"
+          }
+          message={
+            analyticsQuery.notFound
+              ? "Водитель не найден или недоступен в выбранном таксопарке."
+              : analyticsQuery.errorMessage
+          }
+          tone="error"
+          actionLabel="Повторить"
+          onAction={() => {
+            void analyticsQuery.refetch();
+          }}
+        />
+      ) : analyticsQuery.data == null || isDriverAnalyticsEmpty(analyticsQuery.data) ? (
+        <AnalyticsStateCard
+          title="Нет аналитики по водителю"
+          message="За выбранный период сервис не вернул выручку или историю смен."
         />
       ) : (
-        <InternalDriverContent
-          driver={driver}
-          driverInitials={driverInitials}
-          driverStatusLabel={driverStatusLabel}
-        />
+        <DriverAnalyticsContent analytics={analyticsQuery.data} />
       )}
     </main>
   );
+};
+
+export const DriverDetailPage = ({ driverId, mode }: DriverDetailPageProps) => {
+  if (mode === "external") {
+    return (
+      <main className="bg-background-page flex min-h-full w-full flex-col gap-6 p-6">
+        <ExternalDriverDetailContent driverId={driverId} />
+      </main>
+    );
+  }
+
+  return <InternalDriverDetailContent driverId={driverId} />;
 };

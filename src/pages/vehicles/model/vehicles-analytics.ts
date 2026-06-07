@@ -49,6 +49,7 @@ export type VehicleAnalyticsDetail = {
   car: CarAnalyticsResponse["car"];
   summary: CarAnalyticsResponse["summary"];
   comparison: CarAnalyticsResponse["comparison"];
+  brandAnalytics: CarAnalyticsResponse["brandAnalytics"];
   charts: CarAnalyticsResponse["charts"];
   workDays: CarAnalyticsResponse["workDays"];
 };

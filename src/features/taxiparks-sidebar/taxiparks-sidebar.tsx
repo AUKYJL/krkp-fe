@@ -1,12 +1,13 @@
 import { useRouterState } from "@tanstack/react-router";
 
+import { useCurrentUserQuery } from "@/shared/api/auth";
 import {
   AppText,
   TEXT_SIZES_VARIABLES,
   TEXT_VARIANTS_VARIABLES,
 } from "@/shared/ui/app-text";
 
-import { TAXIPARKS_SIDEBAR_NAV } from "./model/sidebar-nav";
+import { getTaxiparksSidebarNav } from "./model/sidebar-nav";
 import { TaxiparksSidebarNavItem } from "./ui/taxiparks-sidebar-nav-item";
 
 function getActiveNavId(pathname: string) {
@@ -30,7 +31,9 @@ function getActiveNavId(pathname: string) {
 
 export const TaxiparksSidebar = () => {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { data: currentUser } = useCurrentUserQuery();
   const activeId = getActiveNavId(pathname);
+  const navItems = getTaxiparksSidebarNav(currentUser?.role);
 
   return (
     <aside className="bg-background-sidebar fixed inset-y-0 left-0 z-40 flex w-[280px] shrink-0 flex-col overflow-hidden px-4 py-6">
@@ -68,7 +71,7 @@ export const TaxiparksSidebar = () => {
 
         <nav className="min-h-0 flex-1 overflow-y-auto">
           <div className="flex flex-col gap-2">
-            {TAXIPARKS_SIDEBAR_NAV.map((item) => (
+            {navItems.map((item) => (
               <TaxiparksSidebarNavItem
                 key={item.id}
                 item={item}

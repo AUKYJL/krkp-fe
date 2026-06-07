@@ -1,33 +1,35 @@
 import { useNavigate } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Plus, Search } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { AppText } from "@/shared/ui/app-text";
-import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { cn } from "@/shared/utils";
-
-import {
-  type DriverRow,
-  type DriverStatus,
-  driverMockData,
-} from "./consts";
 import { DataTable } from "@/features/data-table";
 import { KpiCard } from "@/features/kpi-card";
 import { PageHeader } from "@/features/page-header/page-header";
 import { ProgressCard } from "@/features/progress-card";
 import { TAXIPARKS_SIDEBAR_NAV_BY_ID } from "@/features/taxiparks-sidebar";
 import { TitledBlock } from "@/features/titled-block";
+import {
+  AnalyticsStateCard,
+  TaxiparksPeriodFilter,
+} from "@/pages/taxiparks/ui";
+import { useDirectorOverviewAnalytics } from "@/pages/taxiparks/model/taxiparks-analytics";
+import { AppText } from "@/shared/ui/app-text";
+import { clearAuthToken, useCurrentUserQuery } from "@/shared/api/auth";
+import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
+import { Spinner } from "@/shared/ui/spinner";
+import { cn } from "@/shared/utils";
+import { ROLES } from "@/shared/types";
+import { can } from "@/shared/utils";
 
-type PeriodKey = "today" | "week" | "month" | "custom";
-
-const PERIODS: Array<{ key: PeriodKey; label: string }> = [
-  { key: "today", label: "Today" },
-  { key: "week", label: "Week" },
-  { key: "month", label: "Month" },
-  { key: "custom", label: "Custom" },
-];
+import {
+  type DirectorDriverAnalyticsItem,
+  type DirectorDriverListItem,
+  useDirectorDriversCatalog,
+  useDriverAnalyticsPeriod,
+  useDriverSelfAnalyticsContext,
+} from "./model";
 
 const currencyFormatter = new Intl.NumberFormat("ru-RU");
 const percentFormatter = new Intl.NumberFormat("ru-RU", {
@@ -35,24 +37,80 @@ const percentFormatter = new Intl.NumberFormat("ru-RU", {
   maximumFractionDigits: 1,
 });
 
-const driverColumns: ColumnDef<DriverRow>[] = [
+type DriverStatus = "active" | "risk";
+
+type DirectorDriverRow = DirectorDriverListItem & {
+  revenue?: number;
+  averageRevenuePerOnlineDay?: number;
+  onlineDaysCount?: number;
+  downtimeDaysCount?: number;
+  activityRate?: number;
+  rank?: number;
+  status: DriverStatus;
+};
+
+const formatCurrency = (value?: number) => {
+  if (value == null) {
+    return "—";
+  }
+
+  return `₽ ${currencyFormatter.format(value)}`;
+};
+
+const getDriverStatus = (row: {
+  activityRate?: number;
+  assignedCarLabel?: string;
+}): DriverStatus => {
+  if (row.activityRate != null) {
+    return row.activityRate >= 60 ? "active" : "risk";
+  }
+
+  return row.assignedCarLabel ? "active" : "risk";
+};
+
+const buildDriverAnalyticsMap = (items: DirectorDriverAnalyticsItem[]) => {
+  return new Map(
+    items.map((item) => [
+      item.driverId,
+      {
+        revenue: item.totalRevenue,
+        averageRevenuePerOnlineDay: item.averageRevenuePerOnlineDay,
+        onlineDaysCount: item.onlineDaysCount,
+        downtimeDaysCount: item.downtimeDaysCount,
+        activityRate: item.activityRate,
+        rank: item.rank,
+      },
+    ]),
+  );
+};
+
+const driverColumns: ColumnDef<DirectorDriverRow>[] = [
   {
-    accessorKey: "driver",
+    accessorKey: "fullName",
     header: "Водитель",
     cell: ({ row }) => (
       <div className="min-w-0">
         <AppText className="truncate text-sm font-semibold">
-          {row.original.driver}
+          {row.original.fullName}
         </AppText>
       </div>
     ),
   },
   {
-    accessorKey: "car",
+    accessorKey: "taxiParkName",
+    header: "Таксопарк",
+    cell: ({ row }) => (
+      <span className="text-text-primary text-sm font-medium">
+        {row.original.taxiParkName ?? "—"}
+      </span>
+    ),
+  },
+  {
+    accessorKey: "assignedCarLabel",
     header: "Авто",
     cell: ({ row }) => (
       <span className="text-text-primary text-sm font-medium tabular-nums">
-        {row.original.car}
+        {row.original.assignedCarLabel ?? "Не назначен"}
       </span>
     ),
   },
@@ -61,43 +119,45 @@ const driverColumns: ColumnDef<DriverRow>[] = [
     header: "Выручка",
     cell: ({ row }) => (
       <span className="text-accent-primary text-sm font-bold tabular-nums">
-        ₽ {currencyFormatter.format(row.original.revenue)}
+        {formatCurrency(row.original.revenue)}
       </span>
     ),
   },
   {
-    accessorKey: "avgPerDay",
-    header: "В среднем / день",
+    accessorKey: "averageRevenuePerOnlineDay",
+    header: "В среднем / онлайн-день",
     cell: ({ row }) => (
       <span className="text-sm font-medium tabular-nums">
-        ₽ {currencyFormatter.format(row.original.avgPerDay)}
+        {formatCurrency(row.original.averageRevenuePerOnlineDay)}
       </span>
     ),
   },
   {
-    accessorKey: "workdays",
-    header: "Рабочих дней",
+    accessorKey: "onlineDaysCount",
+    header: "Онлайн дней",
     cell: ({ row }) => (
       <span className="text-sm font-medium tabular-nums">
-        {row.original.workdays}
+        {row.original.onlineDaysCount ?? "—"}
       </span>
     ),
   },
   {
-    accessorKey: "zeroDays",
-    header: "0-дней",
+    accessorKey: "downtimeDaysCount",
+    header: "Простой",
     cell: ({ row }) => (
       <span className="text-sm font-medium tabular-nums">
-        {row.original.zeroDays}
+        {row.original.downtimeDaysCount ?? "—"}
       </span>
     ),
   },
   {
-    accessorKey: "exitPercent",
-    header: "Выход %",
+    accessorKey: "activityRate",
+    header: "Активность",
     cell: ({ row }) => (
       <span className="text-sm font-medium tabular-nums">
-        {percentFormatter.format(row.original.exitPercent)}%
+        {row.original.activityRate == null
+          ? "—"
+          : `${percentFormatter.format(row.original.activityRate)}%`}
       </span>
     ),
   },
@@ -106,7 +166,7 @@ const driverColumns: ColumnDef<DriverRow>[] = [
     header: "Ранг",
     cell: ({ row }) => (
       <span className="text-accent-primary text-sm font-semibold tabular-nums">
-        #{row.original.rank}
+        {row.original.rank == null ? "—" : `#${row.original.rank}`}
       </span>
     ),
   },
@@ -154,34 +214,103 @@ const SummaryRow = ({ label, value }: { label: string; value: string }) => {
   );
 };
 
-const driversRevenueTop = [
-  { place: 1, title: "Иван Петров", secondaryText: "₽ 412 000", value: 100 },
-  { place: 2, title: "Алексей Смирнов", secondaryText: "₽ 387 000", value: 94 },
-  { place: 3, title: "Руслан Ахмедов", secondaryText: "₽ 361 000", value: 88 },
-];
-
-const driversEfficiencyTop = [
-  { place: 1, title: "А123ВС 77", secondaryText: "98%", value: 98 },
-  { place: 2, title: "М542КР 97", secondaryText: "95%", value: 95 },
-  { place: 3, title: "Т908ОР 50", secondaryText: "92%", value: 92 },
-];
-
-export const DriversPage = () => {
-  const [search, setSearch] = useState("");
-  const [period, setPeriod] = useState<PeriodKey>("week");
+const DriverSelfRedirect = () => {
   const navigate = useNavigate();
+  const selfContextQuery = useDriverSelfAnalyticsContext();
+
+  useEffect(() => {
+    if (!selfContextQuery.data?.driverId) {
+      return;
+    }
+
+    void navigate({
+      to: "/drivers/$id",
+      params: { id: selfContextQuery.data.driverId },
+      replace: true,
+    });
+  }, [navigate, selfContextQuery.data?.driverId]);
+
+  if (selfContextQuery.isLoading) {
+    return (
+      <AnalyticsStateCard
+        title="Открываем вашу аналитику"
+        message="Определяем профиль водителя и маршрут к вашей карточке."
+        tone="loading"
+      />
+    );
+  }
+
+  if (selfContextQuery.error) {
+    return (
+      <AnalyticsStateCard
+        title="Не удалось открыть аналитику водителя"
+        message={selfContextQuery.errorMessage}
+        tone="error"
+        actionLabel="Повторить"
+        onAction={() => {
+          void selfContextQuery.refetch();
+        }}
+      />
+    );
+  }
+
+  if (!selfContextQuery.data?.driverId) {
+    return (
+      <AnalyticsStateCard
+        title="Профиль водителя не найден"
+        message="Не удалось определить ваш driverId, поэтому список водителей для этой роли недоступен."
+      />
+    );
+  }
+
+  return (
+    <AnalyticsStateCard
+      title="Переходим к вашей аналитике"
+      message="Маршрут обновляется."
+      tone="loading"
+    />
+  );
+};
+
+const DirectorDriversPage = () => {
+  const [search, setSearch] = useState("");
+  const navigate = useNavigate();
+  const { range, period, onRangeChange } = useDriverAnalyticsPeriod();
+  const catalogQuery = useDirectorDriversCatalog();
+  const overviewQuery = useDirectorOverviewAnalytics(period);
+
+  const analyticsMap = buildDriverAnalyticsMap(overviewQuery.data?.topDrivers ?? []);
+  const driverRows = (catalogQuery.data ?? []).map<DirectorDriverRow>((driver) => {
+    const analytics = analyticsMap.get(driver.driverId);
+
+    return {
+      ...driver,
+      ...analytics,
+      status: getDriverStatus({
+        activityRate: analytics?.activityRate,
+        assignedCarLabel: driver.assignedCarLabel,
+      }),
+    };
+  });
 
   const query = search.trim().toLowerCase();
   const filteredRows =
     query.length === 0
-      ? driverMockData
-      : driverMockData.filter((row) => {
+      ? driverRows
+      : driverRows.filter((row) => {
           return [
-            row.driver,
-            row.car,
+            row.fullName,
+            row.taxiParkName ?? "",
+            row.assignedCarLabel ?? "",
             row.status === "active" ? "активен" : "риск",
           ].some((value) => value.toLowerCase().includes(query));
         });
+
+  const summary = overviewQuery.data?.summary;
+  const topByRevenue = (overviewQuery.data?.topDrivers ?? []).slice(0, 3);
+  const topByActivity = [...(overviewQuery.data?.topDrivers ?? [])]
+    .sort((left, right) => right.activityRate - left.activityRate)
+    .slice(0, 3);
 
   return (
     <main className="bg-background-page flex min-h-full w-full flex-col gap-6 p-6">
@@ -193,27 +322,7 @@ export const DriversPage = () => {
         ]}
         actions={
           <div className="flex flex-wrap items-center justify-end gap-3">
-            <div className="flex flex-wrap items-center gap-2">
-              {PERIODS.map((item) => {
-                const isActive = period === item.key;
-
-                return (
-                  <Button
-                    key={item.key}
-                    type="button"
-                    variant={
-                      isActive
-                        ? BUTTON_VARIANTS_VARIABLES.tertiary
-                        : BUTTON_VARIANTS_VARIABLES.secondary
-                    }
-                    className="h-10 rounded-[12px] px-3.5"
-                    onClick={() => setPeriod(item.key)}
-                  >
-                    {item.label}
-                  </Button>
-                );
-              })}
-            </div>
+            <TaxiparksPeriodFilter value={range} onChange={onRangeChange} />
 
             <Button
               type="button"
@@ -227,28 +336,50 @@ export const DriversPage = () => {
         }
       />
 
+      {catalogQuery.isLoading ? (
+        <AnalyticsStateCard
+          title="Загружаем водителей"
+          message="Получаем реестр водителей и аналитику по выбранному периоду."
+          tone="loading"
+        />
+      ) : catalogQuery.error ? (
+        <AnalyticsStateCard
+          title="Не удалось загрузить водителей"
+          message={catalogQuery.errorMessage}
+          tone="error"
+          actionLabel="Повторить"
+          onAction={() => {
+            void catalogQuery.refetch();
+          }}
+        />
+      ) : (
+        <>
       <section className="flex flex-col gap-3">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
           <KpiCard
             label="Всего водителей"
-            value="248"
-            meta="в активном составе"
+            value={summary?.driversCount ?? (catalogQuery.data?.length ?? 0)}
+            meta="в доступном реестре"
             valueClassName="text-text-primary"
             metaClassName="text-accent-primary"
             className="min-w-0"
           />
           <KpiCard
             label="Активных на линии"
-            value="213"
-            meta="85.9% от базы"
+            value={summary?.activeDriversCount ?? "—"}
+            meta={
+              summary == null
+                ? "Общая аналитика недоступна"
+                : `${percentFormatter.format(summary.onlineRate)}% онлайн`
+            }
             valueClassName="text-text-primary"
             metaClassName="text-accent-primary"
             className="min-w-0"
           />
           <KpiCard
-            label="Средняя выручка / день"
-            value="₽ 8 420"
-            meta="за текущий период"
+            label="Средняя выручка / активного водителя"
+            value={formatCurrency(summary?.averageRevenuePerActiveDriver)}
+            meta="за выбранный период"
             valueClassName="text-text-primary"
             metaClassName="text-accent-primary"
             className="min-w-0"
@@ -257,25 +388,31 @@ export const DriversPage = () => {
 
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
           <KpiCard
-            label="Процент выхода"
-            value="76.4%"
-            meta="ниже плана на 3.1 п.п."
+            label="Средняя выручка / день"
+            value={formatCurrency(summary?.averageRevenuePerDay)}
+            meta={`${summary?.workDaysCount ?? "—"} рабочих дней`}
             valueClassName="text-text-primary"
             metaClassName="text-accent-primary"
             className="min-w-0"
           />
           <KpiCard
-            label="Водителей в риске"
-            value="97"
-            meta="требуют контроля"
+            label="Водителей вне топа активности"
+            value={
+              summary == null
+                ? "—"
+                : Math.max(summary.driversCount - summary.activeDriversCount, 0)
+            }
+            meta="разница между общим и активным составом"
             valueClassName="text-text-primary"
             metaClassName="text-accent-primary"
             className="min-w-0"
           />
           <KpiCard
             label="Доля простоев"
-            value="0.031"
-            meta="доля от общего фонда"
+            value={
+              summary == null ? "—" : `${percentFormatter.format(summary.downtimeRate)}%`
+            }
+            meta={`${summary?.downtimeDaysCount ?? "—"} дней простоя`}
             valueClassName="text-text-primary"
             metaClassName="text-accent-primary"
             className="min-w-0"
@@ -284,7 +421,7 @@ export const DriversPage = () => {
 
         <KpiCard
           label="Общая выручка водителей"
-          value="₽ 1 284 000"
+          value={formatCurrency(summary?.totalRevenue)}
           meta="за выбранный период"
           valueClassName="text-text-primary"
           metaClassName="text-accent-primary"
@@ -295,7 +432,7 @@ export const DriversPage = () => {
       <section className="flex flex-col gap-4">
         <TitledBlock
           title="Водители"
-          subtitle="Пагинированный список по текущему фильтру"
+          subtitle="Реестр из API с доступной аналитикой по водителям"
           className="min-w-0"
         >
           <div className="relative mb-4 w-full max-w-sm">
@@ -308,90 +445,185 @@ export const DriversPage = () => {
             />
           </div>
 
-          <DataTable
-            columns={driverColumns}
-            data={filteredRows}
-            initialPageSize={10}
-            onRowClick={(row) => {
-              navigate({ to: "/drivers/$id", params: { id: row.id } });
-            }}
-          />
+          {filteredRows.length > 0 ? (
+            <DataTable
+              columns={driverColumns}
+              data={filteredRows}
+              initialPageSize={10}
+              onRowClick={(row) => {
+                navigate({ to: "/drivers/$id", params: { id: row.driverId } });
+              }}
+            />
+          ) : (
+            <AnalyticsStateCard
+              title="Водители не найдены"
+              message="По текущему запросу API не вернул ни одной записи."
+            />
+          )}
         </TitledBlock>
       </section>
 
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <TitledBlock
           title="Топ-3 водителей по выручке"
-          subtitle="Лидеры по доходу за период"
+          subtitle="Лидеры из текущей аналитики директора"
           className="min-w-0"
           contentClassName="mt-2"
         >
           <div className="flex flex-col gap-3">
-            {driversRevenueTop.map((item) => (
-              <ProgressCard
-                key={item.place}
-                title={`${item.place}. ${item.title}`}
-                secondaryText={item.secondaryText}
-                value={item.value}
+            {topByRevenue.length > 0 ? (
+              topByRevenue.map((item) => (
+                <ProgressCard
+                  key={item.driverId}
+                  title={`${item.rank}. ${item.fullName}`}
+                  secondaryText={formatCurrency(item.totalRevenue)}
+                  value={Math.max(
+                    1,
+                    Math.round(
+                      (item.totalRevenue / topByRevenue[0].totalRevenue) * 100,
+                    ),
+                  )}
+                />
+              ))
+            ) : (
+              <AnalyticsStateCard
+                title="Нет рейтинга по выручке"
+                message={
+                  overviewQuery.error
+                    ? overviewQuery.errorMessage
+                    : "Сервис пока не вернул топ водителей за период."
+                }
               />
-            ))}
+            )}
           </div>
         </TitledBlock>
 
         <TitledBlock
-          title="Топ-3 автомобилей по эффективности"
-          subtitle="Сравнение по выходу на линию"
+          title="Топ-3 водителей по активности"
+          subtitle="Сравнение по доле активных дней"
           className="min-w-0"
           contentClassName="mt-2"
         >
           <div className="flex flex-col gap-3">
-            {driversEfficiencyTop.map((item) => (
-              <ProgressCard
-                key={item.place}
-                title={`${item.place}. ${item.title}`}
-                secondaryText={item.secondaryText}
-                value={item.value}
+            {topByActivity.length > 0 ? (
+              topByActivity.map((item) => (
+                <ProgressCard
+                  key={item.driverId}
+                  title={`${item.rank}. ${item.fullName}`}
+                  secondaryText={`${percentFormatter.format(item.activityRate)}%`}
+                  value={Math.round(item.activityRate)}
+                />
+              ))
+            ) : (
+              <AnalyticsStateCard
+                title="Нет рейтинга по активности"
+                message={
+                  overviewQuery.error
+                    ? overviewQuery.errorMessage
+                    : "Сервис пока не вернул рейтинг активности за период."
+                }
               />
-            ))}
+            )}
           </div>
         </TitledBlock>
 
         <TitledBlock
           title="Потери от простоев"
-          subtitle="Оценка за последние 7 дней"
+          subtitle="Сводка по директорской аналитике"
           topRightSlot={
             <AppText className="text-accent-primary text-3xl font-bold">
-              ₽ 184K
+              {formatCurrency(summary?.estimatedDowntimeLoss)}
             </AppText>
           }
           className="min-w-0"
           contentClassName="mt-2"
         >
           <div className="flex flex-col gap-2">
-            <SummaryRow label="Ожидание заказа" value="₽ 74 000" />
-            <SummaryRow label="Пересменка" value="₽ 56 000" />
-            <SummaryRow label="Технический простой" value="₽ 54 000" />
+            <SummaryRow
+              label="Онлайн-дней"
+              value={String(summary?.onlineDaysCount ?? "—")}
+            />
+            <SummaryRow
+              label="Дней простоя"
+              value={String(summary?.downtimeDaysCount ?? "—")}
+            />
+            <SummaryRow
+              label="Рабочих дней"
+              value={String(summary?.workDaysCount ?? "—")}
+            />
           </div>
         </TitledBlock>
 
         <TitledBlock
-          title="Потери из-за простоев автомобилей"
-          subtitle="Разбивка по основным причинам"
+          title="Драйверы периода"
+          subtitle="Оперативный срез по водительскому направлению"
           topRightSlot={
             <AppText className="text-accent-primary text-3xl font-bold">
-              ₽ 1 284K
+              {formatCurrency(summary?.totalRevenue)}
             </AppText>
           }
           className="min-w-0"
           contentClassName="mt-2"
         >
           <div className="flex flex-col gap-2">
-            <SummaryRow label="Плановое ТО" value="₽ 612 000" />
-            <SummaryRow label="Ожидание ремонта" value="₽ 434 000" />
-            <SummaryRow label="Нет водителя" value="₽ 238 000" />
+            <SummaryRow
+              label="Средняя выручка / таксопарк"
+              value={formatCurrency(summary?.averageRevenuePerTaxiPark)}
+            />
+            <SummaryRow
+              label="Средняя выручка / авто"
+              value={formatCurrency(summary?.averageRevenuePerCar)}
+            />
+            <SummaryRow
+              label="Средняя выручка / день"
+              value={formatCurrency(summary?.averageRevenuePerDay)}
+            />
           </div>
         </TitledBlock>
       </section>
+        </>
+      )}
+    </main>
+  );
+};
+
+export const DriversPage = () => {
+  const navigate = useNavigate();
+  const { data: currentUser, error, isLoading } = useCurrentUserQuery();
+
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
+
+    clearAuthToken();
+    void navigate({ to: "/auth/login", replace: true });
+  }, [error, navigate]);
+
+  if (isLoading) {
+    return (
+      <main className="bg-background-page flex min-h-full w-full items-center justify-center p-6">
+        <Spinner className="min-h-40" />
+      </main>
+    );
+  }
+
+  if (!currentUser) {
+    return null;
+  }
+
+  if (can(currentUser.role, [ROLES.DIRECTOR])) {
+    return <DirectorDriversPage />;
+  }
+
+  return (
+    <main className="bg-background-page flex min-h-full w-full flex-col gap-6 p-6">
+      <PageHeader
+        title="Моя аналитика"
+        description="Список водителей скрыт для роли водителя. Открываем вашу личную аналитику."
+        breadcrumbs={[{ label: "Главная", href: "/" }, { label: "Моя аналитика" }]}
+      />
+      <DriverSelfRedirect />
     </main>
   );
 };

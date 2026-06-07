@@ -175,6 +175,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/taxi-parks/{taxiParkId}/drivers/{driverId}/analytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Аналитика по конкретному водителю за период */
+        get: operations["TaxiParksController_getDriverAnalytics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/taxi-parks/{id}": {
         parameters: {
             query?: never;
@@ -1046,6 +1063,27 @@ export interface components {
             /** @example -4.25 */
             utilizationDifferenceFromParkAverage: number;
         };
+        CarBrandAnalyticsDto: {
+            firm: string;
+            /** @example 5 */
+            carsCount: number;
+            /** @example 65000.4 */
+            totalRevenue: number;
+            /** @example 13000.08 */
+            averageRevenuePerCar: number;
+            /** @example 42 */
+            onlineDaysCount: number;
+            /** @example 8 */
+            downtimeDaysCount: number;
+            /** @example 28 */
+            utilizationRate: number;
+            /** @example 1 */
+            rankByRevenue: number;
+            /** @example 24.75 */
+            currentCarRevenueShare: number;
+            /** @example 3000.05 */
+            currentCarRevenueDifferenceFromBrandAverage: number;
+        };
         CarAnalyticsRevenueByDayPointDto: {
             /** @example 2025-04-01 */
             date: string;
@@ -1076,8 +1114,115 @@ export interface components {
             car: components["schemas"]["CarAnalyticsCarDto"];
             summary: components["schemas"]["CarAnalyticsSummaryDto"];
             comparison: components["schemas"]["CarAnalyticsComparisonDto"];
+            brandAnalytics: components["schemas"]["CarBrandAnalyticsDto"];
             charts: components["schemas"]["CarAnalyticsChartsDto"];
             workDays: components["schemas"]["CarAnalyticsWorkDayDto"][];
+        };
+        DriverAnalyticsAssignedCarDto: {
+            carId: string;
+            firm: string;
+            model: string;
+            plateNumber: string;
+            /** @enum {string} */
+            state: "WORKING" | "EMERGENCY" | "REPAIR";
+        };
+        DriverAnalyticsDriverDto: {
+            driverId: string;
+            fullName: string;
+            taxiParkId: string;
+            taxiParkName: string;
+            assignedCar: components["schemas"]["DriverAnalyticsAssignedCarDto"] | null;
+        };
+        DriverAnalyticsSummaryDto: {
+            /** @example 21000.2 */
+            totalRevenue: number;
+            /** @example 2625.03 */
+            averageRevenuePerShift: number;
+            /** @example 700.01 */
+            averageRevenuePerDay: number;
+            /** @example 9 */
+            workDaysCount: number;
+            /** @example 8 */
+            onlineDaysCount: number;
+            /** @example 1 */
+            downtimeDaysCount: number;
+            /** @example 26.67 */
+            activityRate: number;
+            /** @example 11.11 */
+            downtimeRate: number;
+            /** @example 3000.05 */
+            revenueDifferenceFromParkAverage: number;
+        };
+        DriverAnalyticsScorecardDto: {
+            /** @example 73.25 */
+            driverEfficiency: number;
+            /** @example 84.12 */
+            revenueScore: number;
+            /** @example 26.67 */
+            activityScore: number;
+            /** @example 50 */
+            stabilityScore: number;
+            /** @example 25000.5 */
+            maxDriverRevenue: number;
+            /** @example 4 */
+            daysWithRevenueAboveAverage: number;
+        };
+        DriverAnalyticsRatingDto: {
+            /** @example 1 */
+            rank: number;
+            /** @example 20 */
+            driversCount: number;
+        };
+        DriverAnalyticsComparisonDto: {
+            /** @example 18000.15 */
+            taxiParkAverageRevenuePerDriver: number;
+            /** @example 2300.11 */
+            taxiParkAverageRevenuePerShift: number;
+            /** @example 64.44 */
+            taxiParkAverageActivityRate: number;
+            /** @example 3000.05 */
+            revenueDifferenceFromParkAverage: number;
+            /** @example 324.92 */
+            shiftRevenueDifferenceFromParkAverage: number;
+            /** @example -4.25 */
+            activityDifferenceFromParkAverage: number;
+        };
+        DriverAnalyticsRevenueByDayPointDto: {
+            /** @example 2025-04-01 */
+            date: string;
+            /** @example 3000 */
+            revenue: number;
+            /** @example true */
+            carOnLine: boolean;
+        };
+        DriverAnalyticsChartsDto: {
+            revenueByDay: components["schemas"]["DriverAnalyticsRevenueByDayPointDto"][];
+        };
+        DriverAnalyticsWorkDayCarDto: {
+            carId: string;
+            firm: string;
+            model: string;
+            plateNumber: string;
+        };
+        DriverAnalyticsWorkDayDto: {
+            workDayId: string;
+            /** @example 2025-04-01 */
+            date: string;
+            /** @example 3000 */
+            revenue: number;
+            /** @example true */
+            carOnLine: boolean;
+            car: components["schemas"]["DriverAnalyticsWorkDayCarDto"];
+        };
+        GetDriverAnalyticsResponseDto: {
+            period: components["schemas"]["AnalyticsPeriodDto"];
+            driver: components["schemas"]["DriverAnalyticsDriverDto"];
+            summary: components["schemas"]["DriverAnalyticsSummaryDto"];
+            scorecard: components["schemas"]["DriverAnalyticsScorecardDto"];
+            rating: components["schemas"]["DriverAnalyticsRatingDto"];
+            comparison: components["schemas"]["DriverAnalyticsComparisonDto"];
+            charts: components["schemas"]["DriverAnalyticsChartsDto"];
+            workDays: components["schemas"]["DriverAnalyticsWorkDayDto"][];
         };
         UpdateTaxiParkDto: {
             /** @example Таксопарк №1 */
@@ -1425,6 +1570,33 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GetCarAnalyticsResponseDto"];
+                };
+            };
+        };
+    };
+    TaxiParksController_getDriverAnalytics: {
+        parameters: {
+            query?: {
+                /** @description Дата начала периода в формате YYYY-MM-DD */
+                from?: string;
+                /** @description Дата окончания периода в формате YYYY-MM-DD */
+                to?: string;
+            };
+            header?: never;
+            path: {
+                taxiParkId: string;
+                driverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetDriverAnalyticsResponseDto"];
                 };
             };
         };

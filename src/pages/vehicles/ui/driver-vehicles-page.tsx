@@ -49,6 +49,16 @@ const formatCurrency = (value?: number) => {
   return `₽ ${moneyFormatter.format(value)}`;
 };
 
+const formatSignedCurrency = (value?: number) => {
+  if (value == null) {
+    return "—";
+  }
+
+  const sign = value > 0 ? "+" : "";
+
+  return `${sign}₽ ${moneyFormatter.format(value)}`;
+};
+
 const formatCompactCurrency = (value: number) => {
   return compactMoneyFormatter.format(value);
 };
@@ -287,23 +297,35 @@ export const DriverVehiclesPage = ({
             </CardSurface>
           </section>
 
-          <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <KpiCard label="Выручка" value={formatCurrency(analytics.summary.totalRevenue)} />
-            <KpiCard
-              label="₽ / онлайн-день"
-              value={formatCurrency(analytics.summary.averageRevenuePerOnlineDay)}
-            />
-            <KpiCard
-              label="Онлайн-дней"
-              value={analytics.summary.onlineDaysCount}
-              meta={`${analytics.summary.workDaysCount} рабочих дней`}
-            />
-            <KpiCard
-              label="Утилизация"
-              value={`${percentFormatter.format(analytics.summary.utilizationRate)}%`}
-              meta={`${analytics.summary.downtimeDaysCount} дн. простоя`}
-            />
-          </section>
+          <TitledBlock
+            title={`Позиция в бренде ${analytics.brandAnalytics.firm}`}
+            subtitle="Краткий срез по автомобилям той же марки"
+          >
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+              <KpiCard
+                label="Авто бренда"
+                value={analytics.brandAnalytics.carsCount}
+                meta={`Место: #${analytics.brandAnalytics.rankByRevenue}`}
+              />
+              <KpiCard
+                label="Средняя выручка бренда"
+                value={formatCurrency(analytics.brandAnalytics.averageRevenuePerCar)}
+                meta={formatSignedCurrency(
+                  analytics.brandAnalytics.currentCarRevenueDifferenceFromBrandAverage,
+                )}
+              />
+              <KpiCard
+                label="Доля в выручке бренда"
+                value={`${percentFormatter.format(analytics.brandAnalytics.currentCarRevenueShare)}%`}
+                meta={formatCurrency(analytics.brandAnalytics.totalRevenue)}
+              />
+              <KpiCard
+                label="Утилизация бренда"
+                value={`${percentFormatter.format(analytics.brandAnalytics.utilizationRate)}%`}
+                meta={`${analytics.brandAnalytics.onlineDaysCount} онлайн / ${analytics.brandAnalytics.downtimeDaysCount} простой`}
+              />
+            </div>
+          </TitledBlock>
 
           <TitledBlock
             title="Выручка по дням"
