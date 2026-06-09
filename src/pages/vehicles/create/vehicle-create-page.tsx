@@ -1,102 +1,222 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Check } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { driverMockData } from "@/pages/drivers/consts";
-import { tableMockData } from "@/pages/taxiparks/consts";
 import {
   VEHICLE_STATUS_OPTIONS,
-  VEHICLE_STATUS_VALUES,
 } from "../consts";
 
+import { getApiErrorMessage } from "@/shared/api/auth";
+import { fetchClient } from "@/shared/api/apiInstance";
+import type { components } from "@/shared/api/apiTypes";
 import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
 import { CardSurface } from "@/shared/ui/card-surface";
-import { type ComboboxOption } from "@/shared/ui/combobox";
+import { Spinner } from "@/shared/ui/spinner";
 import { FieldGroup } from "@/shared/ui/field";
-import { FormCombobox, FormInput, FormSelect } from "@/shared/ui/form";
+import { FormInput, FormSelect } from "@/shared/ui/form";
 
 import { PageHeader } from "@/features/page-header/page-header";
 
+const VEHICLE_CREATE_STATE_OPTIONS = VEHICLE_STATUS_OPTIONS.map((option) => {
+  if (option.value === "ok") {
+    return { value: "WORKING", label: option.label };
+  }
+
+  if (option.value === "risk") {
+    return { value: "EMERGENCY", label: option.label };
+  }
+
+  return { value: "REPAIR", label: option.label };
+});
+
 const vehicleCreateSchema = z.object({
-  brand: z.string().trim().min(1, "Укажите марку"),
+  firm: z.string().trim().min(1, "Укажите марку"),
   model: z.string().trim().min(1, "Укажите модель"),
-  plate: z.string().trim().min(1, "Укажите гос номер"),
-  status: z.enum(VEHICLE_STATUS_VALUES, {
+  type: z.string().trim().min(1, "Укажите тип"),
+  plateNumber: z.string().trim().min(1, "Укажите гос номер"),
+  state: z.enum(["WORKING", "EMERGENCY", "REPAIR"], {
     error: "Выберите состояние",
   }),
-  taxiparkId: z.string().optional(),
-  driverId: z.string().optional(),
 });
 
 export type VehicleCreateFormValues = z.infer<typeof vehicleCreateSchema>;
 
-const taxiparkOptions: ComboboxOption[] = tableMockData.map((taxipark) => ({
-  value: taxipark.id,
-  label: taxipark.name,
-  keywords: [taxipark.status],
-}));
-
-const normalizeAssignedCar = (value: string | null | undefined) => {
-  if (typeof value !== "string") {
-    return "";
-  }
-
-  return value.trim();
+type TaxiParkContext = {
+  taxiParkId: string;
+  taxiParkName?: string;
 };
 
-const freeDriverOptions: ComboboxOption[] = driverMockData
-  .filter((driver) => normalizeAssignedCar(driver.car).length === 0)
-  .map((driver) => ({
-    value: driver.id,
-    label: driver.driver,
-    keywords: [driver.status],
-  }));
+type CreateCarDto = components["schemas"]["CreateCarDto"];
 
-const buildVehicleCreatePayload = (values: VehicleCreateFormValues) => {
+const getResponseData = async <T,>(
+  request: Promise<{ data?: T; error?: unknown }>,
+) => {
+  const response = await request;
+
+  if (response.error) {
+    throw response.error;
+  }
+
+  return response.data;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === "object" && value !== null;
+};
+
+const pickString = (value: unknown, keys: string[]) => {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  for (const key of keys) {
+    const candidate = value[key];
+
+    if (typeof candidate === "string" && candidate.trim().length > 0) {
+      return candidate;
+    }
+  }
+
+  return undefined;
+};
+
+const getTaxiParkContext = async (): Promise<TaxiParkContext | null> => {
+  const data = await getResponseData(
+    fetchClient.GET("/api/taxi-parks/me"),
+  );
+
+  const taxiParkId =
+    pickString(data, ["taxiParkId", "id", "taxiPark.id", "park.id"]) ?? null;
+
+  if (!taxiParkId) {
+    return null;
+  }
+
   return {
-    ...values,
-    taxiparkName: taxiparkOptions.find(
-      (taxipark) => taxipark.value === values.taxiparkId,
-    )?.label,
-    driverName: freeDriverOptions.find(
-      (driver) => driver.value === values.driverId,
-    )?.label,
+    taxiParkId,
+    taxiParkName: pickString(data, ["name", "taxiParkName", "taxiPark.name"]),
   };
+};
+
+const createVehicle = async ({
+  taxiParkId,
+  body,
+}: {
+  taxiParkId: string;
+  body: CreateCarDto;
+}) => {
+  await getResponseData(
+    fetchClient.POST("/api/taxi-parks/{taxiParkId}/cars", {
+      params: {
+        path: { taxiParkId },
+      },
+      body,
+    }) as Promise<{ data?: unknown; error?: unknown }>,
+  );
 };
 
 export const VehicleCreatePage = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const taxiParkQuery = useQuery({
+    queryKey: ["vehicles", "create", "taxi-park"] as const,
+    queryFn: getTaxiParkContext,
+    retry: false,
+  });
   const form = useForm<VehicleCreateFormValues>({
     resolver: zodResolver(vehicleCreateSchema),
     defaultValues: {
-      brand: "",
+      firm: "",
       model: "",
-      plate: "",
-      status: undefined,
-      taxiparkId: "",
-      driverId: "",
+      type: "",
+      plateNumber: "",
+      state: undefined,
     },
   });
 
   const {
     control,
+    setError,
     formState: { isSubmitting },
     handleSubmit,
   } = form;
 
-  const handleFormSubmit = (values: VehicleCreateFormValues) => {
-    void buildVehicleCreatePayload(values);
+  const handleFormSubmit = async (values: VehicleCreateFormValues) => {
+    const taxiParkId = taxiParkQuery.data?.taxiParkId;
+
+    if (!taxiParkId) {
+      setError("root", {
+        message: "Не удалось определить таксопарк для создания автомобиля.",
+      });
+      return;
+    }
+
+    await createVehicle({
+      taxiParkId,
+      body: values,
+    });
+
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["vehicles"] }),
+      queryClient.invalidateQueries({ queryKey: ["home", "director-dashboard"] }),
+    ]);
 
     navigate({ to: "/vehicles" });
   };
+
+  if (taxiParkQuery.isLoading) {
+    return (
+      <main className="bg-background-page flex min-h-full w-full items-center justify-center p-6">
+        <Spinner className="min-h-40" />
+      </main>
+    );
+  }
+
+  if (taxiParkQuery.error || !taxiParkQuery.data) {
+    return (
+      <main className="bg-background-page flex min-h-full w-full flex-col gap-6 p-6">
+        <PageHeader
+          title="Создание автомобиля"
+          description="Не удалось определить таксопарк директора."
+          breadcrumbs={[
+            { label: "Главная", href: "/" },
+            { label: "Автомобили", href: "/vehicles" },
+            { label: "Создание" },
+          ]}
+          actions={
+            <Button
+              type="button"
+              variant={BUTTON_VARIANTS_VARIABLES.secondary}
+              asChild
+            >
+              <Link to="/vehicles">
+                <ArrowLeft className="size-4" />
+                К списку
+              </Link>
+            </Button>
+          }
+        />
+
+        <CardSurface className="gap-3 p-5">
+          <div className="text-text-primary text-sm font-semibold">
+            Не удалось загрузить таксопарк
+          </div>
+          <div className="text-text-secondary text-sm">
+            {getApiErrorMessage(taxiParkQuery.error)}
+          </div>
+        </CardSurface>
+      </main>
+    );
+  }
 
   return (
     <main className="bg-background-page flex min-h-full w-full flex-col gap-6 p-6">
       <PageHeader
         title="Создание автомобиля"
-        description="Добавьте автомобиль в локальный UI-каталог и при необходимости сразу назначьте парк и водителя."
+        description={`Добавьте автомобиль в таксопарк ${taxiParkQuery.data.taxiParkName ?? taxiParkQuery.data.taxiParkId}.`}
         breadcrumbs={[
           { label: "Главная", href: "/" },
           { label: "Автомобили", href: "/vehicles" },
@@ -124,7 +244,7 @@ export const VehicleCreatePage = () => {
           <FieldGroup>
             <FormInput
               control={control}
-              name="brand"
+              name="firm"
               label="Марка"
               id="vehicle-brand"
               placeholder="Например, Kia"
@@ -140,7 +260,15 @@ export const VehicleCreatePage = () => {
 
             <FormInput
               control={control}
-              name="plate"
+              name="type"
+              label="Тип"
+              id="vehicle-type"
+              placeholder="Например, SEDAN"
+            />
+
+            <FormInput
+              control={control}
+              name="plateNumber"
               label="Гос номер"
               id="vehicle-plate"
               placeholder="Например, А123ВС 77"
@@ -148,30 +276,10 @@ export const VehicleCreatePage = () => {
 
             <FormSelect
               control={control}
-              name="status"
+              name="state"
               label="Состояние"
               placeholder="Выберите состояние"
-              options={VEHICLE_STATUS_OPTIONS}
-            />
-
-            <FormCombobox
-              control={control}
-              name="taxiparkId"
-              label="Назначить таксопарк"
-              options={taxiparkOptions}
-              placeholder="Выберите таксопарк"
-              searchPlaceholder="Поиск таксопарка"
-              emptyText="Таксопарки не найдены"
-            />
-
-            <FormCombobox
-              control={control}
-              name="driverId"
-              label="Назначить водителя"
-              options={freeDriverOptions}
-              placeholder="Выберите водителя"
-              searchPlaceholder="Поиск водителя"
-              emptyText="Свободных водителей нет"
+              options={VEHICLE_CREATE_STATE_OPTIONS}
             />
           </FieldGroup>
 

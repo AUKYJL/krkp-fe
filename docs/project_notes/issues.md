@@ -73,3 +73,18 @@ Use bullet lists for simplicity. This is not a replacement for your ticket syste
 - **Status**: Completed
 - **Description**: Moved the driver `/taxiparks` focus to `Мой таксопарк`, filtered invitations down to `pending` items, and moved invitation browsing/actions into a compact drawer-backed flow.
 - **URL**: N/A
+
+### 2026-06-08 - UI-live-taxi-park-operations: Wire live taxi park operations
+- **Status**: Completed
+- **Description**: Replaced the mocked vehicle creation flow with `POST /api/taxi-parks/{taxiParkId}/cars`, added driver car assignment from free cars only, and connected the driver home dashboard to live work-day start/update/finish actions.
+- **URL**: N/A
+
+### 2026-06-09 - UI-driver-home-active-workday-state: Respect active work day in driver home
+- **Status**: Completed
+- **Description**: Normalized `/api/drivers/me` to read nested `activeWorkDay` fields with flat fallback compatibility, and updated the driver home UI so start/finish/revenue controls follow the live active work day state.
+- **URL**: N/A
+
+### 2026-06-09 - UI-driver-home-revenue-string-parsing: Parse string revenue in live state
+- **Status**: Completed
+- **Description**: Updated the `/api/drivers/me` live-state normalization to accept `activeWorkDay.revenue` as either a number or a numeric string so the driver revenue card no longer falls back to the empty state.
+- **URL**: N/A

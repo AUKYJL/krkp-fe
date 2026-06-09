@@ -4,14 +4,17 @@ import { ArrowLeft, Check } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { PageHeader } from "@/features/page-header/page-header";
-import { getDriverMockById } from "../consts";
 import { vehicleTableData } from "@/pages/vehicles/consts/vehicle-table-data";
+
 import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
 import { CardSurface } from "@/shared/ui/card-surface";
 import { type ComboboxOption } from "@/shared/ui/combobox";
 import { FieldGroup } from "@/shared/ui/field";
 import { FormCombobox } from "@/shared/ui/form";
+
+import { getDriverMockById } from "../consts";
+
+import { PageHeader } from "@/features/page-header/page-header";
 
 const driverEditSchema = z.object({
   car: z.string().trim().min(1, "Выберите автомобиль"),
@@ -23,7 +26,8 @@ export interface DriverEditPageProps {
   driverId: string;
 }
 
-const buildCarOptionLabel = (brand: string, plate: string) => `${brand} · ${plate}`;
+const buildCarOptionLabel = (brand: string, plate: string) =>
+  `${brand} · ${plate}`;
 
 const buildDriverCarOptions = (currentCar: string): ComboboxOption[] => {
   const normalizedCurrentCar = currentCar.trim();
@@ -96,8 +100,7 @@ export const DriverEditPage = ({ driverId }: DriverEditPageProps) => {
             asChild
           >
             <Link to="/drivers/$id" params={{ id: driverId }}>
-              <ArrowLeft className="size-4" />
-              К карточке
+              <ArrowLeft className="size-4" />К карточке
             </Link>
           </Button>
         }

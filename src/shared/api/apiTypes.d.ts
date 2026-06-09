@@ -416,6 +416,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/taxi-parks/{taxiParkId}/cars/available": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Свободные авто таксопарка */
+        get: operations["CarsController_listAvailableByTaxiPark"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/cars/{id}": {
         parameters: {
             query?: never;
@@ -633,7 +650,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Создать дневную запись */
+        /** Начать смену */
         post: operations["WorkDaysController_create"];
         delete?: never;
         options?: never;
@@ -688,8 +705,25 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Обновить мою дневную запись */
+        /** Обновить активную смену */
         patch: operations["WorkDaysController_updateMy"];
+        trace?: never;
+    };
+    "/api/work-days/{id}/finish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Завершить смену */
+        post: operations["WorkDaysController_finishMy"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/drivers/{driverId}/work-days": {
@@ -1268,6 +1302,8 @@ export interface components {
             revenue: number;
             /** @example true */
             carOnLine: boolean;
+            /** @enum {string} */
+            status: "ACTIVE" | "COMPLETED" | "DOWNTIME";
             driver: components["schemas"]["CarAnalyticsWorkDayDriverDto"];
         };
         GetCarAnalyticsResponseDto: {
@@ -1373,6 +1409,8 @@ export interface components {
             revenue: number;
             /** @example true */
             carOnLine: boolean;
+            /** @enum {string} */
+            status: "ACTIVE" | "COMPLETED" | "DOWNTIME";
             car: components["schemas"]["DriverAnalyticsWorkDayCarDto"];
         };
         GetDriverAnalyticsResponseDto: {
@@ -1578,6 +1616,54 @@ export interface components {
             /** @example 3dd4b7b5-4cd5-4636-ae62-df754edfe7e4 */
             assignedTaxiParkId?: string;
         };
+        DriverMeUserDto: {
+            id: string;
+            fullName: string;
+            email: string;
+            /** @enum {string} */
+            role: "DRIVER" | "DIRECTOR";
+        };
+        DriverMeTaxiParkDto: {
+            id: string;
+            name: string;
+            address: string;
+        };
+        DriverMeAssignedCarDto: {
+            id: string;
+            firm: string;
+            model: string;
+            type: string;
+            plateNumber: string;
+            /** @enum {string} */
+            state: "WORKING" | "EMERGENCY" | "REPAIR";
+            taxiParkId?: Record<string, never> | null;
+        };
+        DriverMeWorkDayDto: {
+            id: string;
+            /** Format: date-time */
+            workDate: string;
+            /** Format: date-time */
+            startedAt: string;
+            finishedAt?: Record<string, never> | null;
+            revenue: number;
+            carOnLine: boolean;
+            /** @enum {string} */
+            status: "ACTIVE" | "COMPLETED" | "DOWNTIME";
+            carId: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        DriverMeResponseDto: {
+            id: string;
+            userId: string;
+            taxiParkId?: Record<string, never> | null;
+            user?: components["schemas"]["DriverMeUserDto"] | null;
+            taxiPark?: components["schemas"]["DriverMeTaxiParkDto"] | null;
+            assignedCar?: components["schemas"]["DriverMeAssignedCarDto"] | null;
+            /** @example false */
+            isOnLine: boolean;
+            activeWorkDay?: components["schemas"]["DriverMeWorkDayDto"] | null;
+        };
         UpdateDriverDto: {
             /** @example 1234 567890 */
             passportNumber?: string;
@@ -1616,20 +1702,12 @@ export interface components {
             taxiPark: components["schemas"]["MyInvitationTaxiParkDto"];
         };
         CreateWorkDayDto: {
-            /** @example 2026-05-02 */
-            workDate: string;
             /** @example 2500 */
             revenue?: number;
-            /** @example true */
-            carOnLine?: boolean;
         };
         UpdateWorkDayDto: {
-            /** @example 2026-05-02 */
-            workDate?: string;
             /** @example 2500 */
             revenue?: number;
-            /** @example true */
-            carOnLine?: boolean;
         };
     };
     responses: never;
@@ -2295,6 +2373,25 @@ export interface operations {
             };
         };
     };
+    CarsController_listAvailableByTaxiPark: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                taxiParkId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     CarsController_get: {
         parameters: {
             query?: never;
@@ -2434,7 +2531,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["DriverMeResponseDto"];
+                };
             };
         };
     };
@@ -2700,6 +2799,25 @@ export interface operations {
         };
         responses: {
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    WorkDaysController_finishMy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };

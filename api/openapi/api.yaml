@@ -716,6 +716,21 @@ paths:
       security: *a8
       summary: Список авто таксопарка
       tags: *a9
+  /api/taxi-parks/{taxiParkId}/cars/available:
+    get:
+      operationId: CarsController_listAvailableByTaxiPark
+      parameters:
+        - name: taxiParkId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+      security: *a8
+      summary: Свободные авто таксопарка
+      tags: *a9
   /api/cars/{id}:
     get:
       operationId: CarsController_get
@@ -835,6 +850,10 @@ paths:
       responses:
         "200":
           description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DriverMeResponseDto"
       security: *a10
       summary: Профиль водителя (me)
       tags: *a11
@@ -1023,7 +1042,7 @@ paths:
           description: ""
       security: &a14
         - access-token: []
-      summary: Создать дневную запись
+      summary: Начать смену
       tags: &a15
         - work-days
   /api/work-days/my:
@@ -1070,7 +1089,22 @@ paths:
         "200":
           description: ""
       security: *a14
-      summary: Обновить мою дневную запись
+      summary: Обновить активную смену
+      tags: *a15
+  /api/work-days/{id}/finish:
+    post:
+      operationId: WorkDaysController_finishMy
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        "201":
+          description: ""
+      security: *a14
+      summary: Завершить смену
       tags: *a15
   /api/drivers/{driverId}/work-days:
     get:
@@ -2323,6 +2357,12 @@ components:
         carOnLine:
           type: boolean
           example: true
+        status:
+          type: string
+          enum: &a18
+            - ACTIVE
+            - COMPLETED
+            - DOWNTIME
         driver:
           $ref: "#/components/schemas/CarAnalyticsWorkDayDriverDto"
       required:
@@ -2330,6 +2370,7 @@ components:
         - date
         - revenue
         - carOnLine
+        - status
         - driver
     GetCarAnalyticsResponseDto:
       type: object
@@ -2565,6 +2606,9 @@ components:
         carOnLine:
           type: boolean
           example: true
+        status:
+          type: string
+          enum: *a18
         car:
           $ref: "#/components/schemas/DriverAnalyticsWorkDayCarDto"
       required:
@@ -2572,6 +2616,7 @@ components:
         - date
         - revenue
         - carOnLine
+        - status
         - car
     GetDriverAnalyticsResponseDto:
       type: object
@@ -3039,6 +3084,138 @@ components:
         - fullName
         - email
         - isInTaxiPark
+    DriverMeUserDto:
+      type: object
+      properties:
+        id:
+          type: string
+        fullName:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum:
+            - DRIVER
+            - DIRECTOR
+      required:
+        - id
+        - fullName
+        - email
+        - role
+    DriverMeTaxiParkDto:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        address:
+          type: string
+      required:
+        - id
+        - name
+        - address
+    DriverMeAssignedCarDto:
+      type: object
+      properties:
+        id:
+          type: string
+        firm:
+          type: string
+        model:
+          type: string
+        type:
+          type: string
+        plateNumber:
+          type: string
+        state:
+          type: string
+          enum:
+            - WORKING
+            - EMERGENCY
+            - REPAIR
+        taxiParkId:
+          type: object
+          nullable: true
+      required:
+        - id
+        - firm
+        - model
+        - type
+        - plateNumber
+        - state
+    DriverMeWorkDayDto:
+      type: object
+      properties:
+        id:
+          type: string
+        workDate:
+          format: date-time
+          type: string
+        startedAt:
+          format: date-time
+          type: string
+        finishedAt:
+          type: object
+          nullable: true
+        revenue:
+          type: number
+        carOnLine:
+          type: boolean
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - COMPLETED
+            - DOWNTIME
+        carId:
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+        - id
+        - workDate
+        - startedAt
+        - revenue
+        - carOnLine
+        - status
+        - carId
+        - updatedAt
+    DriverMeResponseDto:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        taxiParkId:
+          type: object
+          nullable: true
+        user:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/DriverMeUserDto"
+        taxiPark:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/DriverMeTaxiParkDto"
+        assignedCar:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/DriverMeAssignedCarDto"
+        isOnLine:
+          type: boolean
+          example: false
+        activeWorkDay:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/DriverMeWorkDayDto"
+      required:
+        - id
+        - userId
+        - isOnLine
     UpdateDriverDto:
       type: object
       properties:
@@ -3108,26 +3285,12 @@ components:
     CreateWorkDayDto:
       type: object
       properties:
-        workDate:
-          type: string
-          example: 2026-05-02
         revenue:
           type: number
           example: 2500
-        carOnLine:
-          type: boolean
-          example: true
-      required:
-        - workDate
     UpdateWorkDayDto:
       type: object
       properties:
-        workDate:
-          type: string
-          example: 2026-05-02
         revenue:
           type: number
           example: 2500
-        carOnLine:
-          type: boolean
-          example: true

@@ -1,4 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   ArrowLeft,
@@ -12,6 +13,7 @@ import { useEffect } from "react";
 
 import { ConfirmDialog } from "@/features/confirm-dialog";
 import { DataTable } from "@/features/data-table";
+import { DashboardEmptyState } from "@/pages/home/ui/driver-home-dashboard/dashboard-primitives";
 import { KpiCard } from "@/features/kpi-card";
 import { PageHeader } from "@/features/page-header/page-header";
 import { TitledBlock } from "@/features/titled-block/titled-block";
@@ -30,6 +32,7 @@ import {
   useDriverAnalyticsRouteContext,
 } from "@/pages/drivers/model";
 import { clearAuthToken, useCurrentUserQuery } from "@/shared/api/auth";
+import { fetchClient } from "@/shared/api/apiInstance";
 import { ROLES } from "@/shared/types";
 import { AppText } from "@/shared/ui/app-text";
 import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
@@ -37,6 +40,7 @@ import { CardSurface } from "@/shared/ui/card-surface";
 import { Spinner } from "@/shared/ui/spinner";
 import { cn } from "@/shared/utils";
 import { can } from "@/shared/utils";
+import { getWorkDayStatusConfig } from "@/shared/lib/work-day-status";
 
 import { getDriverMockById } from "../consts";
 
@@ -79,8 +83,98 @@ type DriverWorkDayRow = {
   id: string;
   date: string;
   revenue: number;
-  carOnLine: boolean;
+  status: "ACTIVE" | "COMPLETED" | "DOWNTIME";
   carLabel: string;
+};
+
+type AvailableCarOption = {
+  carId: string;
+  label: string;
+};
+
+const getResponseData = async <T,>(
+  request: Promise<{ data?: T; error?: unknown }>,
+) => {
+  const response = await request;
+
+  if (response.error) {
+    throw response.error;
+  }
+
+  return response.data;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === "object" && value !== null;
+};
+
+const pickString = (value: unknown, keys: string[]) => {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  for (const key of keys) {
+    const candidate = value[key];
+
+    if (typeof candidate === "string" && candidate.trim().length > 0) {
+      return candidate;
+    }
+  }
+
+  return undefined;
+};
+
+const getAvailableCars = async (taxiParkId: string): Promise<AvailableCarOption[]> => {
+  const data = await getResponseData(
+    fetchClient.GET("/api/taxi-parks/{taxiParkId}/cars/available", {
+      params: { path: { taxiParkId } },
+    }) as Promise<{ data?: unknown; error?: unknown }>,
+  );
+
+  const items = Array.isArray(data)
+    ? data
+    : isRecord(data) && Array.isArray(data.items)
+      ? data.items
+      : [];
+
+  return items
+    .map((item) => {
+      const carId =
+        pickString(item, ["carId", "id", "car.id"]) ?? undefined;
+
+      if (!carId) {
+        return null;
+      }
+
+      const label = [
+        pickString(item, ["firm", "car.firm"]),
+        pickString(item, ["model", "car.model"]),
+        pickString(item, ["plateNumber", "car.plateNumber"]),
+      ]
+        .filter(Boolean)
+        .join(" · ");
+
+      return {
+        carId,
+        label: label.length > 0 ? label : carId,
+      };
+    })
+    .filter((item): item is AvailableCarOption => item != null);
+};
+
+const assignCarToDriver = async ({
+  driverId,
+  carId,
+}: {
+  driverId: string;
+  carId: string;
+}) => {
+  await getResponseData(
+    fetchClient.POST("/api/drivers/{driverId}/assign-car", {
+      params: { path: { driverId } },
+      body: { carId },
+    }) as Promise<{ data?: unknown; error?: unknown }>,
+  );
 };
 
 const DetailChip = ({ children, tone = "default" }: DetailChipProps) => {
@@ -245,13 +339,10 @@ const workDayColumns: ColumnDef<DriverWorkDayRow>[] = [
     ),
   },
   {
-    accessorKey: "carOnLine",
+    accessorKey: "status",
     header: "Статус",
     cell: ({ row }) => (
-      <StatusBadge
-        label={row.original.carOnLine ? "На линии" : "Простой"}
-        tone={row.original.carOnLine ? "default" : "muted"}
-      />
+      <StatusBadge {...getWorkDayStatusConfig(row.original.status)} />
     ),
   },
   {
@@ -265,17 +356,38 @@ const DriverAnalyticsContent = ({
 }: {
   analytics: DriverAnalyticsDetail;
 }) => {
+  const queryClient = useQueryClient();
+  const availableCarsQuery = useQuery({
+    queryKey: ["drivers", analytics.driver.driverId, "available-cars"] as const,
+    queryFn: () => getAvailableCars(analytics.driver.taxiParkId),
+    enabled: analytics.driver.assignedCar == null,
+    retry: false,
+  });
+  const assignCarMutation = useMutation({
+    mutationFn: assignCarToDriver,
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["drivers", analytics.driver.driverId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["drivers", "analytics", analytics.driver.driverId],
+        }),
+        queryClient.invalidateQueries({ queryKey: ["vehicles"] }),
+      ]);
+    },
+  });
   const driverInitials = getInitials(analytics.driver.fullName);
   const assignedCarLabel = analytics.driver.assignedCar
     ? `${analytics.driver.assignedCar.firm} ${analytics.driver.assignedCar.model} · ${analytics.driver.assignedCar.plateNumber}`
     : "Автомобиль не назначен";
   const workDays: DriverWorkDayRow[] = analytics.workDays.map((workDay) => ({
-    id: workDay.workDayId,
-    date: workDay.date,
-    revenue: workDay.revenue,
-    carOnLine: workDay.carOnLine,
-    carLabel: `${workDay.car.firm} ${workDay.car.model} · ${workDay.car.plateNumber}`,
-  }));
+      id: workDay.workDayId,
+      date: workDay.date,
+      revenue: workDay.revenue,
+      status: workDay.status,
+      carLabel: `${workDay.car.firm} ${workDay.car.model} · ${workDay.car.plateNumber}`,
+    }));
   const comparisonRows = [
     {
       label: "Выручка за период",
@@ -308,6 +420,11 @@ const DriverAnalyticsContent = ({
       info: "Доля активных дней относительно средней активности водителей таксопарка.",
     },
   ];
+  const canAssignCar =
+    analytics.driver.assignedCar == null &&
+    !availableCarsQuery.isLoading &&
+    !availableCarsQuery.error &&
+    (availableCarsQuery.data?.length ?? 0) > 0;
 
   return (
     <>
@@ -385,31 +502,98 @@ const DriverAnalyticsContent = ({
           </section>
         </div>
 
-        <TitledBlock
-          title="Скоринг водителя"
-          subtitle="Реальные оценки из аналитики за выбранный период"
-          topRightSlot={<DetailChip tone="accent">4 метрики</DetailChip>}
-          className="min-w-0 gap-3"
-        >
-          <div className="flex flex-col gap-2">
-            <ScorecardMetric
-              label="Эффективность"
-              value={analytics.scorecard.driverEfficiency}
-            />
-            <ScorecardMetric
-              label="Выручка"
-              value={analytics.scorecard.revenueScore}
-            />
-            <ScorecardMetric
-              label="Активность"
-              value={analytics.scorecard.activityScore}
-            />
-            <ScorecardMetric
-              label="Стабильность"
-              value={analytics.scorecard.stabilityScore}
-            />
-          </div>
-        </TitledBlock>
+        <div className="flex min-w-0 flex-col gap-4">
+          <TitledBlock
+            title="Назначение автомобиля"
+            subtitle="Только свободные автомобили из текущего таксопарка"
+            className="min-w-0 gap-3"
+          >
+            {analytics.driver.assignedCar ? (
+              <DashboardEmptyState
+                title="Автомобиль уже назначен"
+                description="Для этого водителя уже есть активное назначение. Отдельный flow переназначения пока не реализован."
+              />
+            ) : availableCarsQuery.isLoading ? (
+              <DashboardEmptyState
+                title="Загружаем свободные автомобили"
+                description="Собираем список доступных машин для назначения."
+              />
+            ) : availableCarsQuery.error ? (
+              <DashboardEmptyState
+                title="Не удалось загрузить автомобили"
+                description="Обновите страницу и попробуйте еще раз."
+              />
+            ) : canAssignCar ? (
+              <CardSurface className="gap-4 rounded-[18px] p-5">
+                <form
+                  className="flex flex-col gap-3"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+
+                    const formData = new FormData(event.currentTarget);
+                    const carId = String(formData.get("carId") ?? "");
+
+                    if (!carId) {
+                      return;
+                    }
+
+                    void assignCarMutation.mutateAsync({
+                      driverId: analytics.driver.driverId,
+                      carId,
+                    });
+                  }}
+                >
+                  <select
+                    name="carId"
+                    className="border-border-default bg-background-page text-text-primary h-12 rounded-[12px] border px-3 text-sm outline-none"
+                    defaultValue={availableCarsQuery.data?.[0]?.carId ?? ""}
+                  >
+                    {availableCarsQuery.data?.map((car) => (
+                      <option key={car.carId} value={car.carId}>
+                        {car.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  <Button type="submit" disabled={assignCarMutation.isPending}>
+                    Назначить автомобиль
+                  </Button>
+                </form>
+              </CardSurface>
+            ) : (
+              <DashboardEmptyState
+                title="Свободных автомобилей нет"
+                description="В этом таксопарке сейчас нет автомобилей, доступных для назначения."
+              />
+            )}
+          </TitledBlock>
+
+          <TitledBlock
+            title="Скоринг водителя"
+            subtitle="Реальные оценки из аналитики за выбранный период"
+            topRightSlot={<DetailChip tone="accent">4 метрики</DetailChip>}
+            className="min-w-0 gap-3"
+          >
+            <div className="flex flex-col gap-2">
+              <ScorecardMetric
+                label="Эффективность"
+                value={analytics.scorecard.driverEfficiency}
+              />
+              <ScorecardMetric
+                label="Выручка"
+                value={analytics.scorecard.revenueScore}
+              />
+              <ScorecardMetric
+                label="Активность"
+                value={analytics.scorecard.activityScore}
+              />
+              <ScorecardMetric
+                label="Стабильность"
+                value={analytics.scorecard.stabilityScore}
+              />
+            </div>
+          </TitledBlock>
+        </div>
       </section>
 
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">

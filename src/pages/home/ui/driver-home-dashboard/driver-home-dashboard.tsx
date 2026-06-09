@@ -1,21 +1,19 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { CarFront } from "lucide-react";
-import { useState } from "react";
 
-import type { DateRangePickerValue } from "@/features/date-range-picker";
-import { DataTable } from "@/features/data-table";
-import { DriverTodayRevenueCard } from "@/features/driver-today-revenue-card";
-import { KpiCard } from "@/features/kpi-card";
-import { PageHeader } from "@/features/page-header/page-header";
-import { TitledBlock } from "@/features/titled-block";
-import { VerticalBarChart } from "@/features/vertical-bar-chart";
 import {
   type DriverHomeDashboardViewModel,
   type HomeAnalyticsPeriodState,
   useDriverHomeDashboard,
+  useDriverLiveState,
+  useDriverWorkDayActions,
   useUnauthorizedHomeRedirect,
 } from "@/pages/home/model";
-import { AnalyticsStateCard, TaxiparksPeriodFilter } from "@/pages/taxiparks/ui";
+import {
+  AnalyticsStateCard,
+  TaxiparksPeriodFilter,
+} from "@/pages/taxiparks/ui";
+
 import type { CurrentUser } from "@/shared/api/auth";
 import {
   AppText,
@@ -26,7 +24,11 @@ import {
 import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
 import { CardSurface } from "@/shared/ui/card-surface";
 
-import { DashboardEmptyState, DashboardPill, SummaryRow } from "./dashboard-primitives";
+import {
+  DashboardEmptyState,
+  DashboardPill,
+  SummaryRow,
+} from "./dashboard-primitives";
 import {
   formatDashboardDate,
   formatFullDate,
@@ -34,6 +36,13 @@ import {
   getCarStatusConfig,
   getRecentDayStatusConfig,
 } from "./driver-home-dashboard.utils";
+import { DataTable } from "@/features/data-table";
+import type { DateRangePickerValue } from "@/features/date-range-picker";
+import { DriverTodayRevenueCard } from "@/features/driver-today-revenue-card";
+import { KpiCard } from "@/features/kpi-card";
+import { PageHeader } from "@/features/page-header/page-header";
+import { TitledBlock } from "@/features/titled-block";
+import { VerticalBarChart } from "@/features/vertical-bar-chart";
 
 const moneyFormatter = new Intl.NumberFormat("ru-RU");
 const compactMoneyFormatter = new Intl.NumberFormat("ru-RU", {
@@ -99,10 +108,10 @@ const workDayColumns: ColumnDef<DriverWorkDayRow>[] = [
     ),
   },
   {
-    accessorKey: "carOnLine",
+    accessorKey: "status",
     header: "Статус",
     cell: ({ row }) => {
-      const status = getRecentDayStatusConfig(row.original.carOnLine);
+      const status = getRecentDayStatusConfig(row.original.status);
 
       return <DashboardPill label={status.label} tone={status.tone} />;
     },
@@ -112,7 +121,8 @@ const workDayColumns: ColumnDef<DriverWorkDayRow>[] = [
     header: "Авто",
     cell: ({ row }) => (
       <span className="text-sm font-medium">
-        {row.original.car.firm} {row.original.car.model} · {row.original.car.plateNumber}
+        {row.original.car.firm} {row.original.car.model} ·{" "}
+        {row.original.car.plateNumber}
       </span>
     ),
   },
@@ -125,17 +135,11 @@ export const DriverHomeDashboard = ({
   onRangeChange,
 }: DriverHomeDashboardProps) => {
   const dashboardQuery = useDriverHomeDashboard(period);
-  const [todayRevenue, setTodayRevenue] = useState<{
-    amount?: number;
-    updatedAt?: string;
-    canEdit: boolean;
-  }>({
-    amount: undefined,
-    updatedAt: undefined,
-    canEdit: true,
-  });
+  const liveStateQuery = useDriverLiveState();
+  const workDayActions = useDriverWorkDayActions();
 
   useUnauthorizedHomeRedirect(dashboardQuery.error);
+  useUnauthorizedHomeRedirect(liveStateQuery.error);
 
   if (dashboardQuery.isLoading) {
     return (
@@ -143,7 +147,9 @@ export const DriverHomeDashboard = ({
         <PageHeader
           title="Главная"
           description={`Персональная аналитика для ${currentUser.fullName}.`}
-          actions={<TaxiparksPeriodFilter value={range} onChange={onRangeChange} />}
+          actions={
+            <TaxiparksPeriodFilter value={range} onChange={onRangeChange} />
+          }
         />
         <AnalyticsStateCard
           title="Загружаем водительский дашборд"
@@ -160,7 +166,9 @@ export const DriverHomeDashboard = ({
         <PageHeader
           title="Главная"
           description={`Персональная аналитика для ${currentUser.fullName}.`}
-          actions={<TaxiparksPeriodFilter value={range} onChange={onRangeChange} />}
+          actions={
+            <TaxiparksPeriodFilter value={range} onChange={onRangeChange} />
+          }
         />
         <AnalyticsStateCard
           title="Не удалось загрузить водительский дашборд"
@@ -176,8 +184,17 @@ export const DriverHomeDashboard = ({
   }
 
   const dashboard = dashboardQuery.data;
+  const liveState = liveStateQuery.data;
   const currentDate = formatDashboardDate(new Date());
   const carStatus = getCarStatusConfig(dashboard.driver.assignedCar?.state);
+  const liveWorkDayStatus = liveState?.workDayStatus ?? null;
+  const liveWorkDayStatusConfig = getRecentDayStatusConfig(liveWorkDayStatus);
+  const canEditRevenue =
+    liveWorkDayStatusConfig.canEditRevenue && Boolean(liveState?.workDayId);
+  const liveWorkDayId = liveState?.workDayId ?? null;
+  const liveCarLabel = liveState?.assignedCar
+    ? `${liveState.assignedCar.firm} ${liveState.assignedCar.model} · ${liveState.assignedCar.plateNumber}`
+    : "Автомобиль не назначен";
   const kpiCards = [
     {
       label: "Общая выручка",
@@ -216,12 +233,18 @@ export const DriverHomeDashboard = ({
     },
     {
       label: "Разница с парком по выручке",
-      value: formatSignedCurrency(dashboard.comparison.revenueDifferenceFromParkAverage),
-      meta: formatCurrency(dashboard.comparison.taxiParkAverageRevenuePerDriver),
+      value: formatSignedCurrency(
+        dashboard.comparison.revenueDifferenceFromParkAverage,
+      ),
+      meta: formatCurrency(
+        dashboard.comparison.taxiParkAverageRevenuePerDriver,
+      ),
     },
     {
       label: "Разница с парком по активности",
-      value: formatSignedPercent(dashboard.comparison.activityDifferenceFromParkAverage),
+      value: formatSignedPercent(
+        dashboard.comparison.activityDifferenceFromParkAverage,
+      ),
       meta: `${percentFormatter.format(dashboard.comparison.taxiParkAverageActivityRate)}% в среднем по парку`,
     },
   ];
@@ -231,7 +254,9 @@ export const DriverHomeDashboard = ({
       <PageHeader
         title="Главная"
         description="Персональная аналитика по выручке, активности и рейтингу за выбранный период."
-        actions={<TaxiparksPeriodFilter value={range} onChange={onRangeChange} />}
+        actions={
+          <TaxiparksPeriodFilter value={range} onChange={onRangeChange} />
+        }
       />
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_350px]">
@@ -255,7 +280,10 @@ export const DriverHomeDashboard = ({
               </AppText>
 
               <div className="mt-4 flex flex-wrap items-center gap-2">
-                <DashboardPill label="Статус линии не подключен" tone="muted" />
+                <DashboardPill
+                  label={liveWorkDayStatusConfig.label}
+                  tone={liveWorkDayStatusConfig.tone}
+                />
                 <DashboardPill
                   label={`Таксопарк: ${dashboard.driver.taxiParkName}`}
                   tone="default"
@@ -267,19 +295,37 @@ export const DriverHomeDashboard = ({
                 size={TEXT_SIZES_VARIABLES.xs}
                 className="text-text-secondary mt-3 font-medium"
               >
-                Кнопки смены и ручной ввод выручки пока работают как UI-заглушки.
-                Данные по текущей линии будут подключены отдельной интеграцией.
+                Выручку можно редактировать только в активной смене.
               </AppText>
 
               <div className="mt-4 flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap">
-                <Button type="button" className="min-w-[168px]" onClick={() => undefined}>
-                  Выйти на линию
-                </Button>
+                {!liveState?.isOnLine ? (
+                  <Button
+                    type="button"
+                    className="min-w-[168px]"
+                    disabled={workDayActions.isPending}
+                    onClick={() => {
+                      void workDayActions.startWorkDay();
+                    }}
+                  >
+                    Выйти на линию
+                  </Button>
+                ) : null}
                 <Button
                   type="button"
                   variant={BUTTON_VARIANTS_VARIABLES.secondary}
                   className="min-w-[168px]"
-                  onClick={() => undefined}
+                  disabled={
+                    workDayActions.isPending ||
+                    !liveWorkDayStatusConfig.canFinishShift
+                  }
+                  onClick={() => {
+                    if (!liveWorkDayId) {
+                      return;
+                    }
+
+                    void workDayActions.finishWorkDay(liveWorkDayId);
+                  }}
                 >
                   Завершить смену
                 </Button>
@@ -296,19 +342,33 @@ export const DriverHomeDashboard = ({
               <AppText className="text-text-secondary text-sm font-medium">
                 из {dashboard.rating.driversCount} водителей
               </AppText>
+              <AppText className="text-text-secondary text-sm font-medium">
+                {liveCarLabel}
+              </AppText>
             </div>
           </div>
         </CardSurface>
 
         <DriverTodayRevenueCard
-          revenue={todayRevenue.amount}
-          updatedAt={todayRevenue.updatedAt}
-          canEdit={todayRevenue.canEdit}
-          onSave={({ revenue, updatedAt }) => {
-            setTodayRevenue({
-              amount: revenue,
-              updatedAt,
-              canEdit: true,
+          revenue={liveState?.activeWorkDayRevenue}
+          updatedAt={liveState?.activeWorkDayUpdatedAt}
+          canEdit={canEditRevenue}
+          isBusy={workDayActions.isPending}
+          helperText={
+            canEditRevenue
+              ? "Выручку можно обновлять несколько раз в рамках активной смены."
+              : liveWorkDayStatus === "COMPLETED"
+                ? "Смена завершена. Редактирование выручки недоступно."
+                : "Выйдите на линию, чтобы редактировать выручку."
+          }
+          onSave={({ revenue }) => {
+            if (!liveWorkDayId) {
+              return;
+            }
+
+            void workDayActions.updateWorkDayRevenue({
+              workDayId: liveWorkDayId,
+              revenue,
             });
           }}
         />
@@ -328,7 +388,7 @@ export const DriverHomeDashboard = ({
         ))}
       </section>
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)]">
+      <section className="flex flex-col gap-4">
         <TitledBlock
           title="Назначенный автомобиль"
           subtitle="Актуальные данные по автомобилю на выбранный период"
@@ -348,7 +408,8 @@ export const DriverHomeDashboard = ({
                   </div>
                   <div>
                     <AppText className="text-text-primary text-sm font-semibold">
-                      {dashboard.driver.assignedCar.firm} {dashboard.driver.assignedCar.model}
+                      {dashboard.driver.assignedCar.firm}{" "}
+                      {dashboard.driver.assignedCar.model}
                     </AppText>
                     <AppText className="text-text-secondary text-xs font-medium">
                       {dashboard.driver.assignedCar.plateNumber}
@@ -358,8 +419,14 @@ export const DriverHomeDashboard = ({
               </div>
 
               <div className="grid min-w-0 flex-1 grid-cols-1 gap-3 md:grid-cols-2">
-                <SummaryRow label="Марка" value={dashboard.driver.assignedCar.firm} />
-                <SummaryRow label="Модель" value={dashboard.driver.assignedCar.model} />
+                <SummaryRow
+                  label="Марка"
+                  value={dashboard.driver.assignedCar.firm}
+                />
+                <SummaryRow
+                  label="Модель"
+                  value={dashboard.driver.assignedCar.model}
+                />
                 <SummaryRow
                   label="Госномер"
                   value={dashboard.driver.assignedCar.plateNumber}
@@ -383,7 +450,9 @@ export const DriverHomeDashboard = ({
           <div className="flex flex-col gap-3">
             <SummaryRow
               label="Выручка"
-              value={formatSignedCurrency(dashboard.comparison.revenueDifferenceFromParkAverage)}
+              value={formatSignedCurrency(
+                dashboard.comparison.revenueDifferenceFromParkAverage,
+              )}
             />
             <SummaryRow
               label="Средняя выручка / смена"
@@ -399,7 +468,9 @@ export const DriverHomeDashboard = ({
             />
             <SummaryRow
               label="Средняя по парку"
-              value={formatCurrency(dashboard.comparison.taxiParkAverageRevenuePerDriver)}
+              value={formatCurrency(
+                dashboard.comparison.taxiParkAverageRevenuePerDriver,
+              )}
             />
           </div>
         </TitledBlock>
@@ -409,7 +480,9 @@ export const DriverHomeDashboard = ({
         title="Динамика выручки"
         subtitle={`Период ${dashboard.period.from} - ${dashboard.period.to}`}
         topRightSlot={
-          <DashboardPill label={`${dashboard.summary.onlineDaysCount} онлайн-дней`} />
+          <DashboardPill
+            label={`${dashboard.summary.onlineDaysCount} онлайн-дней`}
+          />
         }
       >
         {dashboard.charts.revenueByDay.length > 0 ? (
@@ -433,9 +506,9 @@ export const DriverHomeDashboard = ({
         )}
       </TitledBlock>
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
+      <section className="flex flex-col gap-4">
         <TitledBlock
-          title="Последние рабочие дни"
+          title="Последние рабочие смены"
           subtitle="История смен и выручки"
         >
           {dashboard.workDays.length > 0 ? (

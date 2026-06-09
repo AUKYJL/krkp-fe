@@ -15,6 +15,23 @@ const formatEditTime = (date: Date) => {
   });
 };
 
+const formatUpdatedAt = (value?: string) => {
+  if (!value) {
+    return "—";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "—";
+  }
+
+  return `${date.toLocaleDateString("ru-RU")} ${date.toLocaleTimeString("ru-RU", {
+    hour: "2-digit",
+    minute: "2-digit",
+  })}`;
+};
+
 const sanitizeRevenueInput = (value: string) => {
   return value.replaceAll(/\D/g, "");
 };
@@ -28,6 +45,8 @@ export interface DriverTodayRevenueCardProps {
   revenue?: number;
   updatedAt?: string;
   canEdit: boolean;
+  isBusy?: boolean;
+  helperText?: string;
   className?: string;
   title?: string;
   onSave?: (payload: SavePayload) => void;
@@ -37,6 +56,8 @@ export const DriverTodayRevenueCard = ({
   revenue,
   updatedAt,
   canEdit,
+  isBusy = false,
+  helperText,
   className,
   title = "Выручка сегодня в ₽",
   onSave,
@@ -144,10 +165,16 @@ export const DriverTodayRevenueCard = ({
                   variant={BUTTON_VARIANTS_VARIABLES.secondary}
                   className="min-w-[168px]"
                   onClick={startEditing}
+                  disabled={isBusy}
                 >
                   Внести выручку
                 </Button>
               </div>
+              {helperText ? (
+                <AppText className="text-text-secondary text-xs font-medium">
+                  {helperText}
+                </AppText>
+              ) : null}
             </>
           ) : (
             <>
@@ -163,7 +190,7 @@ export const DriverTodayRevenueCard = ({
                   Последнее изменение:
                 </AppText>
                 <AppText className="text-text-primary text-sm font-semibold tabular-nums">
-                  {updatedAt ?? "—"}
+                  {formatUpdatedAt(updatedAt)}
                 </AppText>
               </div>
 
@@ -174,6 +201,7 @@ export const DriverTodayRevenueCard = ({
                     variant={BUTTON_VARIANTS_VARIABLES.secondary}
                     className="min-w-[168px]"
                     onClick={startEditing}
+                    disabled={isBusy}
                   >
                     Редактировать
                   </Button>
@@ -226,6 +254,7 @@ export const DriverTodayRevenueCard = ({
               variant={BUTTON_VARIANTS_VARIABLES.secondary}
               className="flex-1"
               onClick={handleCancel}
+              disabled={isBusy}
             >
               Отмена
             </Button>

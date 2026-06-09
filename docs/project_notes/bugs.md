@@ -40,3 +40,7 @@ Use bullet lists for simplicity. Older entries can be manually removed when they
 - Date entries so you know how recent the issue is
 - Periodically clean out very old entries (6+ months)
 
+### 2026-06-08 - DriverHomeDashboard hook-order crash on initial load
+- **Issue**: Home dashboard intermittently crashed with a React hook-order mismatch when the page rendered loading/error states before reaching `useMemo`.
+- **Solution**: Replaced the conditional `useMemo` with a plain derived `todayWorkDay` lookup after the dashboard data is available.
+- **Prevention**: Keep hooks above early returns or avoid hooks for simple derived values in conditional render paths.

@@ -1,5 +1,5 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
 import type { DateRangePickerValue } from "@/features/date-range-picker";
@@ -7,6 +7,7 @@ import { clearAuthToken, getApiErrorMessage } from "@/shared/api/auth";
 import { fetchClient } from "@/shared/api/apiInstance";
 import type { components } from "@/shared/api/apiTypes";
 import { formatDate } from "@/shared/lib/format-date";
+import type { WorkDayStatus } from "@/shared/lib/work-day-status";
 
 type DirectorDashboardResponse =
   components["schemas"]["GetDirectorDashboardResponseDto"];
@@ -15,6 +16,19 @@ type DriverDashboardResponse =
 type TaxiParkAnalyticsItem =
   components["schemas"]["TaxiParkAnalyticsItemDto"];
 type DriverAssignedCar = components["schemas"]["DriverAnalyticsAssignedCarDto"];
+type DriverSelfState = {
+  driverId?: string;
+  fullName?: string;
+  taxiParkId?: string;
+  taxiParkName?: string;
+  assignedCar?: DriverAssignedCar | null;
+  currentWorkDayId?: string | null;
+  activeWorkDayStatus?: WorkDayStatus | null;
+  activeWorkDayRevenue?: number;
+  activeWorkDayUpdatedAt?: string;
+  hasActiveWorkDay: boolean;
+  isOnLine: boolean;
+};
 
 const DEFAULT_PERIOD_DAYS = 30;
 
@@ -57,11 +71,26 @@ export type DriverHomeDashboardViewModel = {
   workDays: DriverDashboardResponse["workDays"];
 };
 
+export type DriverLiveWorkDayState = {
+  driverId?: string;
+  taxiParkId?: string;
+  taxiParkName?: string;
+  fullName?: string;
+  assignedCar: DriverAssignedCar | null;
+  workDayId: string | null;
+  workDayStatus: WorkDayStatus | null;
+  activeWorkDayRevenue?: number;
+  activeWorkDayUpdatedAt?: string;
+  isOnLine: boolean;
+  hasActiveWorkDay: boolean;
+};
+
 const homeQueryKeys = {
   directorDashboard: (period: HomeAnalyticsPeriodState) =>
     ["home", "director-dashboard", period.from, period.to] as const,
   driverDashboard: (period: HomeAnalyticsPeriodState) =>
     ["home", "driver-dashboard", period.from, period.to] as const,
+  driverLiveState: ["home", "driver-live-state"] as const,
 };
 
 const getResponseData = async <T,>(
@@ -163,6 +192,182 @@ const getDriverHomeDashboard = async (period: HomeAnalyticsPeriodState) => {
   return data as DriverHomeDashboardViewModel;
 };
 
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === "object" && value !== null;
+};
+
+const pickString = (value: unknown, keys: string[]) => {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  for (const key of keys) {
+    const candidate = value[key];
+
+    if (typeof candidate === "string" && candidate.trim().length > 0) {
+      return candidate;
+    }
+  }
+
+  return undefined;
+};
+
+const pickNumber = (value: unknown, keys: string[]) => {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  for (const key of keys) {
+    const candidate = value[key];
+
+    if (typeof candidate === "number" && Number.isFinite(candidate)) {
+      return candidate;
+    }
+  }
+
+  return undefined;
+};
+
+const parseNumberish = (value: unknown) => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const normalizedValue = value.trim();
+
+  if (normalizedValue.length === 0) {
+    return undefined;
+  }
+
+  const parsedValue = Number(normalizedValue);
+
+  return Number.isFinite(parsedValue) ? parsedValue : undefined;
+};
+
+const pickNestedValue = (value: unknown, path: string[]) => {
+  let current: unknown = value;
+
+  for (const key of path) {
+    if (!isRecord(current)) {
+      return undefined;
+    }
+
+    current = current[key];
+  }
+
+  return current;
+};
+
+const normalizeDriverSelfState = (
+  response: unknown,
+): DriverSelfState => {
+  const record = isRecord(response) ? response : undefined;
+  const activeWorkDay = record && isRecord(record.activeWorkDay) ? record.activeWorkDay : undefined;
+  const assignedCar =
+    record && isRecord(record.assignedCar)
+      ? (record.assignedCar as DriverAssignedCar)
+      : null;
+  const taxiPark = record && isRecord(record.taxiPark) ? record.taxiPark : undefined;
+  const workDayId =
+    pickString(response, [
+      "workDayId",
+      "currentWorkDayId",
+      "activeWorkDayId",
+      "workDay.id",
+      "currentWorkDay.id",
+    ]) ??
+    pickString(activeWorkDay, ["workDayId", "id"]) ??
+    pickString(pickNestedValue(response, ["workDay"]), ["id"]) ??
+    null;
+  const activeWorkDayStatus = pickString(activeWorkDay, ["status"]) as
+    | WorkDayStatus
+    | undefined;
+  const activeWorkDayRevenue =
+    parseNumberish(activeWorkDay?.revenue) ??
+    pickNumber(response, ["activeWorkDayRevenue"]);
+  const activeWorkDayUpdatedAt = pickString(activeWorkDay, ["updatedAt"]);
+  const isOnLine = activeWorkDayStatus === "ACTIVE";
+
+  return {
+    driverId: pickString(response, ["driverId", "id"]),
+    fullName: pickString(response, ["fullName", "driver.fullName"]),
+    taxiParkId:
+      pickString(response, ["taxiParkId", "taxiPark.id"]) ??
+      pickString(taxiPark, ["id", "taxiParkId"]),
+    taxiParkName:
+      pickString(response, ["taxiParkName", "taxiPark.name"]) ??
+      pickString(taxiPark, ["name"]),
+    assignedCar,
+    currentWorkDayId: workDayId,
+    activeWorkDayRevenue,
+    activeWorkDayUpdatedAt,
+    activeWorkDayStatus,
+    hasActiveWorkDay: Boolean(workDayId) || Boolean(activeWorkDay),
+    isOnLine,
+  };
+};
+
+const getDriverLiveState = async (): Promise<DriverLiveWorkDayState> => {
+  const driverProfile = await getResponseData(
+    fetchClient.GET("/api/drivers/me"),
+  );
+  const normalizedProfile = normalizeDriverSelfState(driverProfile);
+  const workDayId = normalizedProfile.currentWorkDayId;
+
+  return {
+    driverId: normalizedProfile.driverId,
+    taxiParkId: normalizedProfile.taxiParkId,
+    taxiParkName: normalizedProfile.taxiParkName,
+    fullName: normalizedProfile.fullName,
+    assignedCar: normalizedProfile.assignedCar ?? null,
+    workDayId: workDayId ?? null,
+    workDayStatus: normalizedProfile.activeWorkDayStatus ?? null,
+    activeWorkDayRevenue: normalizedProfile.activeWorkDayRevenue,
+    activeWorkDayUpdatedAt: normalizedProfile.activeWorkDayUpdatedAt,
+    isOnLine: normalizedProfile.isOnLine,
+    hasActiveWorkDay: normalizedProfile.hasActiveWorkDay,
+  };
+};
+
+const startWorkDay = async () => {
+  await getResponseData(
+    fetchClient.POST("/api/work-days", {
+      body: {},
+    }) as Promise<{ data?: unknown; error?: unknown }>,
+  );
+};
+
+const updateWorkDayRevenue = async ({
+  workDayId,
+  revenue,
+}: {
+  workDayId: string;
+  revenue: number;
+}) => {
+  await getResponseData(
+    fetchClient.PATCH("/api/work-days/{id}", {
+      params: {
+        path: { id: workDayId },
+      },
+      body: { revenue },
+    }) as Promise<{ data?: unknown; error?: unknown }>,
+  );
+};
+
+const finishWorkDay = async (workDayId: string) => {
+  await getResponseData(
+    fetchClient.POST("/api/work-days/{id}/finish", {
+      params: {
+        path: { id: workDayId },
+      },
+    }) as Promise<{ data?: unknown; error?: unknown }>,
+  );
+};
+
 const isUnauthorizedError = (error: unknown) => {
   return (
     error instanceof Error &&
@@ -216,6 +421,73 @@ export const useDriverHomeDashboard = (period: HomeAnalyticsPeriodState) => {
   return {
     ...query,
     errorMessage: getApiErrorMessage(query.error),
+  };
+};
+
+export const useDriverLiveState = () => {
+  const query = useQuery({
+    queryKey: homeQueryKeys.driverLiveState,
+    queryFn: getDriverLiveState,
+    retry: false,
+  });
+
+  return {
+    ...query,
+    errorMessage: getApiErrorMessage(query.error),
+  };
+};
+
+export const useDriverWorkDayActions = () => {
+  const queryClient = useQueryClient();
+
+  const startMutation = useMutation({
+    mutationFn: startWorkDay,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: homeQueryKeys.driverLiveState,
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["home", "driver-dashboard"],
+      });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: updateWorkDayRevenue,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: homeQueryKeys.driverLiveState,
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["home", "driver-dashboard"],
+      });
+    },
+  });
+
+  const finishMutation = useMutation({
+    mutationFn: finishWorkDay,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: homeQueryKeys.driverLiveState,
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["home", "driver-dashboard"],
+      });
+    },
+  });
+
+  return {
+    startWorkDay: startMutation.mutateAsync,
+    updateWorkDayRevenue: updateMutation.mutateAsync,
+    finishWorkDay: finishMutation.mutateAsync,
+    isPending:
+      startMutation.isPending ||
+      updateMutation.isPending ||
+      finishMutation.isPending,
+    errorMessage:
+      getApiErrorMessage(startMutation.error) ||
+      getApiErrorMessage(updateMutation.error) ||
+      getApiErrorMessage(finishMutation.error),
   };
 };
 

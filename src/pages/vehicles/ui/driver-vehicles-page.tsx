@@ -19,6 +19,7 @@ import {
   useVehicleAnalyticsDetail,
   useVehicleAnalyticsPeriod,
 } from "@/pages/vehicles/model";
+import { getWorkDayStatusConfig } from "@/shared/lib/work-day-status";
 
 type DriverVehiclesPageProps = {
   currentUser: CurrentUser;
@@ -28,7 +29,7 @@ type WorkDayRow = {
   id: string;
   date: string;
   revenue: number;
-  carOnLine: boolean;
+  status: "ACTIVE" | "COMPLETED" | "DOWNTIME";
   driverName: string;
 };
 
@@ -88,14 +89,9 @@ const workDayColumns: ColumnDef<WorkDayRow>[] = [
     ),
   },
   {
-    accessorKey: "carOnLine",
+    accessorKey: "status",
     header: "Статус",
-    cell: ({ row }) => (
-      <StatusBadge
-        label={row.original.carOnLine ? "На линии" : "Простой"}
-        tone={row.original.carOnLine ? "default" : "muted"}
-      />
-    ),
+    cell: ({ row }) => <StatusBadge {...getWorkDayStatusConfig(row.original.status)} />,
   },
   {
     accessorKey: "driverName",
@@ -142,7 +138,7 @@ export const DriverVehiclesPage = ({
       id: workDay.workDayId,
       date: workDay.date,
       revenue: workDay.revenue,
-      carOnLine: workDay.carOnLine,
+      status: workDay.status,
       driverName: workDay.driver.fullName,
     })) ?? [];
 

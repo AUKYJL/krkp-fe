@@ -1,4 +1,5 @@
 import type { components } from "@/shared/api/apiTypes";
+import { getWorkDayStatusConfig } from "@/shared/lib/work-day-status";
 
 type AssignedCarState = components["schemas"]["DriverAnalyticsAssignedCarDto"]["state"];
 
@@ -60,16 +61,4 @@ export const getCarStatusConfig = (status?: AssignedCarState | null) => {
   };
 };
 
-export const getRecentDayStatusConfig = (carOnLine: boolean) => {
-  if (carOnLine) {
-    return {
-      label: "На линии",
-      tone: "default" as const,
-    };
-  }
-
-  return {
-    label: "Простой",
-    tone: "muted" as const,
-  };
-};
+export const getRecentDayStatusConfig = getWorkDayStatusConfig;
