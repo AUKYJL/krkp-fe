@@ -1,5 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
+import { Link } from "@tanstack/react-router";
+import { Plus } from "lucide-react";
 
 import { DataTable } from "@/features/data-table";
 import { KpiCard } from "@/features/kpi-card";
@@ -13,6 +15,7 @@ import {
   useVehicleAnalyticsPeriod,
 } from "@/pages/vehicles/model";
 import { AppText } from "@/shared/ui/app-text";
+import { Button } from "@/shared/ui/button";
 
 import { TAXIPARKS_SIDEBAR_NAV_BY_ID } from "@/features/taxiparks-sidebar";
 import { AnalyticsStateCard, StatusBadge, TaxiparksPeriodFilter } from "@/pages/taxiparks/ui";
@@ -79,7 +82,17 @@ export const DirectorVehiclesPage = () => {
           { label: "Главная", href: "/" },
           { label: TAXIPARKS_SIDEBAR_NAV_BY_ID.vehicles.label },
         ]}
-        actions={<TaxiparksPeriodFilter value={range} onChange={onRangeChange} />}
+        actions={
+          <>
+            <TaxiparksPeriodFilter value={range} onChange={onRangeChange} />
+            <Button asChild>
+              <Link to="/vehicles/create">
+                <Plus className="size-4" />
+                Добавить авто
+              </Link>
+            </Button>
+          </>
+        }
       />
 
       {catalogQuery.isLoading ? (

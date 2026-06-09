@@ -235,6 +235,27 @@ paths:
       security: *a4
       summary: Аналитика по конкретному таксопарку за период
       tags: *a5
+  /api/taxi-parks/{taxiParkId}/drivers:
+    get:
+      operationId: TaxiParksController_getTaxiParkDrivers
+      parameters:
+        - name: taxiParkId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TaxiParkDriverItemDto"
+      security: *a4
+      summary: Список водителей таксопарка
+      tags: *a5
   /api/taxi-parks/{taxiParkId}/cars/brands/analytics:
     get:
       operationId: TaxiParksController_getCarBrandsAnalytics
@@ -713,6 +734,12 @@ paths:
       responses:
         "200":
           description: ""
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CarListItemDto"
       security: *a8
       summary: Список авто таксопарка
       tags: *a9
@@ -801,6 +828,27 @@ paths:
       security: *a8
       summary: Обновить состояние авто
       tags: *a9
+  /api/cars/{carId}/assign-driver:
+    post:
+      operationId: CarsController_assignDriver
+      parameters:
+        - name: carId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignDriverDto"
+      responses:
+        "201":
+          description: ""
+      security: *a8
+      summary: Назначить водителя на авто
+      tags: *a9
   /api/drivers:
     get:
       operationId: DriversController_list
@@ -808,6 +856,12 @@ paths:
       responses:
         "200":
           description: ""
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DriverListItemDto"
       security: &a10
         - access-token: []
       summary: Список водителей
@@ -1950,6 +2004,26 @@ components:
         - topCars
         - topBrands
         - problemCars
+    TaxiParkDriverItemDto:
+      type: object
+      properties:
+        driverId:
+          type: string
+          example: 4af49d61-b9e2-48d9-a868-163d5379d73f
+        userId:
+          type: string
+          example: 6ab6c1a0-af7c-4af8-bf19-c8c3cd1dbdc5
+        fullName:
+          type: string
+          example: Иван Иванов
+        email:
+          type: string
+          example: driver@example.com
+      required:
+        - driverId
+        - userId
+        - fullName
+        - email
     CarBrandsAnalyticsTaxiParkDto:
       type: object
       properties:
@@ -2357,12 +2431,6 @@ components:
         carOnLine:
           type: boolean
           example: true
-        status:
-          type: string
-          enum: &a18
-            - ACTIVE
-            - COMPLETED
-            - DOWNTIME
         driver:
           $ref: "#/components/schemas/CarAnalyticsWorkDayDriverDto"
       required:
@@ -2370,7 +2438,6 @@ components:
         - date
         - revenue
         - carOnLine
-        - status
         - driver
     GetCarAnalyticsResponseDto:
       type: object
@@ -2606,9 +2673,6 @@ components:
         carOnLine:
           type: boolean
           example: true
-        status:
-          type: string
-          enum: *a18
         car:
           $ref: "#/components/schemas/DriverAnalyticsWorkDayCarDto"
       required:
@@ -2616,7 +2680,6 @@ components:
         - date
         - revenue
         - carOnLine
-        - status
         - car
     GetDriverAnalyticsResponseDto:
       type: object
@@ -3026,6 +3089,55 @@ components:
         - model
         - type
         - plateNumber
+    CarListAssignedDriverDto:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        fullName:
+          type: string
+        email:
+          type: string
+      required:
+        - id
+        - userId
+        - fullName
+        - email
+    CarListItemDto:
+      type: object
+      properties:
+        id:
+          type: string
+        firm:
+          type: string
+        model:
+          type: string
+        type:
+          type: string
+        plateNumber:
+          type: string
+        state:
+          type: string
+          enum:
+            - WORKING
+            - EMERGENCY
+            - REPAIR
+        taxiParkId:
+          type: string
+        assignedDriver:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/CarListAssignedDriverDto"
+      required:
+        - id
+        - firm
+        - model
+        - type
+        - plateNumber
+        - state
+        - taxiParkId
     UpdateCarDto:
       type: object
       properties:
@@ -3057,6 +3169,68 @@ components:
           example: REPAIR
       required:
         - state
+    AssignDriverDto:
+      type: object
+      properties:
+        driverId:
+          type: object
+          example: driver-uuid
+          nullable: true
+      required:
+        - driverId
+    DriverListAssignedCarDto:
+      type: object
+      properties:
+        id:
+          type: string
+        firm:
+          type: string
+        model:
+          type: string
+        type:
+          type: string
+        plateNumber:
+          type: string
+        state:
+          type: string
+          enum:
+            - WORKING
+            - EMERGENCY
+            - REPAIR
+        taxiParkId:
+          type: object
+          nullable: true
+      required:
+        - id
+        - firm
+        - model
+        - type
+        - plateNumber
+        - state
+    DriverListItemDto:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        fullName:
+          type: string
+        email:
+          type: string
+        taxiParkId:
+          type: object
+          nullable: true
+        assignedCar:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/DriverListAssignedCarDto"
+      required:
+        - id
+        - userId
+        - fullName
+        - email
+        - assignedCar
     DriverSearchItemDto:
       type: object
       properties:
@@ -3229,8 +3403,9 @@ components:
       type: object
       properties:
         carId:
-          type: string
+          type: object
           example: car-uuid
+          nullable: true
       required:
         - carId
     CreateDriverInvitationDto:

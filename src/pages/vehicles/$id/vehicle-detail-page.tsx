@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowLeft, CarFront } from "lucide-react";
 
@@ -168,14 +168,26 @@ export const VehicleDetailPage = ({ carId }: VehicleDetailPageProps) => {
           { label: "Автомобили", href: "/vehicles" },
           { label: analytics?.car.plateNumber ?? vehicleCatalogItem?.plateNumber ?? carId },
         ]}
-        actions={
-          <>
-            <TaxiparksPeriodFilter value={range} onChange={onRangeChange} />
-            <Button
-              type="button"
-              variant={BUTTON_VARIANTS_VARIABLES.secondary}
-              onClick={() => navigate({ to: "/vehicles" })}
-            >
+    actions={
+      <>
+        <TaxiparksPeriodFilter value={range} onChange={onRangeChange} />
+        <Button
+          type="button"
+          variant={BUTTON_VARIANTS_VARIABLES.secondary}
+          asChild
+        >
+          <Link
+            to="/vehicles/$id/assign-driver"
+            params={{ id: carId }}
+          >
+            Назначить водителя
+          </Link>
+        </Button>
+        <Button
+          type="button"
+          variant={BUTTON_VARIANTS_VARIABLES.secondary}
+          onClick={() => navigate({ to: "/vehicles" })}
+        >
               <ArrowLeft className="size-4" />
               Назад
             </Button>

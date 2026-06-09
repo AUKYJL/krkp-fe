@@ -88,3 +88,13 @@ Use bullet lists for simplicity. This is not a replacement for your ticket syste
 - **Status**: Completed
 - **Description**: Updated the `/api/drivers/me` live-state normalization to accept `activeWorkDay.revenue` as either a number or a numeric string so the driver revenue card no longer falls back to the empty state.
 - **URL**: N/A
+
+### 2026-06-09 - UI-vehicles-create-assign-flow: Add create-and-assign flow for vehicles
+- **Status**: Completed
+- **Description**: Added the `Добавить авто` CTA to the vehicles header, kept the director catalog on `DataTable`, and extended `/vehicles/create` to create a car in the current taxi park, resolve it by plate number, and optionally assign a free driver.
+- **URL**: N/A
+
+### 2026-06-09 - UI-vehicles-assign-driver: Add dedicated vehicle driver assignment page
+- **Status**: Completed
+- **Description**: Added `/vehicles/:id/assign-driver`, wired a `Назначить водителя` action from the vehicle detail header, loaded taxi-park drivers for selection, and saved the assignment through `POST /api/cars/{carId}/assign-driver` with `null` support for unassignment.
+- **URL**: N/A

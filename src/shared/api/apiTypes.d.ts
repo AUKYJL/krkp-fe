@@ -158,6 +158,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/taxi-parks/{taxiParkId}/drivers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Список водителей таксопарка */
+        get: operations["TaxiParksController_getTaxiParkDrivers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/taxi-parks/{taxiParkId}/cars/brands/analytics": {
         parameters: {
             query?: never;
@@ -467,6 +484,23 @@ export interface paths {
         head?: never;
         /** Обновить состояние авто */
         patch: operations["CarsController_updateState"];
+        trace?: never;
+    };
+    "/api/cars/{carId}/assign-driver": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Назначить водителя на авто */
+        post: operations["CarsController_assignDriver"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/drivers": {
@@ -1120,6 +1154,16 @@ export interface components {
             topBrands: components["schemas"]["TopBrandAnalyticsDto"][];
             problemCars: components["schemas"]["ProblemCarAnalyticsDto"][];
         };
+        TaxiParkDriverItemDto: {
+            /** @example 4af49d61-b9e2-48d9-a868-163d5379d73f */
+            driverId: string;
+            /** @example 6ab6c1a0-af7c-4af8-bf19-c8c3cd1dbdc5 */
+            userId: string;
+            /** @example Иван Иванов */
+            fullName: string;
+            /** @example driver@example.com */
+            email: string;
+        };
         CarBrandsAnalyticsTaxiParkDto: {
             taxiParkId: string;
             name: string;
@@ -1302,8 +1346,6 @@ export interface components {
             revenue: number;
             /** @example true */
             carOnLine: boolean;
-            /** @enum {string} */
-            status: "ACTIVE" | "COMPLETED" | "DOWNTIME";
             driver: components["schemas"]["CarAnalyticsWorkDayDriverDto"];
         };
         GetCarAnalyticsResponseDto: {
@@ -1409,8 +1451,6 @@ export interface components {
             revenue: number;
             /** @example true */
             carOnLine: boolean;
-            /** @enum {string} */
-            status: "ACTIVE" | "COMPLETED" | "DOWNTIME";
             car: components["schemas"]["DriverAnalyticsWorkDayCarDto"];
         };
         GetDriverAnalyticsResponseDto: {
@@ -1580,6 +1620,23 @@ export interface components {
              */
             state?: "WORKING" | "EMERGENCY" | "REPAIR";
         };
+        CarListAssignedDriverDto: {
+            id: string;
+            userId: string;
+            fullName: string;
+            email: string;
+        };
+        CarListItemDto: {
+            id: string;
+            firm: string;
+            model: string;
+            type: string;
+            plateNumber: string;
+            /** @enum {string} */
+            state: "WORKING" | "EMERGENCY" | "REPAIR";
+            taxiParkId: string;
+            assignedDriver?: components["schemas"]["CarListAssignedDriverDto"] | null;
+        };
         UpdateCarDto: {
             /** @example Toyota */
             firm?: string;
@@ -1601,6 +1658,28 @@ export interface components {
              * @enum {string}
              */
             state: "WORKING" | "EMERGENCY" | "REPAIR";
+        };
+        AssignDriverDto: {
+            /** @example driver-uuid */
+            driverId: Record<string, never> | null;
+        };
+        DriverListAssignedCarDto: {
+            id: string;
+            firm: string;
+            model: string;
+            type: string;
+            plateNumber: string;
+            /** @enum {string} */
+            state: "WORKING" | "EMERGENCY" | "REPAIR";
+            taxiParkId?: Record<string, never> | null;
+        };
+        DriverListItemDto: {
+            id: string;
+            userId: string;
+            fullName: string;
+            email: string;
+            taxiParkId?: Record<string, never> | null;
+            assignedCar: components["schemas"]["DriverListAssignedCarDto"] | null;
         };
         DriverSearchItemDto: {
             /** @example 4af49d61-b9e2-48d9-a868-163d5379d73f */
@@ -1672,7 +1751,7 @@ export interface components {
         };
         AssignCarDto: {
             /** @example car-uuid */
-            carId: string;
+            carId: Record<string, never> | null;
         };
         CreateDriverInvitationDto: {
             /** @example driver-uuid */
@@ -1955,6 +2034,27 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GetTaxiParkAnalyticsResponseDto"];
+                };
+            };
+        };
+    };
+    TaxiParksController_getTaxiParkDrivers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                taxiParkId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaxiParkDriverItemDto"][];
                 };
             };
         };
@@ -2346,7 +2446,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["CarListItemDto"][];
+                };
             };
         };
     };
@@ -2477,6 +2579,29 @@ export interface operations {
             };
         };
     };
+    CarsController_assignDriver: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                carId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignDriverDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     DriversController_list: {
         parameters: {
             query?: never;
@@ -2490,7 +2615,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["DriverListItemDto"][];
+                };
             };
         };
     };

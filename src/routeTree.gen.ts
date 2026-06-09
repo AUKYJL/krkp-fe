@@ -33,6 +33,7 @@ import { Route as AppDriversIdRouteImport } from './routes/_app/drivers/$id'
 import { Route as AppVehiclesIdIndexRouteImport } from './routes/_app/vehicles/$id/index'
 import { Route as AppDriversIdIndexRouteImport } from './routes/_app/drivers/$id/index'
 import { Route as AppVehiclesIdEditRouteImport } from './routes/_app/vehicles/$id/edit'
+import { Route as AppVehiclesIdAssignDriverRouteImport } from './routes/_app/vehicles/$id/assign-driver'
 import { Route as AppDriversIdEditRouteImport } from './routes/_app/drivers/$id/edit'
 
 const AuthRoute = AuthRouteImport.update({
@@ -154,6 +155,12 @@ const AppVehiclesIdEditRoute = AppVehiclesIdEditRouteImport.update({
   path: '/edit',
   getParentRoute: () => AppVehiclesIdRoute,
 } as any)
+const AppVehiclesIdAssignDriverRoute =
+  AppVehiclesIdAssignDriverRouteImport.update({
+    id: '/assign-driver',
+    path: '/assign-driver',
+    getParentRoute: () => AppVehiclesIdRoute,
+  } as any)
 const AppDriversIdEditRoute = AppDriversIdEditRouteImport.update({
   id: '/edit',
   path: '/edit',
@@ -182,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/taxiparks/': typeof AppTaxiparksIndexRoute
   '/vehicles/': typeof AppVehiclesIndexRoute
   '/drivers/$id/edit': typeof AppDriversIdEditRoute
+  '/vehicles/$id/assign-driver': typeof AppVehiclesIdAssignDriverRoute
   '/vehicles/$id/edit': typeof AppVehiclesIdEditRoute
   '/drivers/$id/': typeof AppDriversIdIndexRoute
   '/vehicles/$id/': typeof AppVehiclesIdIndexRoute
@@ -202,6 +210,7 @@ export interface FileRoutesByTo {
   '/taxiparks': typeof AppTaxiparksIndexRoute
   '/vehicles': typeof AppVehiclesIndexRoute
   '/drivers/$id/edit': typeof AppDriversIdEditRoute
+  '/vehicles/$id/assign-driver': typeof AppVehiclesIdAssignDriverRoute
   '/vehicles/$id/edit': typeof AppVehiclesIdEditRoute
   '/drivers/$id': typeof AppDriversIdIndexRoute
   '/vehicles/$id': typeof AppVehiclesIdIndexRoute
@@ -230,6 +239,7 @@ export interface FileRoutesById {
   '/_app/taxiparks/': typeof AppTaxiparksIndexRoute
   '/_app/vehicles/': typeof AppVehiclesIndexRoute
   '/_app/drivers/$id/edit': typeof AppDriversIdEditRoute
+  '/_app/vehicles/$id/assign-driver': typeof AppVehiclesIdAssignDriverRoute
   '/_app/vehicles/$id/edit': typeof AppVehiclesIdEditRoute
   '/_app/drivers/$id/': typeof AppDriversIdIndexRoute
   '/_app/vehicles/$id/': typeof AppVehiclesIdIndexRoute
@@ -258,6 +268,7 @@ export interface FileRouteTypes {
     | '/taxiparks/'
     | '/vehicles/'
     | '/drivers/$id/edit'
+    | '/vehicles/$id/assign-driver'
     | '/vehicles/$id/edit'
     | '/drivers/$id/'
     | '/vehicles/$id/'
@@ -278,6 +289,7 @@ export interface FileRouteTypes {
     | '/taxiparks'
     | '/vehicles'
     | '/drivers/$id/edit'
+    | '/vehicles/$id/assign-driver'
     | '/vehicles/$id/edit'
     | '/drivers/$id'
     | '/vehicles/$id'
@@ -305,6 +317,7 @@ export interface FileRouteTypes {
     | '/_app/taxiparks/'
     | '/_app/vehicles/'
     | '/_app/drivers/$id/edit'
+    | '/_app/vehicles/$id/assign-driver'
     | '/_app/vehicles/$id/edit'
     | '/_app/drivers/$id/'
     | '/_app/vehicles/$id/'
@@ -485,6 +498,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppVehiclesIdEditRouteImport
       parentRoute: typeof AppVehiclesIdRoute
     }
+    '/_app/vehicles/$id/assign-driver': {
+      id: '/_app/vehicles/$id/assign-driver'
+      path: '/assign-driver'
+      fullPath: '/vehicles/$id/assign-driver'
+      preLoaderRoute: typeof AppVehiclesIdAssignDriverRouteImport
+      parentRoute: typeof AppVehiclesIdRoute
+    }
     '/_app/drivers/$id/edit': {
       id: '/_app/drivers/$id/edit'
       path: '/edit'
@@ -540,11 +560,13 @@ const AppTaxiparksRouteWithChildren = AppTaxiparksRoute._addFileChildren(
 )
 
 interface AppVehiclesIdRouteChildren {
+  AppVehiclesIdAssignDriverRoute: typeof AppVehiclesIdAssignDriverRoute
   AppVehiclesIdEditRoute: typeof AppVehiclesIdEditRoute
   AppVehiclesIdIndexRoute: typeof AppVehiclesIdIndexRoute
 }
 
 const AppVehiclesIdRouteChildren: AppVehiclesIdRouteChildren = {
+  AppVehiclesIdAssignDriverRoute: AppVehiclesIdAssignDriverRoute,
   AppVehiclesIdEditRoute: AppVehiclesIdEditRoute,
   AppVehiclesIdIndexRoute: AppVehiclesIdIndexRoute,
 }

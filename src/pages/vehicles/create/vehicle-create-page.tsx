@@ -1,22 +1,22 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Check } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useEffect, useRef } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
-import {
-  VEHICLE_STATUS_OPTIONS,
-} from "../consts";
-
-import { getApiErrorMessage } from "@/shared/api/auth";
+import { $api } from "@/shared/api/apiInstance";
 import { fetchClient } from "@/shared/api/apiInstance";
 import type { components } from "@/shared/api/apiTypes";
+import { getApiErrorMessage } from "@/shared/api/auth";
 import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
 import { CardSurface } from "@/shared/ui/card-surface";
-import { Spinner } from "@/shared/ui/spinner";
 import { FieldGroup } from "@/shared/ui/field";
-import { FormInput, FormSelect } from "@/shared/ui/form";
+import { FormCombobox, FormInput, FormSelect } from "@/shared/ui/form";
+import { Spinner } from "@/shared/ui/spinner";
+
+import { VEHICLE_STATUS_OPTIONS } from "../consts";
 
 import { PageHeader } from "@/features/page-header/page-header";
 
@@ -33,6 +33,7 @@ const VEHICLE_CREATE_STATE_OPTIONS = VEHICLE_STATUS_OPTIONS.map((option) => {
 });
 
 const vehicleCreateSchema = z.object({
+  taxiParkId: z.string().trim().min(1, "Выберите таксопарк"),
   firm: z.string().trim().min(1, "Укажите марку"),
   model: z.string().trim().min(1, "Укажите модель"),
   type: z.string().trim().min(1, "Укажите тип"),
@@ -40,16 +41,23 @@ const vehicleCreateSchema = z.object({
   state: z.enum(["WORKING", "EMERGENCY", "REPAIR"], {
     error: "Выберите состояние",
   }),
+  driverId: z.string().trim().optional().or(z.literal("")),
 });
 
 export type VehicleCreateFormValues = z.infer<typeof vehicleCreateSchema>;
 
-type TaxiParkContext = {
+type TaxiParkOption = {
   taxiParkId: string;
-  taxiParkName?: string;
+  taxiParkName: string;
+};
+
+type CarOption = {
+  carId: string;
+  plateNumber: string;
 };
 
 type CreateCarDto = components["schemas"]["CreateCarDto"];
+type AssignCarDto = components["schemas"]["AssignCarDto"];
 
 const getResponseData = async <T,>(
   request: Promise<{ data?: T; error?: unknown }>,
@@ -65,6 +73,28 @@ const getResponseData = async <T,>(
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === "object" && value !== null;
+};
+
+const extractArray = (value: unknown) => {
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  if (isRecord(value)) {
+    if (Array.isArray(value.items)) {
+      return value.items;
+    }
+
+    if (Array.isArray(value.data)) {
+      return value.data;
+    }
+
+    if (Array.isArray(value.rows)) {
+      return value.rows;
+    }
+  }
+
+  return [];
 };
 
 const pickString = (value: unknown, keys: string[]) => {
@@ -83,22 +113,55 @@ const pickString = (value: unknown, keys: string[]) => {
   return undefined;
 };
 
-const getTaxiParkContext = async (): Promise<TaxiParkContext | null> => {
+const normalizeTaxiParks = (value: unknown): TaxiParkOption[] => {
+  return extractArray(value).flatMap((item): TaxiParkOption[] => {
+    const taxiParkId = pickString(item, ["taxiParkId", "id"]);
+    const taxiParkName = pickString(item, ["name", "taxiParkName"]);
+
+    if (!taxiParkId || !taxiParkName) {
+      return [];
+    }
+
+    return [
+      {
+        taxiParkId,
+        taxiParkName,
+      },
+    ];
+  });
+};
+
+const normalizePlateNumber = (value: string) =>
+  value.replace(/\s+/g, "").trim().toUpperCase();
+
+const getTaxiParkCars = async (taxiParkId: string) => {
   const data = await getResponseData(
-    fetchClient.GET("/api/taxi-parks/me"),
+    fetchClient.GET("/api/taxi-parks/{taxiParkId}/cars", {
+      params: { path: { taxiParkId } },
+    }) as Promise<{ data?: unknown; error?: unknown }>,
   );
 
-  const taxiParkId =
-    pickString(data, ["taxiParkId", "id", "taxiPark.id", "park.id"]) ?? null;
+  return extractArray(data)
+    .map((item) => {
+      const carId =
+        pickString(item, ["carId", "id", "car.id", "vehicle.id"]) ?? undefined;
+      const plateNumber =
+        pickString(item, [
+          "plateNumber",
+          "car.plateNumber",
+          "vehicle.plateNumber",
+        ]) ?? undefined;
 
-  if (!taxiParkId) {
-    return null;
-  }
+      if (!carId || !plateNumber) {
+        return null;
+      }
 
-  return {
-    taxiParkId,
-    taxiParkName: pickString(data, ["name", "taxiParkName", "taxiPark.name"]),
-  };
+      return {
+        carId,
+        plateNumber,
+      };
+    })
+    .filter((item): item is CarOption => item != null);
 };
 
 const createVehicle = async ({
@@ -118,50 +181,128 @@ const createVehicle = async ({
   );
 };
 
+const assignCarToDriver = async ({
+  driverId,
+  carId,
+}: {
+  driverId: string;
+  carId: string;
+}) => {
+  await getResponseData(
+    fetchClient.POST("/api/drivers/{driverId}/assign-car", {
+      params: {
+        path: { driverId },
+      },
+      body: {
+        carId,
+      } satisfies AssignCarDto,
+    }) as Promise<{ data?: unknown; error?: unknown }>,
+  );
+};
+
 export const VehicleCreatePage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const taxiParkQuery = useQuery({
-    queryKey: ["vehicles", "create", "taxi-park"] as const,
-    queryFn: getTaxiParkContext,
+  const taxiParkQuery = $api.useQuery("get", "/api/taxi-parks", undefined, {
     retry: false,
+    placeholderData: (previousData) => previousData,
   });
+  const taxiParkOptions = normalizeTaxiParks(taxiParkQuery.data);
+
   const form = useForm<VehicleCreateFormValues>({
     resolver: zodResolver(vehicleCreateSchema),
     defaultValues: {
+      taxiParkId: "",
       firm: "",
       model: "",
       type: "",
       plateNumber: "",
       state: undefined,
+      driverId: "",
     },
   });
 
   const {
     control,
-    setError,
+    setValue,
     formState: { isSubmitting },
     handleSubmit,
   } = form;
+  const selectedTaxiParkId = useWatch({
+    control,
+    name: "taxiParkId",
+  });
+  const previousTaxiParkId = useRef("");
+
+  useEffect(() => {
+    if (
+      previousTaxiParkId.current &&
+      selectedTaxiParkId !== previousTaxiParkId.current
+    ) {
+      setValue("driverId", "");
+    }
+    previousTaxiParkId.current = selectedTaxiParkId;
+  }, [selectedTaxiParkId, setValue]);
+
+  const driversQuery = $api.useQuery(
+    "get",
+    "/api/taxi-parks/{taxiParkId}/drivers",
+    {
+      params: {
+        path: {
+          taxiParkId: selectedTaxiParkId,
+        },
+      },
+    },
+    {
+      enabled: selectedTaxiParkId.length > 0,
+      retry: false,
+      placeholderData: (previousData) => previousData,
+    },
+  );
+
+  const drivers = (driversQuery.data ?? []).map((driver) => ({
+    driverId: driver.driverId,
+    label: driver.fullName,
+  }));
 
   const handleFormSubmit = async (values: VehicleCreateFormValues) => {
-    const taxiParkId = taxiParkQuery.data?.taxiParkId;
+    await createVehicle({
+      taxiParkId: values.taxiParkId,
+      body: {
+        firm: values.firm,
+        model: values.model,
+        type: values.type,
+        plateNumber: values.plateNumber,
+        state: values.state,
+      },
+    });
 
-    if (!taxiParkId) {
-      setError("root", {
-        message: "Не удалось определить таксопарк для создания автомобиля.",
-      });
-      return;
+    const cars = await getTaxiParkCars(values.taxiParkId);
+    const createdCar = cars.find(
+      (car) =>
+        normalizePlateNumber(car.plateNumber) ===
+        normalizePlateNumber(values.plateNumber),
+    );
+
+    if (!createdCar) {
+      throw new Error("Не удалось найти созданный автомобиль по госномеру.");
     }
 
-    await createVehicle({
-      taxiParkId,
-      body: values,
-    });
+    if (values.driverId) {
+      await assignCarToDriver({
+        driverId: values.driverId,
+        carId: createdCar.carId,
+      });
+    }
 
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["vehicles"] }),
-      queryClient.invalidateQueries({ queryKey: ["home", "director-dashboard"] }),
+      queryClient.invalidateQueries({ queryKey: ["drivers"] }),
+      queryClient.invalidateQueries({
+        queryKey: ["home", "director-dashboard"],
+      }),
+      queryClient.invalidateQueries({ queryKey: ["vehicles", "create"] }),
     ]);
 
     navigate({ to: "/vehicles" });
@@ -180,7 +321,7 @@ export const VehicleCreatePage = () => {
       <main className="bg-background-page flex min-h-full w-full flex-col gap-6 p-6">
         <PageHeader
           title="Создание автомобиля"
-          description="Не удалось определить таксопарк директора."
+          description="Не удалось загрузить доступные таксопарки."
           breadcrumbs={[
             { label: "Главная", href: "/" },
             { label: "Автомобили", href: "/vehicles" },
@@ -193,8 +334,7 @@ export const VehicleCreatePage = () => {
               asChild
             >
               <Link to="/vehicles">
-                <ArrowLeft className="size-4" />
-                К списку
+                <ArrowLeft className="size-4" />К списку
               </Link>
             </Button>
           }
@@ -212,11 +352,15 @@ export const VehicleCreatePage = () => {
     );
   }
 
+  const selectedTaxiPark = taxiParkOptions.find(
+    (taxiPark) => taxiPark.taxiParkId === selectedTaxiParkId,
+  );
+
   return (
     <main className="bg-background-page flex min-h-full w-full flex-col gap-6 p-6">
       <PageHeader
         title="Создание автомобиля"
-        description={`Добавьте автомобиль в таксопарк ${taxiParkQuery.data.taxiParkName ?? taxiParkQuery.data.taxiParkId}.`}
+        description="Добавьте автомобиль в нужный таксопарк и при необходимости сразу назначьте свободного водителя."
         breadcrumbs={[
           { label: "Главная", href: "/" },
           { label: "Автомобили", href: "/vehicles" },
@@ -242,6 +386,27 @@ export const VehicleCreatePage = () => {
           className="flex flex-col gap-6"
         >
           <FieldGroup>
+            <FormSelect
+              control={control}
+              name="state"
+              label="Состояние"
+              placeholder="Выберите состояние"
+              options={VEHICLE_CREATE_STATE_OPTIONS}
+            />
+
+            <FormCombobox
+              control={control}
+              name="taxiParkId"
+              label="Таксопарк"
+              placeholder="Выберите таксопарк"
+              options={taxiParkOptions.map((taxiPark) => ({
+                value: taxiPark.taxiParkId,
+                label: taxiPark.taxiParkName,
+              }))}
+              searchPlaceholder="Поиск таксопарка..."
+              emptyText="Таксопарки не найдены"
+            />
+
             <FormInput
               control={control}
               name="firm"
@@ -274,14 +439,46 @@ export const VehicleCreatePage = () => {
               placeholder="Например, А123ВС 77"
             />
 
-            <FormSelect
+            <FormCombobox
               control={control}
-              name="state"
-              label="Состояние"
-              placeholder="Выберите состояние"
-              options={VEHICLE_CREATE_STATE_OPTIONS}
+              name="driverId"
+              label="Назначить водителя"
+              placeholder={
+                !selectedTaxiParkId
+                  ? "Сначала выберите таксопарк"
+                  : driversQuery.isLoading
+                    ? "Загружаем свободных водителей"
+                    : "Без назначения"
+              }
+              options={[
+                { value: "", label: "Без назначения" },
+                ...drivers.map((driver) => ({
+                  value: driver.driverId,
+                  label: driver.label,
+                })),
+              ]}
+              disabled={
+                !selectedTaxiParkId ||
+                driversQuery.isLoading ||
+                driversQuery.error != null
+              }
+              searchPlaceholder="Поиск водителя..."
+              emptyText="Свободных водителей нет"
             />
           </FieldGroup>
+
+          {!selectedTaxiParkId ? (
+            <div className="text-text-secondary text-sm">
+              Сначала выберите таксопарк, после этого загрузятся свободные
+              водители.
+            </div>
+          ) : null}
+
+          {driversQuery.error ? (
+            <div className="text-text-secondary text-sm">
+              {getApiErrorMessage(driversQuery.error)}
+            </div>
+          ) : null}
 
           <div className="flex flex-wrap items-center gap-3">
             <Button type="submit" disabled={isSubmitting}>
