@@ -18,8 +18,6 @@ import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AppVehiclesRouteImport } from './routes/_app/vehicles'
 import { Route as AppTaxiparksUiKitRouteImport } from './routes/_app/taxiparks-ui-kit'
 import { Route as AppTaxiparksRouteImport } from './routes/_app/taxiparks'
-import { Route as AppSettingsRouteImport } from './routes/_app/settings'
-import { Route as AppReportsRouteImport } from './routes/_app/reports'
 import { Route as AppFinanceRouteImport } from './routes/_app/finance'
 import { Route as AppDriversRouteImport } from './routes/_app/drivers'
 import { Route as AppVehiclesIndexRouteImport } from './routes/_app/vehicles/index'
@@ -78,16 +76,6 @@ const AppTaxiparksUiKitRoute = AppTaxiparksUiKitRouteImport.update({
 const AppTaxiparksRoute = AppTaxiparksRouteImport.update({
   id: '/taxiparks',
   path: '/taxiparks',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppSettingsRoute = AppSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppReportsRoute = AppReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
   getParentRoute: () => AppRoute,
 } as any)
 const AppFinanceRoute = AppFinanceRouteImport.update({
@@ -172,8 +160,6 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteWithChildren
   '/drivers': typeof AppDriversRouteWithChildren
   '/finance': typeof AppFinanceRoute
-  '/reports': typeof AppReportsRoute
-  '/settings': typeof AppSettingsRoute
   '/taxiparks': typeof AppTaxiparksRouteWithChildren
   '/taxiparks-ui-kit': typeof AppTaxiparksUiKitRoute
   '/vehicles': typeof AppVehiclesRouteWithChildren
@@ -196,8 +182,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/finance': typeof AppFinanceRoute
-  '/reports': typeof AppReportsRoute
-  '/settings': typeof AppSettingsRoute
   '/taxiparks-ui-kit': typeof AppTaxiparksUiKitRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
@@ -221,8 +205,6 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/_app/drivers': typeof AppDriversRouteWithChildren
   '/_app/finance': typeof AppFinanceRoute
-  '/_app/reports': typeof AppReportsRoute
-  '/_app/settings': typeof AppSettingsRoute
   '/_app/taxiparks': typeof AppTaxiparksRouteWithChildren
   '/_app/taxiparks-ui-kit': typeof AppTaxiparksUiKitRoute
   '/_app/vehicles': typeof AppVehiclesRouteWithChildren
@@ -251,8 +233,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/drivers'
     | '/finance'
-    | '/reports'
-    | '/settings'
     | '/taxiparks'
     | '/taxiparks-ui-kit'
     | '/vehicles'
@@ -275,8 +255,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/finance'
-    | '/reports'
-    | '/settings'
     | '/taxiparks-ui-kit'
     | '/auth/login'
     | '/auth/register'
@@ -299,8 +277,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_app/drivers'
     | '/_app/finance'
-    | '/_app/reports'
-    | '/_app/settings'
     | '/_app/taxiparks'
     | '/_app/taxiparks-ui-kit'
     | '/_app/vehicles'
@@ -391,20 +367,6 @@ declare module '@tanstack/react-router' {
       path: '/taxiparks'
       fullPath: '/taxiparks'
       preLoaderRoute: typeof AppTaxiparksRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/settings': {
-      id: '/_app/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AppSettingsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/reports': {
-      id: '/_app/reports'
-      path: '/reports'
-      fullPath: '/reports'
-      preLoaderRoute: typeof AppReportsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/finance': {
@@ -594,8 +556,6 @@ const AppVehiclesRouteWithChildren = AppVehiclesRoute._addFileChildren(
 interface AppRouteChildren {
   AppDriversRoute: typeof AppDriversRouteWithChildren
   AppFinanceRoute: typeof AppFinanceRoute
-  AppReportsRoute: typeof AppReportsRoute
-  AppSettingsRoute: typeof AppSettingsRoute
   AppTaxiparksRoute: typeof AppTaxiparksRouteWithChildren
   AppTaxiparksUiKitRoute: typeof AppTaxiparksUiKitRoute
   AppVehiclesRoute: typeof AppVehiclesRouteWithChildren
@@ -605,8 +565,6 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppDriversRoute: AppDriversRouteWithChildren,
   AppFinanceRoute: AppFinanceRoute,
-  AppReportsRoute: AppReportsRoute,
-  AppSettingsRoute: AppSettingsRoute,
   AppTaxiparksRoute: AppTaxiparksRouteWithChildren,
   AppTaxiparksUiKitRoute: AppTaxiparksUiKitRoute,
   AppVehiclesRoute: AppVehiclesRouteWithChildren,

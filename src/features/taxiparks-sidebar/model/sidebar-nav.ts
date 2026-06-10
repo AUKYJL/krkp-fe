@@ -1,5 +1,6 @@
-import type { TaxiparksSidebarNavItem } from "./sidebar-nav-item";
 import { ROLES } from "@/shared/types";
+
+import type { TaxiparksSidebarNavItem } from "./sidebar-nav-item";
 
 export const TAXIPARKS_SIDEBAR_NAV: TaxiparksSidebarNavItem[] = [
   { id: "home", label: "Главная", iconGlyph: "⌂", to: "/" },
@@ -7,14 +8,6 @@ export const TAXIPARKS_SIDEBAR_NAV: TaxiparksSidebarNavItem[] = [
   { id: "drivers", label: "Водители", iconGlyph: "👤", to: "/drivers" },
   { id: "vehicles", label: "Автомобили", iconGlyph: "▣", to: "/vehicles" },
   { id: "finance", label: "Финансы", iconGlyph: "₽", to: "/finance" },
-  { id: "reports", label: "Отчеты", iconGlyph: "◫", to: "/reports" },
-  {
-    id: "settings",
-    label: "Настройки",
-    iconGlyph: "⚙",
-    to: "/settings",
-    isMuted: true,
-  },
 ];
 
 export const TAXIPARKS_SIDEBAR_NAV_BY_ID = Object.fromEntries(

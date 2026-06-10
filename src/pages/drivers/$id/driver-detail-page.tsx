@@ -1,5 +1,5 @@
-import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   ArrowLeft,
@@ -11,19 +11,6 @@ import {
 import type { ReactNode } from "react";
 import { useEffect } from "react";
 
-import { ConfirmDialog } from "@/features/confirm-dialog";
-import { DataTable } from "@/features/data-table";
-import { DashboardEmptyState } from "@/pages/home/ui/driver-home-dashboard/dashboard-primitives";
-import { KpiCard } from "@/features/kpi-card";
-import { PageHeader } from "@/features/page-header/page-header";
-import { TitledBlock } from "@/features/titled-block/titled-block";
-import { VerticalBarChart } from "@/features/vertical-bar-chart";
-import { TAXIPARKS_SIDEBAR_NAV_BY_ID } from "@/features/taxiparks-sidebar";
-import {
-  AnalyticsStateCard,
-  StatusBadge,
-  TaxiparksPeriodFilter,
-} from "@/pages/taxiparks/ui";
 import {
   type DriverAnalyticsDetail,
   isDriverAnalyticsEmpty,
@@ -31,8 +18,16 @@ import {
   useDriverAnalyticsPeriod,
   useDriverAnalyticsRouteContext,
 } from "@/pages/drivers/model";
-import { clearAuthToken, useCurrentUserQuery } from "@/shared/api/auth";
+import { DashboardEmptyState } from "@/pages/home/ui/driver-home-dashboard/dashboard-primitives";
+import {
+  AnalyticsStateCard,
+  StatusBadge,
+  TaxiparksPeriodFilter,
+} from "@/pages/taxiparks/ui";
+
 import { fetchClient } from "@/shared/api/apiInstance";
+import { clearAuthToken, useCurrentUserQuery } from "@/shared/api/auth";
+import { getWorkDayStatusConfig } from "@/shared/lib/work-day-status";
 import { ROLES } from "@/shared/types";
 import { AppText } from "@/shared/ui/app-text";
 import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
@@ -40,9 +35,16 @@ import { CardSurface } from "@/shared/ui/card-surface";
 import { Spinner } from "@/shared/ui/spinner";
 import { cn } from "@/shared/utils";
 import { can } from "@/shared/utils";
-import { getWorkDayStatusConfig } from "@/shared/lib/work-day-status";
 
 import { getDriverMockById } from "../consts";
+
+import { ConfirmDialog } from "@/features/confirm-dialog";
+import { DataTable } from "@/features/data-table";
+import { KpiCard } from "@/features/kpi-card";
+import { PageHeader } from "@/features/page-header/page-header";
+import { TAXIPARKS_SIDEBAR_NAV_BY_ID } from "@/features/taxiparks-sidebar";
+import { TitledBlock } from "@/features/titled-block/titled-block";
+import { VerticalBarChart } from "@/features/vertical-bar-chart";
 
 const moneyFormatter = new Intl.NumberFormat("ru-RU");
 const compactMoneyFormatter = new Intl.NumberFormat("ru-RU", {
@@ -124,7 +126,9 @@ const pickString = (value: unknown, keys: string[]) => {
   return undefined;
 };
 
-const getAvailableCars = async (taxiParkId: string): Promise<AvailableCarOption[]> => {
+const getAvailableCars = async (
+  taxiParkId: string,
+): Promise<AvailableCarOption[]> => {
   const data = await getResponseData(
     fetchClient.GET("/api/taxi-parks/{taxiParkId}/cars/available", {
       params: { path: { taxiParkId } },
@@ -139,8 +143,7 @@ const getAvailableCars = async (taxiParkId: string): Promise<AvailableCarOption[
 
   return items
     .map((item) => {
-      const carId =
-        pickString(item, ["carId", "id", "car.id"]) ?? undefined;
+      const carId = pickString(item, ["carId", "id", "car.id"]) ?? undefined;
 
       if (!carId) {
         return null;
@@ -382,12 +385,12 @@ const DriverAnalyticsContent = ({
     ? `${analytics.driver.assignedCar.firm} ${analytics.driver.assignedCar.model} · ${analytics.driver.assignedCar.plateNumber}`
     : "Автомобиль не назначен";
   const workDays: DriverWorkDayRow[] = analytics.workDays.map((workDay) => ({
-      id: workDay.workDayId,
-      date: workDay.date,
-      revenue: workDay.revenue,
-      status: workDay.status,
-      carLabel: `${workDay.car.firm} ${workDay.car.model} · ${workDay.car.plateNumber}`,
-    }));
+    id: workDay.workDayId,
+    date: workDay.date,
+    revenue: workDay.revenue,
+    status: workDay.status,
+    carLabel: `${workDay.car.firm} ${workDay.car.model} · ${workDay.car.plateNumber}`,
+  }));
   const comparisonRows = [
     {
       label: "Выручка за период",
@@ -452,11 +455,18 @@ const DriverAnalyticsContent = ({
                   </AppText>
 
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <DetailChip>Таксопарк: {analytics.driver.taxiParkName}</DetailChip>
-                    <DetailChip>{analytics.summary.workDaysCount} смен</DetailChip>
-                    <DetailChip>Онлайн: {analytics.summary.onlineDaysCount} дн.</DetailChip>
+                    <DetailChip>
+                      Таксопарк: {analytics.driver.taxiParkName}
+                    </DetailChip>
+                    <DetailChip>
+                      {analytics.summary.workDaysCount} смен
+                    </DetailChip>
+                    <DetailChip>
+                      Онлайн: {analytics.summary.onlineDaysCount} дн.
+                    </DetailChip>
                     <DetailChip tone="accent">
-                      {percentFormatter.format(analytics.summary.activityRate)}% активности
+                      {percentFormatter.format(analytics.summary.activityRate)}%
+                      активности
                     </DetailChip>
                   </div>
                 </div>
@@ -504,75 +514,10 @@ const DriverAnalyticsContent = ({
 
         <div className="flex min-w-0 flex-col gap-4">
           <TitledBlock
-            title="Назначение автомобиля"
-            subtitle="Только свободные автомобили из текущего таксопарка"
-            className="min-w-0 gap-3"
-          >
-            {analytics.driver.assignedCar ? (
-              <DashboardEmptyState
-                title="Автомобиль уже назначен"
-                description="Для этого водителя уже есть активное назначение. Отдельный flow переназначения пока не реализован."
-              />
-            ) : availableCarsQuery.isLoading ? (
-              <DashboardEmptyState
-                title="Загружаем свободные автомобили"
-                description="Собираем список доступных машин для назначения."
-              />
-            ) : availableCarsQuery.error ? (
-              <DashboardEmptyState
-                title="Не удалось загрузить автомобили"
-                description="Обновите страницу и попробуйте еще раз."
-              />
-            ) : canAssignCar ? (
-              <CardSurface className="gap-4 rounded-[18px] p-5">
-                <form
-                  className="flex flex-col gap-3"
-                  onSubmit={(event) => {
-                    event.preventDefault();
-
-                    const formData = new FormData(event.currentTarget);
-                    const carId = String(formData.get("carId") ?? "");
-
-                    if (!carId) {
-                      return;
-                    }
-
-                    void assignCarMutation.mutateAsync({
-                      driverId: analytics.driver.driverId,
-                      carId,
-                    });
-                  }}
-                >
-                  <select
-                    name="carId"
-                    className="border-border-default bg-background-page text-text-primary h-12 rounded-[12px] border px-3 text-sm outline-none"
-                    defaultValue={availableCarsQuery.data?.[0]?.carId ?? ""}
-                  >
-                    {availableCarsQuery.data?.map((car) => (
-                      <option key={car.carId} value={car.carId}>
-                        {car.label}
-                      </option>
-                    ))}
-                  </select>
-
-                  <Button type="submit" disabled={assignCarMutation.isPending}>
-                    Назначить автомобиль
-                  </Button>
-                </form>
-              </CardSurface>
-            ) : (
-              <DashboardEmptyState
-                title="Свободных автомобилей нет"
-                description="В этом таксопарке сейчас нет автомобилей, доступных для назначения."
-              />
-            )}
-          </TitledBlock>
-
-          <TitledBlock
             title="Скоринг водителя"
             subtitle="Реальные оценки из аналитики за выбранный период"
             topRightSlot={<DetailChip tone="accent">4 метрики</DetailChip>}
-            className="min-w-0 gap-3"
+            className="h-full min-w-0 gap-3"
           >
             <div className="flex flex-col gap-2">
               <ScorecardMetric
@@ -685,7 +630,11 @@ const DriverAnalyticsContent = ({
         subtitle="Выручка, статус выхода на линию и автомобиль по дням"
       >
         {workDays.length > 0 ? (
-          <DataTable columns={workDayColumns} data={workDays} initialPageSize={10} />
+          <DataTable
+            columns={workDayColumns}
+            data={workDays}
+            initialPageSize={10}
+          />
         ) : (
           <AnalyticsStateCard
             title="История смен пуста"
@@ -709,7 +658,10 @@ const ExternalDriverDetailContent = ({ driverId }: { driverId: string }) => {
         description="Профиль приглашения без аналитики."
         breadcrumbs={[
           { label: "Главная", href: "/" },
-          { label: TAXIPARKS_SIDEBAR_NAV_BY_ID.drivers.label, href: "/drivers" },
+          {
+            label: TAXIPARKS_SIDEBAR_NAV_BY_ID.drivers.label,
+            href: "/drivers",
+          },
         ]}
         actions={
           <>
@@ -787,7 +739,10 @@ const InternalDriverDetailContent = ({ driverId }: { driverId: string }) => {
   });
 
   useEffect(() => {
-    if (!contextQuery.data?.shouldRedirect || !contextQuery.data.redirectDriverId) {
+    if (
+      !contextQuery.data?.shouldRedirect ||
+      !contextQuery.data.redirectDriverId
+    ) {
       return;
     }
 
@@ -943,7 +898,8 @@ const InternalDriverDetailContent = ({ driverId }: { driverId: string }) => {
             void analyticsQuery.refetch();
           }}
         />
-      ) : analyticsQuery.data == null || isDriverAnalyticsEmpty(analyticsQuery.data) ? (
+      ) : analyticsQuery.data == null ||
+        isDriverAnalyticsEmpty(analyticsQuery.data) ? (
         <AnalyticsStateCard
           title="Нет аналитики по водителю"
           message="За выбранный период сервис не вернул выручку или историю смен."
