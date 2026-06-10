@@ -1,6 +1,7 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowLeft, CarFront } from "lucide-react";
+import { ArrowLeft, CarFront, Trash2 } from "lucide-react";
 
 import {
   AnalyticsStateCard,
@@ -15,11 +16,14 @@ import {
   useVehicleAnalyticsPeriod,
 } from "@/pages/vehicles/model";
 
+import { $api } from "@/shared/api/apiInstance";
+import { getApiErrorMessage } from "@/shared/api/auth";
 import { getWorkDayStatusConfig } from "@/shared/lib/work-day-status";
 import { AppText, TAG, TEXT_SIZES_VARIABLES } from "@/shared/ui/app-text";
 import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
 import { CardSurface } from "@/shared/ui/card-surface";
 
+import { ConfirmDialog } from "@/features/confirm-dialog";
 import { DataTable } from "@/features/data-table";
 import { KpiCard } from "@/features/kpi-card";
 import { PageHeader } from "@/features/page-header/page-header";
@@ -124,10 +128,34 @@ const formatSignedCurrency = (value?: number) => {
   return `${sign}₽ ${moneyFormatter.format(value)}`;
 };
 
+const getVehicleDeleteLabel = ({
+  plateNumber,
+  firm,
+  model,
+  fallbackId,
+}: {
+  plateNumber?: string;
+  firm?: string;
+  model?: string;
+  fallbackId: string;
+}) => {
+  if (plateNumber) {
+    return plateNumber;
+  }
+
+  const modelLabel = [firm, model].filter(Boolean).join(" ").trim();
+
+  return modelLabel.length > 0 ? modelLabel : fallbackId;
+};
+
 export const VehicleDetailPage = ({ carId }: VehicleDetailPageProps) => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { range, period, onRangeChange } = useVehicleAnalyticsPeriod();
   const catalogQuery = useDirectorVehiclesCatalog();
+  const deleteVehicleMutation = $api.useMutation("delete", "/api/cars/{id}", {
+    retry: false,
+  });
   const vehicleCatalogItem = catalogQuery.data?.vehicles.find(
     (vehicle) => vehicle.carId === carId,
   );
@@ -157,6 +185,24 @@ export const VehicleDetailPage = ({ carId }: VehicleDetailPageProps) => {
     !catalogQuery.error &&
     catalogQuery.data != null &&
     vehicleCatalogItem == null;
+  const vehicleLabel = getVehicleDeleteLabel({
+    plateNumber: analytics?.car.plateNumber ?? vehicleCatalogItem?.plateNumber,
+    firm: analytics?.car.firm ?? vehicleCatalogItem?.firm,
+    model: analytics?.car.model ?? vehicleCatalogItem?.model,
+    fallbackId: carId,
+  });
+  const deleteErrorMessage = deleteVehicleMutation.error
+    ? getApiErrorMessage(deleteVehicleMutation.error)
+    : null;
+
+  const handleVehicleDelete = async () => {
+    await deleteVehicleMutation.mutateAsync({
+      params: { path: { id: carId } },
+    });
+
+    await queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+    await navigate({ to: "/vehicles" });
+  };
 
   return (
     <main className="bg-background-page flex min-h-full w-full flex-col gap-6 p-6">
@@ -169,7 +215,9 @@ export const VehicleDetailPage = ({ carId }: VehicleDetailPageProps) => {
               : "Автомобиль"
         }
         description={
-          analytics
+          deleteErrorMessage
+            ? deleteErrorMessage
+            : analytics
             ? `Аналитика автомобиля ${analytics.car.plateNumber} за период ${analytics.period.from} - ${analytics.period.to}.`
             : "Детальная аналитика автомобиля по выручке, использованию и рабочим дням."
         }
@@ -186,6 +234,26 @@ export const VehicleDetailPage = ({ carId }: VehicleDetailPageProps) => {
         actions={
           <>
             <TaxiparksPeriodFilter value={range} onChange={onRangeChange} />
+            <ConfirmDialog
+              title={`Удалить автомобиль ${vehicleLabel}?`}
+              description="Автомобиль будет удален без возможности восстановления. Это действие нельзя отменить."
+              confirmText={
+                deleteVehicleMutation.isPending ? "Удаляем..." : "Удалить"
+              }
+              confirmDisabled={deleteVehicleMutation.isPending}
+              onConfirm={() => {
+                void handleVehicleDelete();
+              }}
+              trigger={
+                <Button
+                  type="button"
+                  variant={BUTTON_VARIANTS_VARIABLES.destructive}
+                >
+                  <Trash2 className="size-4" />
+                  Удалить
+                </Button>
+              }
+            />
             <Button type="button" asChild>
               <Link to="/vehicles/$id/edit" params={{ id: carId }}>
                 Редактировать

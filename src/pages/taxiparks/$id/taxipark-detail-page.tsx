@@ -1,8 +1,11 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { useState } from "react";
 
+import { $api } from "@/shared/api/apiInstance";
+import { getApiErrorMessage } from "@/shared/api/auth";
 import { AppText } from "@/shared/ui/app-text";
 import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
 
@@ -17,6 +20,7 @@ import {
   TaxiparksPeriodFilter,
 } from "../ui";
 
+import { ConfirmDialog } from "@/features/confirm-dialog";
 import { DataTable } from "@/features/data-table";
 import { KpiCard } from "@/features/kpi-card";
 import { PageHeader } from "@/features/page-header/page-header";
@@ -187,7 +191,15 @@ type TaxiparkDetailPageProps = {
 
 export const TaxiparkDetailPage = ({ taxiparkId }: TaxiparkDetailPageProps) => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { range, period, onRangeChange } = useAnalyticsPeriod();
+  const deleteTaxiparkMutation = $api.useMutation(
+    "delete",
+    "/api/taxi-parks/{id}",
+    {
+      retry: false,
+    },
+  );
   const analyticsQuery = useTaxiParkDetailAnalytics({
     taxiParkId: taxiparkId,
     period,
@@ -247,6 +259,10 @@ export const TaxiparkDetailPage = ({ taxiparkId }: TaxiparkDetailPageProps) => {
       value.toLowerCase().includes(problemCarsSearch.trim().toLowerCase()),
     ),
   );
+  const taxiparkName = analytics?.header.name ?? `Таксопарк ${taxiparkId}`;
+  const deleteErrorMessage = deleteTaxiparkMutation.error
+    ? getApiErrorMessage(deleteTaxiparkMutation.error)
+    : null;
 
   const summaryCards =
     analytics == null
@@ -286,23 +302,58 @@ export const TaxiparkDetailPage = ({ taxiparkId }: TaxiparkDetailPageProps) => {
           },
         ];
 
+  const handleTaxiparkDelete = async () => {
+    await deleteTaxiparkMutation.mutateAsync({
+      params: { path: { id: taxiparkId } },
+    });
+
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["taxiparks"] }),
+      queryClient.invalidateQueries({ queryKey: ["drivers"] }),
+      queryClient.invalidateQueries({ queryKey: ["home"] }),
+    ]);
+    await navigate({ to: "/taxiparks" });
+  };
+
   return (
     <main className="bg-background-page flex min-h-full w-full flex-col gap-6 p-6">
       <PageHeader
-        title={analytics?.header.name ?? `Таксопарк ${taxiparkId}`}
+        title={taxiparkName}
         description={
-          analytics?.header.address
+          deleteErrorMessage
+            ? deleteErrorMessage
+            : analytics?.header.address
             ? `Аналитика таксопарка за период ${period.from} - ${period.to}. ${analytics.header.address}`
             : `Аналитика таксопарка за период ${period.from} - ${period.to}.`
         }
         breadcrumbs={[
           { label: "Главная", href: "/" },
           { label: "Таксопарки", href: "/taxiparks" },
-          { label: analytics?.header.name ?? `Таксопарк ${taxiparkId}` },
+          { label: taxiparkName },
         ]}
         actions={
           <>
             <TaxiparksPeriodFilter value={range} onChange={onRangeChange} />
+            <ConfirmDialog
+              title={`Удалить таксопарк ${taxiparkName}?`}
+              description="Таксопарк будет удален без возможности восстановления. Это действие нельзя отменить."
+              confirmText={
+                deleteTaxiparkMutation.isPending ? "Удаляем..." : "Удалить"
+              }
+              confirmDisabled={deleteTaxiparkMutation.isPending}
+              onConfirm={() => {
+                void handleTaxiparkDelete();
+              }}
+              trigger={
+                <Button
+                  type="button"
+                  variant={BUTTON_VARIANTS_VARIABLES.destructive}
+                >
+                  <Trash2 className="size-4" />
+                  Удалить
+                </Button>
+              }
+            />
             <Button type="button" asChild>
               <Link to="/taxiparks/$id/edit" params={{ id: taxiparkId }}>
                 Редактировать

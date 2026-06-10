@@ -24,6 +24,7 @@ export interface ConfirmDialogProps {
   confirmText?: string;
   cancelText?: string;
   confirmVariant?: ComponentProps<typeof Button>["variant"];
+  confirmDisabled?: boolean;
   media?: ReactNode;
   contentSize?: "default" | "sm";
 }
@@ -43,6 +44,7 @@ export const ConfirmDialog = ({
   confirmText = "Удалить",
   cancelText = "Отмена",
   confirmVariant = BUTTON_VARIANTS_VARIABLES.destructive,
+  confirmDisabled = false,
   media = defaultMedia,
   contentSize = "sm",
 }: ConfirmDialogProps) => {
@@ -59,7 +61,11 @@ export const ConfirmDialog = ({
 
         <AlertDialogFooter>
           <AlertDialogCancel onClick={onCancel}>{cancelText}</AlertDialogCancel>
-          <AlertDialogAction variant={confirmVariant} onClick={onConfirm}>
+          <AlertDialogAction
+            variant={confirmVariant}
+            onClick={onConfirm}
+            disabled={confirmDisabled}
+          >
             {confirmText}
           </AlertDialogAction>
         </AlertDialogFooter>
