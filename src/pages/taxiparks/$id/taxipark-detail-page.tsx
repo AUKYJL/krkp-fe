@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
@@ -303,6 +303,11 @@ export const TaxiparkDetailPage = ({ taxiparkId }: TaxiparkDetailPageProps) => {
         actions={
           <>
             <TaxiparksPeriodFilter value={range} onChange={onRangeChange} />
+            <Button type="button" asChild>
+              <Link to="/taxiparks/$id/edit" params={{ id: taxiparkId }}>
+                Редактировать
+              </Link>
+            </Button>
             <Button
               type="button"
               variant={BUTTON_VARIANTS_VARIABLES.secondary}

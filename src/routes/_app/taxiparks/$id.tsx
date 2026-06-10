@@ -1,11 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-
-import { TaxiparkDetailPage } from "@/pages/taxiparks";
+import { Outlet, createFileRoute } from "@tanstack/react-router";
 
 const RouteComponent = () => {
-  const { id } = Route.useParams();
-
-  return <TaxiparkDetailPage taxiparkId={id} />;
+  return <Outlet />;
 };
 
 export const Route = createFileRoute("/_app/taxiparks/$id")({

@@ -25,13 +25,16 @@ import { Route as AppTaxiparksIndexRouteImport } from './routes/_app/taxiparks/i
 import { Route as AppDriversIndexRouteImport } from './routes/_app/drivers/index'
 import { Route as AppVehiclesCreateRouteImport } from './routes/_app/vehicles/create'
 import { Route as AppVehiclesIdRouteImport } from './routes/_app/vehicles/$id'
+import { Route as AppTaxiparksCreateRouteImport } from './routes/_app/taxiparks/create'
 import { Route as AppTaxiparksIdRouteImport } from './routes/_app/taxiparks/$id'
 import { Route as AppDriversAddRouteImport } from './routes/_app/drivers/add'
 import { Route as AppDriversIdRouteImport } from './routes/_app/drivers/$id'
 import { Route as AppVehiclesIdIndexRouteImport } from './routes/_app/vehicles/$id/index'
+import { Route as AppTaxiparksIdIndexRouteImport } from './routes/_app/taxiparks/$id/index'
 import { Route as AppDriversIdIndexRouteImport } from './routes/_app/drivers/$id/index'
 import { Route as AppVehiclesIdEditRouteImport } from './routes/_app/vehicles/$id/edit'
 import { Route as AppVehiclesIdAssignDriverRouteImport } from './routes/_app/vehicles/$id/assign-driver'
+import { Route as AppTaxiparksIdEditRouteImport } from './routes/_app/taxiparks/$id/edit'
 import { Route as AppDriversIdEditRouteImport } from './routes/_app/drivers/$id/edit'
 
 const AuthRoute = AuthRouteImport.update({
@@ -113,6 +116,11 @@ const AppVehiclesIdRoute = AppVehiclesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AppVehiclesRoute,
 } as any)
+const AppTaxiparksCreateRoute = AppTaxiparksCreateRouteImport.update({
+  id: '/create',
+  path: '/create',
+  getParentRoute: () => AppTaxiparksRoute,
+} as any)
 const AppTaxiparksIdRoute = AppTaxiparksIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -133,6 +141,11 @@ const AppVehiclesIdIndexRoute = AppVehiclesIdIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppVehiclesIdRoute,
 } as any)
+const AppTaxiparksIdIndexRoute = AppTaxiparksIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppTaxiparksIdRoute,
+} as any)
 const AppDriversIdIndexRoute = AppDriversIdIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -149,6 +162,11 @@ const AppVehiclesIdAssignDriverRoute =
     path: '/assign-driver',
     getParentRoute: () => AppVehiclesIdRoute,
   } as any)
+const AppTaxiparksIdEditRoute = AppTaxiparksIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => AppTaxiparksIdRoute,
+} as any)
 const AppDriversIdEditRoute = AppDriversIdEditRouteImport.update({
   id: '/edit',
   path: '/edit',
@@ -168,16 +186,19 @@ export interface FileRoutesByFullPath {
   '/auth/': typeof AuthIndexRoute
   '/drivers/$id': typeof AppDriversIdRouteWithChildren
   '/drivers/add': typeof AppDriversAddRoute
-  '/taxiparks/$id': typeof AppTaxiparksIdRoute
+  '/taxiparks/$id': typeof AppTaxiparksIdRouteWithChildren
+  '/taxiparks/create': typeof AppTaxiparksCreateRoute
   '/vehicles/$id': typeof AppVehiclesIdRouteWithChildren
   '/vehicles/create': typeof AppVehiclesCreateRoute
   '/drivers/': typeof AppDriversIndexRoute
   '/taxiparks/': typeof AppTaxiparksIndexRoute
   '/vehicles/': typeof AppVehiclesIndexRoute
   '/drivers/$id/edit': typeof AppDriversIdEditRoute
+  '/taxiparks/$id/edit': typeof AppTaxiparksIdEditRoute
   '/vehicles/$id/assign-driver': typeof AppVehiclesIdAssignDriverRoute
   '/vehicles/$id/edit': typeof AppVehiclesIdEditRoute
   '/drivers/$id/': typeof AppDriversIdIndexRoute
+  '/taxiparks/$id/': typeof AppTaxiparksIdIndexRoute
   '/vehicles/$id/': typeof AppVehiclesIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -188,15 +209,17 @@ export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
   '/auth': typeof AuthIndexRoute
   '/drivers/add': typeof AppDriversAddRoute
-  '/taxiparks/$id': typeof AppTaxiparksIdRoute
+  '/taxiparks/create': typeof AppTaxiparksCreateRoute
   '/vehicles/create': typeof AppVehiclesCreateRoute
   '/drivers': typeof AppDriversIndexRoute
   '/taxiparks': typeof AppTaxiparksIndexRoute
   '/vehicles': typeof AppVehiclesIndexRoute
   '/drivers/$id/edit': typeof AppDriversIdEditRoute
+  '/taxiparks/$id/edit': typeof AppTaxiparksIdEditRoute
   '/vehicles/$id/assign-driver': typeof AppVehiclesIdAssignDriverRoute
   '/vehicles/$id/edit': typeof AppVehiclesIdEditRoute
   '/drivers/$id': typeof AppDriversIdIndexRoute
+  '/taxiparks/$id': typeof AppTaxiparksIdIndexRoute
   '/vehicles/$id': typeof AppVehiclesIdIndexRoute
 }
 export interface FileRoutesById {
@@ -214,16 +237,19 @@ export interface FileRoutesById {
   '/auth/': typeof AuthIndexRoute
   '/_app/drivers/$id': typeof AppDriversIdRouteWithChildren
   '/_app/drivers/add': typeof AppDriversAddRoute
-  '/_app/taxiparks/$id': typeof AppTaxiparksIdRoute
+  '/_app/taxiparks/$id': typeof AppTaxiparksIdRouteWithChildren
+  '/_app/taxiparks/create': typeof AppTaxiparksCreateRoute
   '/_app/vehicles/$id': typeof AppVehiclesIdRouteWithChildren
   '/_app/vehicles/create': typeof AppVehiclesCreateRoute
   '/_app/drivers/': typeof AppDriversIndexRoute
   '/_app/taxiparks/': typeof AppTaxiparksIndexRoute
   '/_app/vehicles/': typeof AppVehiclesIndexRoute
   '/_app/drivers/$id/edit': typeof AppDriversIdEditRoute
+  '/_app/taxiparks/$id/edit': typeof AppTaxiparksIdEditRoute
   '/_app/vehicles/$id/assign-driver': typeof AppVehiclesIdAssignDriverRoute
   '/_app/vehicles/$id/edit': typeof AppVehiclesIdEditRoute
   '/_app/drivers/$id/': typeof AppDriversIdIndexRoute
+  '/_app/taxiparks/$id/': typeof AppTaxiparksIdIndexRoute
   '/_app/vehicles/$id/': typeof AppVehiclesIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -242,15 +268,18 @@ export interface FileRouteTypes {
     | '/drivers/$id'
     | '/drivers/add'
     | '/taxiparks/$id'
+    | '/taxiparks/create'
     | '/vehicles/$id'
     | '/vehicles/create'
     | '/drivers/'
     | '/taxiparks/'
     | '/vehicles/'
     | '/drivers/$id/edit'
+    | '/taxiparks/$id/edit'
     | '/vehicles/$id/assign-driver'
     | '/vehicles/$id/edit'
     | '/drivers/$id/'
+    | '/taxiparks/$id/'
     | '/vehicles/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -261,15 +290,17 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/drivers/add'
-    | '/taxiparks/$id'
+    | '/taxiparks/create'
     | '/vehicles/create'
     | '/drivers'
     | '/taxiparks'
     | '/vehicles'
     | '/drivers/$id/edit'
+    | '/taxiparks/$id/edit'
     | '/vehicles/$id/assign-driver'
     | '/vehicles/$id/edit'
     | '/drivers/$id'
+    | '/taxiparks/$id'
     | '/vehicles/$id'
   id:
     | '__root__'
@@ -287,15 +318,18 @@ export interface FileRouteTypes {
     | '/_app/drivers/$id'
     | '/_app/drivers/add'
     | '/_app/taxiparks/$id'
+    | '/_app/taxiparks/create'
     | '/_app/vehicles/$id'
     | '/_app/vehicles/create'
     | '/_app/drivers/'
     | '/_app/taxiparks/'
     | '/_app/vehicles/'
     | '/_app/drivers/$id/edit'
+    | '/_app/taxiparks/$id/edit'
     | '/_app/vehicles/$id/assign-driver'
     | '/_app/vehicles/$id/edit'
     | '/_app/drivers/$id/'
+    | '/_app/taxiparks/$id/'
     | '/_app/vehicles/$id/'
   fileRoutesById: FileRoutesById
 }
@@ -418,6 +452,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppVehiclesIdRouteImport
       parentRoute: typeof AppVehiclesRoute
     }
+    '/_app/taxiparks/create': {
+      id: '/_app/taxiparks/create'
+      path: '/create'
+      fullPath: '/taxiparks/create'
+      preLoaderRoute: typeof AppTaxiparksCreateRouteImport
+      parentRoute: typeof AppTaxiparksRoute
+    }
     '/_app/taxiparks/$id': {
       id: '/_app/taxiparks/$id'
       path: '/$id'
@@ -446,6 +487,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppVehiclesIdIndexRouteImport
       parentRoute: typeof AppVehiclesIdRoute
     }
+    '/_app/taxiparks/$id/': {
+      id: '/_app/taxiparks/$id/'
+      path: '/'
+      fullPath: '/taxiparks/$id/'
+      preLoaderRoute: typeof AppTaxiparksIdIndexRouteImport
+      parentRoute: typeof AppTaxiparksIdRoute
+    }
     '/_app/drivers/$id/': {
       id: '/_app/drivers/$id/'
       path: '/'
@@ -466,6 +514,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/vehicles/$id/assign-driver'
       preLoaderRoute: typeof AppVehiclesIdAssignDriverRouteImport
       parentRoute: typeof AppVehiclesIdRoute
+    }
+    '/_app/taxiparks/$id/edit': {
+      id: '/_app/taxiparks/$id/edit'
+      path: '/edit'
+      fullPath: '/taxiparks/$id/edit'
+      preLoaderRoute: typeof AppTaxiparksIdEditRouteImport
+      parentRoute: typeof AppTaxiparksIdRoute
     }
     '/_app/drivers/$id/edit': {
       id: '/_app/drivers/$id/edit'
@@ -507,13 +562,29 @@ const AppDriversRouteWithChildren = AppDriversRoute._addFileChildren(
   AppDriversRouteChildren,
 )
 
+interface AppTaxiparksIdRouteChildren {
+  AppTaxiparksIdEditRoute: typeof AppTaxiparksIdEditRoute
+  AppTaxiparksIdIndexRoute: typeof AppTaxiparksIdIndexRoute
+}
+
+const AppTaxiparksIdRouteChildren: AppTaxiparksIdRouteChildren = {
+  AppTaxiparksIdEditRoute: AppTaxiparksIdEditRoute,
+  AppTaxiparksIdIndexRoute: AppTaxiparksIdIndexRoute,
+}
+
+const AppTaxiparksIdRouteWithChildren = AppTaxiparksIdRoute._addFileChildren(
+  AppTaxiparksIdRouteChildren,
+)
+
 interface AppTaxiparksRouteChildren {
-  AppTaxiparksIdRoute: typeof AppTaxiparksIdRoute
+  AppTaxiparksIdRoute: typeof AppTaxiparksIdRouteWithChildren
+  AppTaxiparksCreateRoute: typeof AppTaxiparksCreateRoute
   AppTaxiparksIndexRoute: typeof AppTaxiparksIndexRoute
 }
 
 const AppTaxiparksRouteChildren: AppTaxiparksRouteChildren = {
-  AppTaxiparksIdRoute: AppTaxiparksIdRoute,
+  AppTaxiparksIdRoute: AppTaxiparksIdRouteWithChildren,
+  AppTaxiparksCreateRoute: AppTaxiparksCreateRoute,
   AppTaxiparksIndexRoute: AppTaxiparksIndexRoute,
 }
 

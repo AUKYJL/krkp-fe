@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { AppText } from "@/shared/ui/app-text";
@@ -134,7 +134,9 @@ export const DirectorTaxiparksPage = () => {
           <>
             <TaxiparksPeriodFilter value={range} onChange={onRangeChange} />
 
-            <Button>Создать таксопарк</Button>
+            <Button asChild>
+              <Link to="/taxiparks/create">Создать таксопарк</Link>
+            </Button>
           </>
         }
       />
