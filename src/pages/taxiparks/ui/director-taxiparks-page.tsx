@@ -4,17 +4,6 @@ import { useState } from "react";
 import { AppText } from "@/shared/ui/app-text";
 import { Button } from "@/shared/ui/button";
 
-import { CsvExportButton } from "@/features/csv-export-button";
-import { DataTable } from "@/features/data-table";
-import { DonutPieChart } from "@/features/donut-pie-chart";
-import { KpiCard } from "@/features/kpi-card";
-import { PageHeader } from "@/features/page-header/page-header";
-import { ProgressCard } from "@/features/progress-card";
-import { SearchInput } from "@/features/search-input";
-import { TAXIPARKS_SIDEBAR_NAV_BY_ID } from "@/features/taxiparks-sidebar";
-import { TitledBlock } from "@/features/titled-block";
-import { VerticalBarChart } from "@/features/vertical-bar-chart";
-
 import { columns } from "../consts";
 import {
   useAnalyticsPeriod,
@@ -26,6 +15,17 @@ import {
   StatusBadge,
   TaxiparksPeriodFilter,
 } from "../ui";
+
+import { CsvExportButton } from "@/features/csv-export-button";
+import { DataTable } from "@/features/data-table";
+import { DonutPieChart } from "@/features/donut-pie-chart";
+import { KpiCard } from "@/features/kpi-card";
+import { PageHeader } from "@/features/page-header/page-header";
+import { ProgressCard } from "@/features/progress-card";
+import { SearchInput } from "@/features/search-input";
+import { TAXIPARKS_SIDEBAR_NAV_BY_ID } from "@/features/taxiparks-sidebar";
+import { TitledBlock } from "@/features/titled-block";
+import { VerticalBarChart } from "@/features/vertical-bar-chart";
 
 const moneyFormatter = new Intl.NumberFormat("ru-RU");
 const compactMoneyFormatter = new Intl.NumberFormat("ru-RU", {
@@ -87,19 +87,21 @@ export const DirectorTaxiparksPage = () => {
             meta: `${analytics.summary.driversCount} всего водителей`,
           },
           {
-            label: "₽ / активный водитель",
-            value: formatCurrency(analytics.summary.averageRevenuePerActiveDriver),
+            label: "Средняя выручка водителя",
+            value: formatCurrency(
+              analytics.summary.averageRevenuePerActiveDriver,
+            ),
             meta: `${analytics.summary.workDaysCount} рабочих дней`,
           },
           {
-            label: "₽ / авто",
+            label: "Средняя выручка авто",
             value: formatCurrency(analytics.summary.averageRevenuePerCar),
             meta: `${analytics.summary.carsCount} автомобилей`,
           },
           {
             label: "Выход на линию",
             value: `${percentFormatter.format(analytics.summary.onlineRate)}%`,
-            meta: `${analytics.summary.onlineDaysCount} онлайн-дней`,
+            meta: `${analytics.summary.onlineDaysCount} рабочих дней`,
           },
           {
             label: "Потери от простоя",
@@ -132,9 +134,7 @@ export const DirectorTaxiparksPage = () => {
           <>
             <TaxiparksPeriodFilter value={range} onChange={onRangeChange} />
 
-            <Button>
-              Создать таксопарк
-            </Button>
+            <Button>Создать таксопарк</Button>
           </>
         }
       />
@@ -181,13 +181,17 @@ export const DirectorTaxiparksPage = () => {
               title="Распределение выручки"
               subtitle={`По паркам за период ${analytics.period.from} - ${analytics.period.to}`}
               headerClassName="items-center"
-              topRightSlot={<StatusBadge label={`${analytics.period.daysCount} дн.`} />}
+              topRightSlot={
+                <StatusBadge label={`${analytics.period.daysCount} дн.`} />
+              }
               className="min-w-0"
             >
               {revenueChartData.length > 0 ? (
                 <DonutPieChart
                   data={revenueChartData}
-                  centerLabel={formatCompactCurrency(analytics.summary.totalRevenue)}
+                  centerLabel={formatCompactCurrency(
+                    analytics.summary.totalRevenue,
+                  )}
                   centerSubLabel="выручка"
                 />
               ) : (
@@ -252,7 +256,7 @@ export const DirectorTaxiparksPage = () => {
             </TitledBlock>
 
             <TitledBlock
-              title="Лучшие бренды"
+              title="Лучшие марки"
               subtitle="Самые прибыльные марки автопарка"
               className="min-w-0"
             >
@@ -262,7 +266,7 @@ export const DirectorTaxiparksPage = () => {
                     <BestIndicatorItem
                       key={brand.firm}
                       title={brand.firm}
-                      subtitle={`${brand.carsCount} авто, ${percentFormatter.format(brand.utilizationRate)}% утилизации`}
+                      subtitle={`${brand.carsCount} авто, ${percentFormatter.format(brand.utilizationRate)}% использования`}
                       value={formatCurrency(brand.totalRevenue)}
                     />
                   ))
@@ -307,14 +311,16 @@ export const DirectorTaxiparksPage = () => {
             >
               <div className="flex flex-col gap-3">
                 {analytics.problemCars.slice(0, 3).length > 0 ? (
-                  analytics.problemCars.slice(0, 3).map((car) => (
-                    <BestIndicatorItem
-                      key={car.carId}
-                      title={`${car.firm} ${car.model} · ${car.plateNumber}`}
-                      subtitle={`${car.taxiParkName}, ${car.downtimeDaysCount} дн. простоя`}
-                      value={formatCurrency(car.estimatedLoss)}
-                    />
-                  ))
+                  analytics.problemCars
+                    .slice(0, 3)
+                    .map((car) => (
+                      <BestIndicatorItem
+                        key={car.carId}
+                        title={`${car.firm} ${car.model} · ${car.plateNumber}`}
+                        subtitle={`${car.taxiParkName}, ${car.downtimeDaysCount} дн. простоя`}
+                        value={formatCurrency(car.estimatedLoss)}
+                      />
+                    ))
                 ) : (
                   <AppText className="text-text-secondary text-sm font-medium">
                     Нет автомобилей с потерями за выбранный период.

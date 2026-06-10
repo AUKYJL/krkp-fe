@@ -1,24 +1,29 @@
 import { useNavigate } from "@tanstack/react-router";
-import type { ColumnDef } from "@tanstack/react-table";
 import { Link } from "@tanstack/react-router";
+import type { ColumnDef } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
+
+import {
+  AnalyticsStateCard,
+  StatusBadge,
+  TaxiparksPeriodFilter,
+} from "@/pages/taxiparks/ui";
+import {
+  type DirectorVehicleListItem,
+  getVehicleStateMeta,
+  useDirectorVehiclesCatalog,
+  useVehicleAnalyticsPeriod,
+} from "@/pages/vehicles/model";
+
+import { AppText } from "@/shared/ui/app-text";
+import { Button } from "@/shared/ui/button";
 
 import { DataTable } from "@/features/data-table";
 import { KpiCard } from "@/features/kpi-card";
 import { PageHeader } from "@/features/page-header/page-header";
+import { TAXIPARKS_SIDEBAR_NAV_BY_ID } from "@/features/taxiparks-sidebar";
 import { TitledBlock } from "@/features/titled-block";
 import { CarBrandsAnalyticsSection } from "@/features/vehicle-brands-analytics";
-import {
-  useDirectorVehiclesCatalog,
-  type DirectorVehicleListItem,
-  getVehicleStateMeta,
-  useVehicleAnalyticsPeriod,
-} from "@/pages/vehicles/model";
-import { AppText } from "@/shared/ui/app-text";
-import { Button } from "@/shared/ui/button";
-
-import { TAXIPARKS_SIDEBAR_NAV_BY_ID } from "@/features/taxiparks-sidebar";
-import { AnalyticsStateCard, StatusBadge, TaxiparksPeriodFilter } from "@/pages/taxiparks/ui";
 
 const directorVehicleColumns: ColumnDef<DirectorVehicleListItem>[] = [
   {
@@ -37,9 +42,6 @@ const directorVehicleColumns: ColumnDef<DirectorVehicleListItem>[] = [
       <div className="flex flex-col">
         <span className="text-sm font-semibold">
           {row.original.firm} {row.original.model}
-        </span>
-        <span className="text-text-secondary text-xs font-medium">
-          ID: {row.original.carId}
         </span>
       </div>
     ),
@@ -111,7 +113,8 @@ export const DirectorVehiclesPage = () => {
             void catalogQuery.refetch();
           }}
         />
-      ) : catalogQuery.data == null || catalogQuery.data.vehicles.length === 0 ? (
+      ) : catalogQuery.data == null ||
+        catalogQuery.data.vehicles.length === 0 ? (
         <AnalyticsStateCard
           title="Автомобили не найдены"
           message="В доступных вам таксопарках пока нет автомобилей."
@@ -119,14 +122,36 @@ export const DirectorVehiclesPage = () => {
       ) : (
         <>
           <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
-            <KpiCard label="Всего автомобилей" value={catalogQuery.data.summary.total} />
-            <KpiCard label="На линии" value={catalogQuery.data.summary.working} />
-            <KpiCard label="В ремонте" value={catalogQuery.data.summary.repair} />
-            <KpiCard label="Аварийные" value={catalogQuery.data.summary.emergency} />
+            <KpiCard
+              label="Всего автомобилей"
+              value={catalogQuery.data.summary.total}
+              valueClassName="text-text-primary"
+              metaClassName="text-accent-primary"
+            />
+            <KpiCard
+              label="На линии"
+              value={catalogQuery.data.summary.working}
+              valueClassName="text-text-primary"
+              metaClassName="text-accent-primary"
+            />
+            <KpiCard
+              label="В ремонте"
+              value={catalogQuery.data.summary.repair}
+              valueClassName="text-text-primary"
+              metaClassName="text-accent-primary"
+            />
+            <KpiCard
+              label="Аварийные"
+              value={catalogQuery.data.summary.emergency}
+              valueClassName="text-text-primary"
+              metaClassName="text-accent-primary"
+            />
             <KpiCard
               label="С назначенным водителем"
               value={catalogQuery.data.summary.withAssignedDriver}
               meta={`${catalogQuery.data.summary.withoutAssignedDriver} без водителя`}
+              valueClassName="text-text-primary"
+              metaClassName="text-accent-primary"
             />
           </section>
 
@@ -157,10 +182,6 @@ export const DirectorVehiclesPage = () => {
               }}
             />
           </TitledBlock>
-
-          <AppText className="text-text-secondary text-sm font-medium">
-            Клик по строке открывает аналитику автомобиля за выбранный период.
-          </AppText>
         </>
       )}
     </main>

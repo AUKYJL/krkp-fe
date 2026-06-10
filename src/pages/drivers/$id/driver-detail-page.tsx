@@ -200,7 +200,6 @@ const ComparisonRow = ({
   score,
   percent,
   caption,
-  info,
 }: ComparisonRowProps) => {
   const safePercent = Math.max(0, Math.min(100, percent));
 
@@ -212,9 +211,6 @@ const ComparisonRow = ({
             <AppText className="text-text-primary text-sm font-semibold">
               {label}
             </AppText>
-            <span title={info} className="inline-flex">
-              <Info className="text-text-secondary size-3.5 shrink-0" />
-            </span>
           </div>
         </div>
 
@@ -400,7 +396,6 @@ const DriverAnalyticsContent = ({
         analytics.comparison.taxiParkAverageRevenuePerDriver,
       ),
       caption: `Среднее по парку: ${formatCurrency(analytics.comparison.taxiParkAverageRevenuePerDriver)}`,
-      info: "Сравнение суммарной выручки с типичным водителем в таксопарке.",
     },
     {
       label: "Средняя / смена",
@@ -410,7 +405,6 @@ const DriverAnalyticsContent = ({
         analytics.comparison.taxiParkAverageRevenuePerShift,
       ),
       caption: `Среднее по парку: ${formatCurrency(analytics.comparison.taxiParkAverageRevenuePerShift)}`,
-      info: "Показывает, насколько смены водителя сильнее или слабее среднего по парку.",
     },
     {
       label: "Активность",
@@ -420,7 +414,6 @@ const DriverAnalyticsContent = ({
         analytics.comparison.taxiParkAverageActivityRate,
       ),
       caption: `Среднее по парку: ${percentFormatter.format(analytics.comparison.taxiParkAverageActivityRate)}%`,
-      info: "Доля активных дней относительно средней активности водителей таксопарка.",
     },
   ];
   const canAssignCar =
@@ -462,7 +455,7 @@ const DriverAnalyticsContent = ({
                       {analytics.summary.workDaysCount} смен
                     </DetailChip>
                     <DetailChip>
-                      Онлайн: {analytics.summary.onlineDaysCount} дн.
+                      {analytics.summary.onlineDaysCount} рабочих дней
                     </DetailChip>
                     <DetailChip tone="accent">
                       {percentFormatter.format(analytics.summary.activityRate)}%
@@ -484,9 +477,9 @@ const DriverAnalyticsContent = ({
               className="min-w-0"
             />
             <KpiCard
-              label="Средняя / смена"
+              label="Средняя выручка за смену"
               value={formatCurrency(analytics.summary.averageRevenuePerShift)}
-              meta="реальные рабочие смены"
+              meta="С учетом периода"
               valueClassName="text-text-primary"
               metaClassName="text-accent-primary"
               className="min-w-0"
@@ -494,7 +487,7 @@ const DriverAnalyticsContent = ({
             <KpiCard
               label="Средняя / день"
               value={formatCurrency(analytics.summary.averageRevenuePerDay)}
-              meta="с учетом периода"
+              meta="С учетом периода"
               valueClassName="text-text-primary"
               metaClassName="text-accent-primary"
               className="min-w-0"
@@ -514,9 +507,8 @@ const DriverAnalyticsContent = ({
 
         <div className="flex min-w-0 flex-col gap-4">
           <TitledBlock
-            title="Скоринг водителя"
+            title="Оценка водителя"
             subtitle="Реальные оценки из аналитики за выбранный период"
-            topRightSlot={<DetailChip tone="accent">4 метрики</DetailChip>}
             className="h-full min-w-0 gap-3"
           >
             <div className="flex flex-col gap-2">
@@ -545,7 +537,6 @@ const DriverAnalyticsContent = ({
         <TitledBlock
           title="Сравнение с парком"
           subtitle="Ключевые показатели относительно среднего по таксопарку"
-          topRightSlot={<DetailChip>3 метрики</DetailChip>}
           className="min-w-0 gap-3"
         >
           <div className="flex flex-col gap-2">
@@ -556,15 +547,14 @@ const DriverAnalyticsContent = ({
                 score={item.score}
                 percent={item.percent}
                 caption={item.caption}
-                info={item.info}
               />
             ))}
           </div>
         </TitledBlock>
 
         <TitledBlock
-          title="Сигналы периода"
-          subtitle="Самые заметные факты по водителю"
+          title="Сравнение с парком"
+          subtitle="Показатели водителя относительно средних значений"
           topRightSlot={
             <div className="text-right">
               <AppText className="text-accent-primary text-3xl font-bold tabular-nums">
@@ -784,7 +774,7 @@ const InternalDriverDetailContent = ({ driverId }: { driverId: string }) => {
         description={
           analyticsQuery.data
             ? `Аналитика водителя за период ${analyticsQuery.data.period.from} - ${analyticsQuery.data.period.to}.`
-            : "Реальная аналитика водителя по выручке, активности и истории смен."
+            : "Аналитика водителя по выручке, активности и истории смен."
         }
         breadcrumbs={breadcrumbs}
         actions={

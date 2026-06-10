@@ -5,7 +5,7 @@ import { VehicleEditPage } from "@/pages/vehicles";
 const RouteComponent = () => {
   const { id } = Route.useParams();
 
-  return <VehicleEditPage vehiclePlate={id} />;
+  return <VehicleEditPage vehicleId={id} />;
 };
 
 export const Route = createFileRoute("/_app/vehicles/$id/edit")({

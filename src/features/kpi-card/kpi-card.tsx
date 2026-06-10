@@ -41,7 +41,7 @@ export const KpiCard = ({
       {value != null && (
         <AppText
           className={cn(
-            "text-accent-primary text-[22px] font-bold",
+            "text-text-primary text-[22px] font-bold",
             valueClassName,
           )}
         >
@@ -53,7 +53,7 @@ export const KpiCard = ({
         <AppText
           variant={TEXT_VARIANTS_VARIABLES.main}
           size={TEXT_SIZES_VARIABLES.xs}
-          className={cn("font-semibold", metaClassName)}
+          className={cn("text-accent-primary font-semibold", metaClassName)}
         >
           {meta}
         </AppText>

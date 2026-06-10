@@ -147,6 +147,7 @@ export const DriverHomeDashboard = ({
         <PageHeader
           title="Главная"
           description={`Персональная аналитика для ${currentUser.fullName}.`}
+          showLogoutButton
           actions={
             <TaxiparksPeriodFilter value={range} onChange={onRangeChange} />
           }
@@ -166,6 +167,7 @@ export const DriverHomeDashboard = ({
         <PageHeader
           title="Главная"
           description={`Персональная аналитика для ${currentUser.fullName}.`}
+          showLogoutButton
           actions={
             <TaxiparksPeriodFilter value={range} onChange={onRangeChange} />
           }
@@ -212,12 +214,7 @@ export const DriverHomeDashboard = ({
       meta: `${dashboard.summary.workDaysCount} рабочих дней`,
     },
     {
-      label: "Рабочие дни",
-      value: String(dashboard.summary.workDaysCount),
-      meta: `${dashboard.summary.onlineDaysCount} онлайн`,
-    },
-    {
-      label: "Онлайн-дни / простой",
+      label: "Рабочие дни / простой",
       value: String(dashboard.summary.onlineDaysCount),
       meta: `${dashboard.summary.downtimeDaysCount} дней простоя`,
     },
@@ -232,16 +229,16 @@ export const DriverHomeDashboard = ({
       meta: `${percentFormatter.format(dashboard.scorecard.stabilityScore)} стабильность`,
     },
     {
-      label: "Разница с парком по выручке",
-      value: formatSignedCurrency(
+      label: "Разница  по средней выручке",
+      value: `${formatSignedCurrency(
         dashboard.comparison.revenueDifferenceFromParkAverage,
-      ),
-      meta: formatCurrency(
+      )} с парком`,
+      meta: `${formatCurrency(
         dashboard.comparison.taxiParkAverageRevenuePerDriver,
-      ),
+      )} с водителем`,
     },
     {
-      label: "Разница с парком по активности",
+      label: "Активность в сравнении с парком",
       value: formatSignedPercent(
         dashboard.comparison.activityDifferenceFromParkAverage,
       ),
@@ -254,6 +251,7 @@ export const DriverHomeDashboard = ({
       <PageHeader
         title="Главная"
         description="Персональная аналитика по выручке, активности и рейтингу за выбранный период."
+        showLogoutButton
         actions={
           <TaxiparksPeriodFilter value={range} onChange={onRangeChange} />
         }
@@ -392,11 +390,6 @@ export const DriverHomeDashboard = ({
         <TitledBlock
           title="Назначенный автомобиль"
           subtitle="Актуальные данные по автомобилю на выбранный период"
-          topRightSlot={
-            dashboard.driver.assignedCar ? (
-              <DashboardPill label={carStatus.label} tone={carStatus.tone} />
-            ) : undefined
-          }
           className="gap-5"
         >
           {dashboard.driver.assignedCar ? (
@@ -481,7 +474,7 @@ export const DriverHomeDashboard = ({
         subtitle={`Период ${dashboard.period.from} - ${dashboard.period.to}`}
         topRightSlot={
           <DashboardPill
-            label={`${dashboard.summary.onlineDaysCount} онлайн-дней`}
+            label={`${dashboard.summary.onlineDaysCount} рабочих дней`}
           />
         }
       >
@@ -523,36 +516,6 @@ export const DriverHomeDashboard = ({
               description="Массив `workDays` пуст. Проверьте другой диапазон дат."
             />
           )}
-        </TitledBlock>
-
-        <TitledBlock
-          title="Scorecard"
-          subtitle="Компоненты эффективности"
-          contentClassName="mt-2"
-        >
-          <div className="flex flex-col gap-3">
-            <KpiCard
-              label="Revenue score"
-              value={`${percentFormatter.format(dashboard.scorecard.revenueScore)}/100`}
-              meta={`${dashboard.scorecard.daysWithRevenueAboveAverage} дней выше среднего`}
-              valueClassName="text-text-primary"
-              metaClassName="text-text-secondary"
-            />
-            <KpiCard
-              label="Activity score"
-              value={`${percentFormatter.format(dashboard.scorecard.activityScore)}/100`}
-              meta={`${percentFormatter.format(dashboard.summary.activityRate)}% активности`}
-              valueClassName="text-text-primary"
-              metaClassName="text-text-secondary"
-            />
-            <KpiCard
-              label="Stability score"
-              value={`${percentFormatter.format(dashboard.scorecard.stabilityScore)}/100`}
-              meta={formatCurrency(dashboard.scorecard.maxDriverRevenue)}
-              valueClassName="text-text-primary"
-              metaClassName="text-text-secondary"
-            />
-          </div>
         </TitledBlock>
       </section>
     </main>

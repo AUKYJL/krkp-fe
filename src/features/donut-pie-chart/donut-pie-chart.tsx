@@ -88,7 +88,7 @@ export const DonutPieChart = ({
         {(centerLabel != null || centerSubLabel != null) && (
           <div className="pointer-events-none absolute inset-0 z-0 flex flex-col items-center justify-center text-center">
             {centerLabel != null && (
-              <div className="text-text-primary text-[32px] leading-none font-bold">
+              <div className="text-text-primary text-[18px] leading-none font-bold">
                 {centerLabel}
               </div>
             )}

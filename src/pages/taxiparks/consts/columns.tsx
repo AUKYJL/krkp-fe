@@ -2,10 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import { cn } from "@/shared/utils";
 
-import type {
-  DirectorTaxiParkTableRow,
-  TaxiParkHealthStatus,
-} from "./types";
+import type { DirectorTaxiParkTableRow, TaxiParkHealthStatus } from "./types";
 
 const moneyFormatter = new Intl.NumberFormat("ru-RU");
 const percentFormatter = new Intl.NumberFormat("ru-RU", {
@@ -50,7 +47,7 @@ export const columns: ColumnDef<DirectorTaxiParkTableRow>[] = [
   },
   {
     accessorKey: "averageRevenuePerActiveDriver",
-    header: "₽ / активный водитель",
+    header: "Средняя выручка водителя",
     cell: ({ getValue }) => (
       <span className="tabular-nums">
         ₽ {moneyFormatter.format(getValue<number>())}
@@ -59,7 +56,7 @@ export const columns: ColumnDef<DirectorTaxiParkTableRow>[] = [
   },
   {
     accessorKey: "averageRevenuePerCar",
-    header: "₽ / авто",
+    header: "Средняя выручка авто",
     cell: ({ getValue }) => (
       <span className="tabular-nums">
         ₽ {moneyFormatter.format(getValue<number>())}

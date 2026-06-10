@@ -2,13 +2,11 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowLeft, CarFront } from "lucide-react";
 
-import { DataTable } from "@/features/data-table";
-import { KpiCard } from "@/features/kpi-card";
-import { PageHeader } from "@/features/page-header/page-header";
-import { TitledBlock } from "@/features/titled-block";
-import { VerticalBarChart } from "@/features/vertical-bar-chart";
-import { AnalyticsStateCard, StatusBadge, TaxiparksPeriodFilter } from "@/pages/taxiparks/ui";
-import { getWorkDayStatusConfig } from "@/shared/lib/work-day-status";
+import {
+  AnalyticsStateCard,
+  StatusBadge,
+  TaxiparksPeriodFilter,
+} from "@/pages/taxiparks/ui";
 import {
   getVehicleStateMeta,
   isVehicleAnalyticsEmpty,
@@ -16,9 +14,17 @@ import {
   useVehicleAnalyticsDetail,
   useVehicleAnalyticsPeriod,
 } from "@/pages/vehicles/model";
+
+import { getWorkDayStatusConfig } from "@/shared/lib/work-day-status";
 import { AppText, TAG, TEXT_SIZES_VARIABLES } from "@/shared/ui/app-text";
 import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
 import { CardSurface } from "@/shared/ui/card-surface";
+
+import { DataTable } from "@/features/data-table";
+import { KpiCard } from "@/features/kpi-card";
+import { PageHeader } from "@/features/page-header/page-header";
+import { TitledBlock } from "@/features/titled-block";
+import { VerticalBarChart } from "@/features/vertical-bar-chart";
 
 type VehicleDetailPageProps = {
   carId: string;
@@ -80,7 +86,9 @@ const workDayColumns: ColumnDef<WorkDayRow>[] = [
   {
     accessorKey: "status",
     header: "Статус",
-    cell: ({ row }) => <StatusBadge {...getWorkDayStatusConfig(row.original.status)} />,
+    cell: ({ row }) => (
+      <StatusBadge {...getWorkDayStatusConfig(row.original.status)} />
+    ),
   },
   {
     accessorKey: "driverName",
@@ -131,7 +139,9 @@ export const VehicleDetailPage = ({ carId }: VehicleDetailPageProps) => {
   });
 
   const analytics = analyticsQuery.data;
-  const vehicleState = analytics ? getVehicleStateMeta(analytics.car.state) : null;
+  const vehicleState = analytics
+    ? getVehicleStateMeta(analytics.car.state)
+    : null;
   const workDays: WorkDayRow[] =
     analytics?.workDays.map((workDay) => ({
       id: workDay.workDayId,
@@ -161,33 +171,31 @@ export const VehicleDetailPage = ({ carId }: VehicleDetailPageProps) => {
         description={
           analytics
             ? `Аналитика автомобиля ${analytics.car.plateNumber} за период ${analytics.period.from} - ${analytics.period.to}.`
-            : "Детальная аналитика автомобиля по выручке, утилизации и рабочим дням."
+            : "Детальная аналитика автомобиля по выручке, использованию и рабочим дням."
         }
         breadcrumbs={[
           { label: "Главная", href: "/" },
           { label: "Автомобили", href: "/vehicles" },
-          { label: analytics?.car.plateNumber ?? vehicleCatalogItem?.plateNumber ?? carId },
+          {
+            label:
+              analytics?.car.plateNumber ??
+              vehicleCatalogItem?.plateNumber ??
+              carId,
+          },
         ]}
-    actions={
-      <>
-        <TaxiparksPeriodFilter value={range} onChange={onRangeChange} />
-        <Button
-          type="button"
-          variant={BUTTON_VARIANTS_VARIABLES.secondary}
-          asChild
-        >
-          <Link
-            to="/vehicles/$id/assign-driver"
-            params={{ id: carId }}
-          >
-            Назначить водителя
-          </Link>
-        </Button>
-        <Button
-          type="button"
-          variant={BUTTON_VARIANTS_VARIABLES.secondary}
-          onClick={() => navigate({ to: "/vehicles" })}
-        >
+        actions={
+          <>
+            <TaxiparksPeriodFilter value={range} onChange={onRangeChange} />
+            <Button type="button" asChild>
+              <Link to="/vehicles/$id/edit" params={{ id: carId }}>
+                Редактировать
+              </Link>
+            </Button>
+            <Button
+              type="button"
+              variant={BUTTON_VARIANTS_VARIABLES.secondary}
+              onClick={() => navigate({ to: "/vehicles" })}
+            >
               <ArrowLeft className="size-4" />
               Назад
             </Button>
@@ -287,25 +295,41 @@ export const VehicleDetailPage = ({ carId }: VehicleDetailPageProps) => {
                     </div>
 
                     {vehicleState ? (
-                      <StatusBadge label={vehicleState.label} tone={vehicleState.tone} />
+                      <StatusBadge
+                        label={vehicleState.label}
+                        tone={vehicleState.tone}
+                      />
                     ) : null}
                   </div>
 
                   <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2">
-                    <SummaryRow label="Таксопарк" value={analytics.car.taxiParkName} />
+                    <SummaryRow
+                      label="Таксопарк"
+                      value={analytics.car.taxiParkName}
+                    />
                     <SummaryRow
                       label="Водитель"
-                      value={analytics.car.assignedDriver?.fullName ?? "Не назначен"}
+                      value={
+                        analytics.car.assignedDriver?.fullName ?? "Не назначен"
+                      }
                     />
-                    <SummaryRow label="Онлайн-дней" value={String(analytics.summary.onlineDaysCount)} />
-                    <SummaryRow label="Рабочих дней" value={String(analytics.summary.workDaysCount)} />
+                    <SummaryRow
+                      label="Рабочих дней"
+                      value={String(analytics.summary.onlineDaysCount)}
+                    />
+                    <SummaryRow
+                      label="Рабочих дней"
+                      value={String(analytics.summary.workDaysCount)}
+                    />
                     <SummaryRow
                       label="Дней простоя"
                       value={String(analytics.summary.downtimeDaysCount)}
                     />
                     <SummaryRow
                       label="Потери от простоя"
-                      value={formatCurrency(analytics.summary.estimatedDowntimeLoss)}
+                      value={formatCurrency(
+                        analytics.summary.estimatedDowntimeLoss,
+                      )}
                     />
                   </div>
                 </div>
@@ -315,13 +339,13 @@ export const VehicleDetailPage = ({ carId }: VehicleDetailPageProps) => {
             <CardSurface className="justify-between gap-4 rounded-[24px] p-6">
               <div>
                 <AppText className="text-text-secondary text-xs font-medium tracking-[0.12em] uppercase">
-                  Утилизация
+                  Использование
                 </AppText>
                 <AppText className="text-accent-primary mt-2 text-[48px] leading-none font-bold">
                   {percentFormatter.format(analytics.summary.utilizationRate)}%
                 </AppText>
                 <AppText className="text-text-secondary mt-2 text-sm font-medium">
-                  {analytics.summary.onlineDaysCount} онлайн-дней и{" "}
+                  {analytics.summary.onlineDaysCount} рабочих дней и{" "}
                   {analytics.summary.downtimeDaysCount} дней простоя
                 </AppText>
               </div>
@@ -334,22 +358,28 @@ export const VehicleDetailPage = ({ carId }: VehicleDetailPageProps) => {
                   {formatCurrency(analytics.summary.totalRevenue)}
                 </AppText>
                 <AppText className="text-text-secondary mt-1 text-xs font-medium">
-                  {formatCurrency(analytics.summary.averageRevenuePerOnlineDay)} за онлайн-день
+                  {formatCurrency(analytics.summary.averageRevenuePerOnlineDay)}{" "}
+                  за рабочий день
                 </AppText>
               </div>
             </CardSurface>
           </section>
 
           <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <KpiCard label="Выручка" value={formatCurrency(analytics.summary.totalRevenue)} />
             <KpiCard
-              label="₽ / онлайн-день"
-              value={formatCurrency(analytics.summary.averageRevenuePerOnlineDay)}
+              label="Выручка"
+              value={formatCurrency(analytics.summary.totalRevenue)}
+            />
+            <KpiCard
+              label="₽ / рабочий день"
+              value={formatCurrency(
+                analytics.summary.averageRevenuePerOnlineDay,
+              )}
             />
             <KpiCard
               label="Рабочих дней"
-              value={analytics.summary.workDaysCount}
-              meta={`${analytics.summary.onlineDaysCount} онлайн`}
+              value={`${analytics.summary.onlineDaysCount} дней`}
+              meta={`${analytics.summary.workDaysCount} смен`}
             />
             <KpiCard
               label="Потери от простоя"
@@ -370,20 +400,23 @@ export const VehicleDetailPage = ({ carId }: VehicleDetailPageProps) => {
               />
               <KpiCard
                 label="Средняя выручка бренда"
-                value={formatCurrency(analytics.brandAnalytics.averageRevenuePerCar)}
+                value={formatCurrency(
+                  analytics.brandAnalytics.averageRevenuePerCar,
+                )}
                 meta={formatSignedCurrency(
-                  analytics.brandAnalytics.currentCarRevenueDifferenceFromBrandAverage,
+                  analytics.brandAnalytics
+                    .currentCarRevenueDifferenceFromBrandAverage,
                 )}
               />
               <KpiCard
-                label="Доля в выручке бренда"
+                label="Доля в выручке марки"
                 value={`${percentFormatter.format(analytics.brandAnalytics.currentCarRevenueShare)}%`}
                 meta={formatCurrency(analytics.brandAnalytics.totalRevenue)}
               />
               <KpiCard
-                label="Утилизация бренда"
+                label="Использование марки"
                 value={`${percentFormatter.format(analytics.brandAnalytics.utilizationRate)}%`}
-                meta={`${analytics.brandAnalytics.onlineDaysCount} онлайн / ${analytics.brandAnalytics.downtimeDaysCount} простой`}
+                meta={`${analytics.brandAnalytics.onlineDaysCount} рабочих дней / ${analytics.brandAnalytics.downtimeDaysCount} простой`}
               />
             </div>
           </TitledBlock>

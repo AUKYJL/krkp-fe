@@ -3,12 +3,6 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 
-import { DataTable } from "@/features/data-table";
-import { KpiCard } from "@/features/kpi-card";
-import { PageHeader } from "@/features/page-header/page-header";
-import { SearchInput } from "@/features/search-input";
-import { TitledBlock } from "@/features/titled-block";
-import { VerticalBarChart } from "@/features/vertical-bar-chart";
 import { AppText } from "@/shared/ui/app-text";
 import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
 
@@ -22,6 +16,13 @@ import {
   StatusBadge,
   TaxiparksPeriodFilter,
 } from "../ui";
+
+import { DataTable } from "@/features/data-table";
+import { KpiCard } from "@/features/kpi-card";
+import { PageHeader } from "@/features/page-header/page-header";
+import { SearchInput } from "@/features/search-input";
+import { TitledBlock } from "@/features/titled-block";
+import { VerticalBarChart } from "@/features/vertical-bar-chart";
 
 const moneyFormatter = new Intl.NumberFormat("ru-RU");
 const compactMoneyFormatter = new Intl.NumberFormat("ru-RU", {
@@ -102,14 +103,14 @@ const driverColumns: ColumnDef<DriverRow>[] = [
   },
   {
     accessorKey: "averageRevenuePerOnlineDay",
-    header: "₽ / онлайн-день",
+    header: "₽ / рабочий день",
     cell: ({ getValue }) => (
       <span className="tabular-nums">{formatCurrency(getValue<number>())}</span>
     ),
   },
   {
     accessorKey: "onlineDaysCount",
-    header: "Онлайн-дни",
+    header: "Рабочих дней",
   },
   {
     accessorKey: "activityRate",
@@ -146,14 +147,14 @@ const carColumns: ColumnDef<CarRow>[] = [
   },
   {
     accessorKey: "averageRevenuePerOnlineDay",
-    header: "₽ / онлайн-день",
+    header: "₽ / рабочий день",
     cell: ({ getValue }) => (
       <span className="tabular-nums">{formatCurrency(getValue<number>())}</span>
     ),
   },
   {
     accessorKey: "utilizationRate",
-    header: "Утилизация",
+    header: "Использование",
     cell: ({ getValue }) => (
       <span className="tabular-nums">
         {percentFormatter.format(getValue<number>())}%
@@ -267,12 +268,14 @@ export const TaxiparkDetailPage = ({ taxiparkId }: TaxiparkDetailPageProps) => {
             meta: `${percentFormatter.format(analytics.summary.onlineRate)}% выхода на линию`,
           },
           {
-            label: "₽ / активный водитель",
-            value: formatCurrency(analytics.summary.averageRevenuePerActiveDriver),
-            meta: `${analytics.summary.onlineDaysCount} онлайн-дней`,
+            label: "Средняя выручка водителя",
+            value: formatCurrency(
+              analytics.summary.averageRevenuePerActiveDriver,
+            ),
+            meta: `${analytics.summary.onlineDaysCount} рабочих дней`,
           },
           {
-            label: "₽ / авто",
+            label: "Средняя выручка авто",
             value: formatCurrency(analytics.summary.averageRevenuePerCar),
             meta: `${analytics.summary.workDaysCount} рабочих дней`,
           },
@@ -409,14 +412,16 @@ export const TaxiparkDetailPage = ({ taxiparkId }: TaxiparkDetailPageProps) => {
             <TitledBlock title="Лучшие бренды" subtitle="Рейтинг по выручке">
               <div className="flex flex-col gap-3">
                 {analytics.topBrands.length > 0 ? (
-                  analytics.topBrands.slice(0, 4).map((brand) => (
-                    <BestIndicatorItem
-                      key={brand.firm}
-                      title={brand.firm}
-                      subtitle={`${brand.carsCount} авто, ${percentFormatter.format(brand.utilizationRate)}% утилизации`}
-                      value={formatCurrency(brand.totalRevenue)}
-                    />
-                  ))
+                  analytics.topBrands
+                    .slice(0, 4)
+                    .map((brand) => (
+                      <BestIndicatorItem
+                        key={brand.firm}
+                        title={brand.firm}
+                        subtitle={`${brand.carsCount} авто, ${percentFormatter.format(brand.utilizationRate)}% использования`}
+                        value={formatCurrency(brand.totalRevenue)}
+                      />
+                    ))
                 ) : (
                   <AppText className="text-text-secondary text-sm font-medium">
                     Нет данных по брендам за выбранный период.
@@ -436,14 +441,16 @@ export const TaxiparkDetailPage = ({ taxiparkId }: TaxiparkDetailPageProps) => {
             >
               <div className="flex flex-col gap-3">
                 {problemCarRows.slice(0, 4).length > 0 ? (
-                  problemCarRows.slice(0, 4).map((car) => (
-                    <BestIndicatorItem
-                      key={car.id}
-                      title={`${car.name} · ${car.plateNumber}`}
-                      subtitle={`${car.downtimeDaysCount} дней простоя`}
-                      value={formatCurrency(car.estimatedLoss)}
-                    />
-                  ))
+                  problemCarRows
+                    .slice(0, 4)
+                    .map((car) => (
+                      <BestIndicatorItem
+                        key={car.id}
+                        title={`${car.name} · ${car.plateNumber}`}
+                        subtitle={`${car.downtimeDaysCount} дней простоя`}
+                        value={formatCurrency(car.estimatedLoss)}
+                      />
+                    ))
                 ) : (
                   <AppText className="text-text-secondary text-sm font-medium">
                     Нет проблемных автомобилей за выбранный период.
@@ -471,6 +478,12 @@ export const TaxiparkDetailPage = ({ taxiparkId }: TaxiparkDetailPageProps) => {
                 columns={driverColumns}
                 data={filteredDrivers}
                 initialPageSize={10}
+                onRowClick={(row) => {
+                  navigate({
+                    to: "/drivers/$id",
+                    params: { id: row.id },
+                  });
+                }}
               />
             ) : (
               <AnalyticsStateCard
@@ -482,7 +495,7 @@ export const TaxiparkDetailPage = ({ taxiparkId }: TaxiparkDetailPageProps) => {
 
           <TitledBlock
             title="Топ автомобили"
-            subtitle="Лучшие автомобили по выручке и утилизации"
+            subtitle="Лучшие автомобили по выручке и использованию"
             headerClassName="items-center"
             topRightSlot={
               <SearchInput

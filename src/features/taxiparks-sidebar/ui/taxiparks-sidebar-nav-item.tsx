@@ -11,6 +11,7 @@ interface Props {
 }
 
 export const TaxiparksSidebarNavItem = ({ item, isActive }: Props) => {
+  const Icon = item.icon;
   const textColor = isActive
     ? "text-dark-primary"
     : item.isMuted
@@ -44,7 +45,7 @@ export const TaxiparksSidebarNavItem = ({ item, isActive }: Props) => {
         )}
         aria-hidden="true"
       >
-        <span className="text-[12px] leading-none font-bold">{item.iconGlyph}</span>
+        <Icon className="h-3.5 w-3.5" strokeWidth={2.25} />
       </span>
 
       <AppText

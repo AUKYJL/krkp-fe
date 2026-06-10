@@ -47,8 +47,8 @@ export const DataTable = <TData,>({
   return (
     <div className={cn("flex flex-col gap-4", className)}>
       <div className="border-border-default bg-background-card overflow-hidden rounded-[14px] border">
-        <div className="overflow-x-auto">
-          <table className="w-full table-fixed caption-bottom text-sm">
+        <div className="w-full overflow-x-auto overscroll-x-contain">
+          <table className="min-w-max w-full caption-bottom text-sm">
             <thead className="border-border-default border-b">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
@@ -128,7 +128,7 @@ export const DataTable = <TData,>({
                       key={cell.id}
                       className="text-text-primary h-[65px] px-4 py-0 align-middle"
                     >
-                      <div className="min-w-0 truncate">
+                      <div className="whitespace-nowrap">
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext(),

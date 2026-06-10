@@ -1,17 +1,11 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { CarFront } from "lucide-react";
 
-import type { CurrentUser } from "@/shared/api/auth";
-import { AppText, TAG, TEXT_SIZES_VARIABLES } from "@/shared/ui/app-text";
-import { CardSurface } from "@/shared/ui/card-surface";
-
-import { DataTable } from "@/features/data-table";
-import { KpiCard } from "@/features/kpi-card";
-import { PageHeader } from "@/features/page-header/page-header";
-import { TitledBlock } from "@/features/titled-block";
-import { VerticalBarChart } from "@/features/vertical-bar-chart";
-import { TAXIPARKS_SIDEBAR_NAV_BY_ID } from "@/features/taxiparks-sidebar";
-import { AnalyticsStateCard, StatusBadge, TaxiparksPeriodFilter } from "@/pages/taxiparks/ui";
+import {
+  AnalyticsStateCard,
+  StatusBadge,
+  TaxiparksPeriodFilter,
+} from "@/pages/taxiparks/ui";
 import {
   getVehicleStateMeta,
   isVehicleAnalyticsEmpty,
@@ -19,7 +13,18 @@ import {
   useVehicleAnalyticsDetail,
   useVehicleAnalyticsPeriod,
 } from "@/pages/vehicles/model";
+
+import type { CurrentUser } from "@/shared/api/auth";
 import { getWorkDayStatusConfig } from "@/shared/lib/work-day-status";
+import { AppText, TAG, TEXT_SIZES_VARIABLES } from "@/shared/ui/app-text";
+import { CardSurface } from "@/shared/ui/card-surface";
+
+import { DataTable } from "@/features/data-table";
+import { KpiCard } from "@/features/kpi-card";
+import { PageHeader } from "@/features/page-header/page-header";
+import { TAXIPARKS_SIDEBAR_NAV_BY_ID } from "@/features/taxiparks-sidebar";
+import { TitledBlock } from "@/features/titled-block";
+import { VerticalBarChart } from "@/features/vertical-bar-chart";
 
 type DriverVehiclesPageProps = {
   currentUser: CurrentUser;
@@ -91,7 +96,9 @@ const workDayColumns: ColumnDef<WorkDayRow>[] = [
   {
     accessorKey: "status",
     header: "Статус",
-    cell: ({ row }) => <StatusBadge {...getWorkDayStatusConfig(row.original.status)} />,
+    cell: ({ row }) => (
+      <StatusBadge {...getWorkDayStatusConfig(row.original.status)} />
+    ),
   },
   {
     accessorKey: "driverName",
@@ -132,7 +139,9 @@ export const DriverVehiclesPage = ({
   });
 
   const analytics = analyticsQuery.data;
-  const vehicleState = analytics ? getVehicleStateMeta(analytics.car.state) : null;
+  const vehicleState = analytics
+    ? getVehicleStateMeta(analytics.car.state)
+    : null;
   const workDays: WorkDayRow[] =
     analytics?.workDays.map((workDay) => ({
       id: workDay.workDayId,
@@ -146,18 +155,21 @@ export const DriverVehiclesPage = ({
   const isContextMissing =
     !assignedVehicleQuery.isLoading &&
     !assignedVehicleQuery.error &&
-    (!assignedVehicleQuery.data?.carId || !assignedVehicleQuery.data?.taxiParkId);
+    (!assignedVehicleQuery.data?.carId ||
+      !assignedVehicleQuery.data?.taxiParkId);
 
   return (
     <main className="bg-background-page flex min-h-full w-full flex-col gap-6 p-6">
       <PageHeader
         title="Мой автомобиль"
-        description="Реальная аналитика по назначенному автомобилю."
+        description="Аналитика по назначенному автомобилю."
         breadcrumbs={[
           { label: "Главная", href: "/" },
           { label: TAXIPARKS_SIDEBAR_NAV_BY_ID.vehicles.label },
         ]}
-        actions={<TaxiparksPeriodFilter value={range} onChange={onRangeChange} />}
+        actions={
+          <TaxiparksPeriodFilter value={range} onChange={onRangeChange} />
+        }
       />
 
       {isContextLoading ? (
@@ -224,7 +236,7 @@ export const DriverVehiclesPage = ({
         />
       ) : (
         <>
-          <section className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.85fr)]">
+          <section className="grid grid-cols-1 gap-4">
             <CardSurface className="gap-6 rounded-[24px] p-6 md:p-7">
               <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                 <div className="flex min-w-0 flex-1 gap-4">
@@ -250,12 +262,18 @@ export const DriverVehiclesPage = ({
                 </div>
 
                 {vehicleState ? (
-                  <StatusBadge label={vehicleState.label} tone={vehicleState.tone} />
+                  <StatusBadge
+                    label={vehicleState.label}
+                    tone={vehicleState.tone}
+                  />
                 ) : null}
               </div>
 
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                <SummaryRow label="Таксопарк" value={analytics.car.taxiParkName} />
+                <SummaryRow
+                  label="Таксопарк"
+                  value={analytics.car.taxiParkName}
+                />
                 <SummaryRow
                   label="Водитель"
                   value={
@@ -264,61 +282,71 @@ export const DriverVehiclesPage = ({
                     currentUser.fullName
                   }
                 />
-                <SummaryRow label="Онлайн-дней" value={String(analytics.summary.onlineDaysCount)} />
-                <SummaryRow label="Рабочих дней" value={String(analytics.summary.workDaysCount)} />
+                <SummaryRow
+                  label="Рабочих дней"
+                  value={String(analytics.summary.onlineDaysCount)}
+                />
+                <SummaryRow
+                  label="Смен"
+                  value={String(analytics.summary.workDaysCount)}
+                />
                 <SummaryRow
                   label="Простой"
                   value={`${analytics.summary.downtimeDaysCount} дн.`}
                 />
                 <SummaryRow
-                  label="Утилизация"
+                  label="Использование"
                   value={`${percentFormatter.format(analytics.summary.utilizationRate)}%`}
                 />
               </div>
             </CardSurface>
-
-            <CardSurface className="gap-3 rounded-[24px] p-6">
-              <KpiCard
-                label="Выручка"
-                value={formatCurrency(analytics.summary.totalRevenue)}
-              />
-              <KpiCard
-                label="₽ / онлайн-день"
-                value={formatCurrency(analytics.summary.averageRevenuePerOnlineDay)}
-              />
-              <KpiCard
-                label="Потери от простоя"
-                value={formatCurrency(analytics.summary.estimatedDowntimeLoss)}
-              />
-            </CardSurface>
           </section>
+          <div className="grid grid-cols-3 gap-3">
+            <KpiCard
+              label="Выручка"
+              value={formatCurrency(analytics.summary.totalRevenue)}
+            />
+            <KpiCard
+              label="Средняя выручка за день"
+              value={formatCurrency(
+                analytics.summary.averageRevenuePerOnlineDay,
+              )}
+            />
+            <KpiCard
+              label="Потери от простоя"
+              value={formatCurrency(analytics.summary.estimatedDowntimeLoss)}
+            />
+          </div>
 
           <TitledBlock
-            title={`Позиция в бренде ${analytics.brandAnalytics.firm}`}
+            title={`Позиция по марке ${analytics.brandAnalytics.firm}`}
             subtitle="Краткий срез по автомобилям той же марки"
           >
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
               <KpiCard
-                label="Авто бренда"
+                label="Авто марки"
                 value={analytics.brandAnalytics.carsCount}
                 meta={`Место: #${analytics.brandAnalytics.rankByRevenue}`}
               />
               <KpiCard
-                label="Средняя выручка бренда"
-                value={formatCurrency(analytics.brandAnalytics.averageRevenuePerCar)}
+                label="Средняя выручка марки"
+                value={formatCurrency(
+                  analytics.brandAnalytics.averageRevenuePerCar,
+                )}
                 meta={formatSignedCurrency(
-                  analytics.brandAnalytics.currentCarRevenueDifferenceFromBrandAverage,
+                  analytics.brandAnalytics
+                    .currentCarRevenueDifferenceFromBrandAverage,
                 )}
               />
               <KpiCard
-                label="Доля в выручке бренда"
+                label="Доля в выручке марки"
                 value={`${percentFormatter.format(analytics.brandAnalytics.currentCarRevenueShare)}%`}
                 meta={formatCurrency(analytics.brandAnalytics.totalRevenue)}
               />
               <KpiCard
-                label="Утилизация бренда"
+                label="Выходы на линию по марке"
                 value={`${percentFormatter.format(analytics.brandAnalytics.utilizationRate)}%`}
-                meta={`${analytics.brandAnalytics.onlineDaysCount} онлайн / ${analytics.brandAnalytics.downtimeDaysCount} простой`}
+                meta={`${analytics.brandAnalytics.onlineDaysCount} рабочих / ${analytics.brandAnalytics.downtimeDaysCount} простой`}
               />
             </div>
           </TitledBlock>

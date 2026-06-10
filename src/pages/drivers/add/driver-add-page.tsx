@@ -2,15 +2,12 @@ import { useNavigate } from "@tanstack/react-router";
 import { AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { PageHeader } from "@/features/page-header/page-header";
-import { type PageSizeOption, Pagination } from "@/features/pagination";
-import { SearchInput } from "@/features/search-input";
-import { TAXIPARKS_SIDEBAR_NAV_BY_ID } from "@/features/taxiparks-sidebar";
 import {
   type DriverSearchFilter,
   type DriverSearchItem,
   useDriverSearchPageData,
 } from "@/pages/drivers/model";
+
 import { AppText, TAG, TEXT_SIZES_VARIABLES } from "@/shared/ui/app-text";
 import { BUTTON_VARIANTS_VARIABLES, Button } from "@/shared/ui/button";
 import { CardSurface } from "@/shared/ui/card-surface";
@@ -32,6 +29,10 @@ import {
 import { Spinner } from "@/shared/ui/spinner";
 
 import { DriverCard } from "./ui/driver-card";
+import { PageHeader } from "@/features/page-header/page-header";
+import { type PageSizeOption, Pagination } from "@/features/pagination";
+import { SearchInput } from "@/features/search-input";
+import { TAXIPARKS_SIDEBAR_NAV_BY_ID } from "@/features/taxiparks-sidebar";
 
 const DEFAULT_PAGE_SIZE: PageSizeOption = 10;
 
@@ -298,26 +299,22 @@ export const DriverAddPage = () => {
           <EmptyState query={search} />
         )}
 
-        <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-          <AppText className="text-text-secondary text-sm font-medium">
-            Найдено: {drivers.length}
-            {isDriversFetching && !isDriversLoading ? " · обновляем..." : ""}
-          </AppText>
-
-          <Pagination
-            page={page}
-            pageCount={pageCount}
-            pageSize={pageSize}
-            canPrevious={page > 1}
-            canNext={page < pageCount}
-            onPageChange={setPage}
-            onPageSizeChange={setPageSize}
-          />
-        </div>
+        <Pagination
+          page={page}
+          pageCount={pageCount}
+          pageSize={pageSize}
+          canPrevious={page > 1}
+          canNext={page < pageCount}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
       </CardSurface>
 
-      <Dialog open={selectedDriver != null} onOpenChange={(open) => !open && closeDialog()}>
-        <DialogContent className="rounded-[24px] border-border-default bg-background-card p-6 sm:max-w-[560px]">
+      <Dialog
+        open={selectedDriver != null}
+        onOpenChange={(open) => !open && closeDialog()}
+      >
+        <DialogContent className="border-border-default bg-background-card rounded-[24px] p-6 sm:max-w-[560px]">
           <DialogHeader className="text-left">
             <DialogTitle className="text-text-primary text-xl font-semibold">
               Пригласить водителя
@@ -344,7 +341,7 @@ export const DriverAddPage = () => {
                 <Spinner className="min-h-0" />
               </div>
             ) : taxiParksError ? (
-              <CardSurface className="gap-3 rounded-[20px] border border-status-error/20 bg-status-error/5 p-4 shadow-none">
+              <CardSurface className="border-status-error/20 bg-status-error/5 gap-3 rounded-[20px] border p-4 shadow-none">
                 <AppText className="text-status-error text-sm font-semibold">
                   Не удалось загрузить список таксопарков
                 </AppText>
@@ -390,7 +387,7 @@ export const DriverAddPage = () => {
             )}
 
             {dialogError ? (
-              <CardSurface className="gap-2 rounded-[20px] border border-status-error/20 bg-status-error/5 p-4 shadow-none">
+              <CardSurface className="border-status-error/20 bg-status-error/5 gap-2 rounded-[20px] border p-4 shadow-none">
                 <AppText className="text-status-error text-sm font-semibold">
                   Не удалось отправить приглашение
                 </AppText>

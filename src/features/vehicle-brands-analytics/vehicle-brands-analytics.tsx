@@ -1,18 +1,19 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
 
-import { DataTable } from "@/features/data-table";
-import { KpiCard } from "@/features/kpi-card";
-import { TitledBlock } from "@/features/titled-block";
-import { VerticalBarChart } from "@/features/vertical-bar-chart";
 import { useCarBrandsAnalytics } from "@/pages/vehicles/model";
+
 import type { components } from "@/shared/api/apiTypes";
 import { formatMoney, formatNumber, formatPercent } from "@/shared/lib/format";
 import { AppText } from "@/shared/ui/app-text";
 import { Combobox, type ComboboxOption } from "@/shared/ui/combobox";
 
-type CarBrandAnalyticsItem =
-  components["schemas"]["CarBrandAnalyticsItemDto"];
+import { DataTable } from "@/features/data-table";
+import { KpiCard } from "@/features/kpi-card";
+import { TitledBlock } from "@/features/titled-block";
+import { VerticalBarChart } from "@/features/vertical-bar-chart";
+
+type CarBrandAnalyticsItem = components["schemas"]["CarBrandAnalyticsItemDto"];
 type CarBrandsAnalyticsResponse =
   components["schemas"]["GetCarBrandsAnalyticsResponseDto"];
 
@@ -31,56 +32,90 @@ const brandColumns: ColumnDef<CarBrandAnalyticsItem>[] = [
   {
     accessorKey: "firm",
     header: "Марка",
-    cell: ({ row }) => <span className="text-sm font-semibold">{row.original.firm}</span>,
+    cell: ({ row }) => (
+      <span className="text-sm font-semibold">{row.original.firm}</span>
+    ),
   },
   {
     accessorKey: "carsCount",
     header: "Автомобилей",
-    cell: ({ row }) => <span className="tabular-nums">{formatNumber(row.original.carsCount)}</span>,
+    cell: ({ row }) => (
+      <span className="tabular-nums">
+        {formatNumber(row.original.carsCount)}
+      </span>
+    ),
   },
   {
     accessorKey: "totalRevenue",
     header: "Выручка",
-    cell: ({ row }) => <span className="tabular-nums">{formatMoney(row.original.totalRevenue)}</span>,
+    cell: ({ row }) => (
+      <span className="text-accent-primary font-semibold tabular-nums">
+        {formatMoney(row.original.totalRevenue)}
+      </span>
+    ),
   },
   {
     accessorKey: "averageRevenuePerCar",
     header: "Средняя на авто",
     cell: ({ row }) => (
-      <span className="tabular-nums">{formatMoney(row.original.averageRevenuePerCar)}</span>
+      <span className="tabular-nums">
+        {formatMoney(row.original.averageRevenuePerCar)}
+      </span>
     ),
   },
   {
     accessorKey: "averageRevenuePerOnlineDay",
     header: "Средняя за день на линии",
     cell: ({ row }) => (
-      <span className="tabular-nums">{formatMoney(row.original.averageRevenuePerOnlineDay)}</span>
+      <span className="tabular-nums">
+        {formatMoney(row.original.averageRevenuePerOnlineDay)}
+      </span>
     ),
   },
   {
     accessorKey: "onlineDaysCount",
     header: "Дней на линии",
-    cell: ({ row }) => <span className="tabular-nums">{formatNumber(row.original.onlineDaysCount)}</span>,
+    cell: ({ row }) => (
+      <span className="tabular-nums">
+        {formatNumber(row.original.onlineDaysCount)}
+      </span>
+    ),
   },
   {
     accessorKey: "downtimeDaysCount",
     header: "Простоев",
-    cell: ({ row }) => <span className="tabular-nums">{formatNumber(row.original.downtimeDaysCount)}</span>,
+    cell: ({ row }) => (
+      <span className="tabular-nums">
+        {formatNumber(row.original.downtimeDaysCount)}
+      </span>
+    ),
   },
   {
     accessorKey: "utilizationRate",
     header: "Использование",
-    cell: ({ row }) => <span className="tabular-nums">{formatPercent(row.original.utilizationRate)}</span>,
+    cell: ({ row }) => (
+      <span className="tabular-nums">
+        {formatPercent(row.original.utilizationRate)}
+      </span>
+    ),
   },
   {
     accessorKey: "revenueRank",
     header: "Ранг по выручке",
-    cell: ({ row }) => <span className="tabular-nums">#{formatNumber(row.original.revenueRank)}</span>,
+    cell: ({ row }) => (
+      <span className="text-accent-primary font-semibold tabular-nums">
+        #{formatNumber(row.original.revenueRank)}
+      </span>
+    ),
   },
   {
     accessorKey: "downtimeRank",
     header: "Ранг по простоям",
-    cell: ({ row }) => <span className="tabular-nums">#{formatNumber(row.original.downtimeRank)}</span>,
+    cell: ({ row }) => (
+      <span className="text-accent-primary font-semibold tabular-nums">
+        #{formatNumber(row.original.downtimeRank)}
+      </span>
+    ),
   },
 ];
 
@@ -98,7 +133,9 @@ const getChartData = (
 const CarBrandsAnalyticsEmptyState = ({ message }: { message: string }) => {
   return (
     <div className="border-border-default bg-background-page rounded-[18px] border px-6 py-10 text-center">
-      <AppText className="text-text-secondary text-sm font-medium">{message}</AppText>
+      <AppText className="text-text-secondary text-sm font-medium">
+        {message}
+      </AppText>
     </div>
   );
 };
@@ -192,7 +229,7 @@ export const CarBrandsAnalyticsSection = ({
       title="Аналитика марок автомобилей"
       subtitle="Сравнение марок по выручке, простоям и использованию"
       topRightSlot={
-        <div className="flex min-w-[260px] max-w-full flex-col gap-2">
+        <div className="flex max-w-full min-w-[260px] flex-col gap-2">
           <AppText className="text-text-secondary text-xs font-semibold tracking-[0.08em] uppercase">
             Таксопарк
           </AppText>
@@ -260,7 +297,11 @@ export const CarBrandsAnalyticsSection = ({
             subtitle={`Период ${from} - ${to}`}
             className="gap-4 rounded-[20px] p-5"
           >
-            <DataTable columns={brandColumns} data={data.brands} initialPageSize={10} />
+            <DataTable
+              columns={brandColumns}
+              data={data.brands}
+              initialPageSize={10}
+            />
           </TitledBlock>
         </>
       )}

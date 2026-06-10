@@ -1,7 +1,5 @@
 import { useState } from "react";
 
-import type { DateRangePickerValue } from "@/features/date-range-picker";
-
 import type { DrawerMode, DriverRevenueDay, RevenuePeriodKey } from "../types";
 import {
   buildDriverRevenueDays,
@@ -16,6 +14,8 @@ import {
   startOfLocalDay,
   toDateKey,
 } from "../utils/finance-page.utils";
+
+import type { DateRangePickerValue } from "@/features/date-range-picker";
 
 type UseDriverFinanceParams = {
   fullName: string;
@@ -182,25 +182,11 @@ export const useDriverFinance = ({ fullName }: UseDriverFinanceParams) => {
               className: "min-w-0",
             },
             {
-              label: "Количество рабочих дней",
+              label: "Количество смен",
               value: String(filteredDays.length),
-              meta: "Дни в выбранном периоде",
+              meta: "В выбранном периоде",
               valueClassName: "text-text-primary",
               metaClassName: "text-accent-primary",
-              className: "min-w-0",
-            },
-            {
-              label: "Дней без заполненной выручки",
-              value: String(missingCount),
-              meta:
-                missingCount > 0
-                  ? "Требуют заполнения"
-                  : "Все рабочие дни заполнены",
-              valueClassName: "text-text-primary",
-              metaClassName:
-                missingCount > 0
-                  ? "text-accent-primary"
-                  : "text-text-secondary",
               className: "min-w-0",
             },
           ];

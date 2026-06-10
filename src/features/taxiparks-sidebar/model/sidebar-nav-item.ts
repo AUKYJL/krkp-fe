@@ -1,3 +1,5 @@
+import type { LucideIcon } from "lucide-react";
+
 export type TaxiparksSidebarSectionId =
   | "home"
   | "taxiparks"
@@ -10,8 +12,7 @@ export type TaxiparksSidebarSectionId =
 export interface TaxiparksSidebarNavItem {
   id: TaxiparksSidebarSectionId;
   label: string;
-  iconGlyph: string;
+  icon: LucideIcon;
   to: string;
   isMuted?: boolean;
 }
-

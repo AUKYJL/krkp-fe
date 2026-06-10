@@ -1,21 +1,27 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import { useNavigate } from "@tanstack/react-router";
 
-import type { DateRangePickerValue } from "@/features/date-range-picker";
-import { DataTable } from "@/features/data-table";
-import { KpiCard } from "@/features/kpi-card";
-import { PageHeader } from "@/features/page-header/page-header";
-import { ProgressCard } from "@/features/progress-card";
-import { TitledBlock } from "@/features/titled-block";
-import { VerticalBarChart } from "@/features/vertical-bar-chart";
 import {
   type DirectorHomeDashboardViewModel,
   type HomeAnalyticsPeriodState,
   useDirectorHomeDashboard,
   useUnauthorizedHomeRedirect,
 } from "@/pages/home/model";
-import { AnalyticsStateCard, TaxiparksPeriodFilter } from "@/pages/taxiparks/ui";
+import {
+  AnalyticsStateCard,
+  TaxiparksPeriodFilter,
+} from "@/pages/taxiparks/ui";
+
 import type { CurrentUser } from "@/shared/api/auth";
 import { AppText } from "@/shared/ui/app-text";
+
+import { DataTable } from "@/features/data-table";
+import type { DateRangePickerValue } from "@/features/date-range-picker";
+import { KpiCard } from "@/features/kpi-card";
+import { PageHeader } from "@/features/page-header/page-header";
+import { ProgressCard } from "@/features/progress-card";
+import { TitledBlock } from "@/features/titled-block";
+import { VerticalBarChart } from "@/features/vertical-bar-chart";
 
 const moneyFormatter = new Intl.NumberFormat("ru-RU");
 const compactMoneyFormatter = new Intl.NumberFormat("ru-RU", {
@@ -66,13 +72,7 @@ const formatShortDate = (value: string) => {
   });
 };
 
-const EmptyBlock = ({
-  title,
-  message,
-}: {
-  title: string;
-  message: string;
-}) => {
+const EmptyBlock = ({ title, message }: { title: string; message: string }) => {
   return (
     <div className="border-border-default bg-background-page flex min-h-36 flex-col items-center justify-center rounded-[16px] border border-dashed px-4 py-6 text-center">
       <AppText className="text-text-primary text-sm font-semibold">
@@ -107,7 +107,9 @@ const topTaxiParkColumns: ColumnDef<TaxiParkTableRow>[] = [
   {
     accessorKey: "carsCount",
     header: "Авто",
-    cell: ({ row }) => <span className="tabular-nums">{row.original.carsCount}</span>,
+    cell: ({ row }) => (
+      <span className="tabular-nums">{row.original.carsCount}</span>
+    ),
   },
   {
     accessorKey: "totalRevenue",
@@ -122,14 +124,18 @@ const topTaxiParkColumns: ColumnDef<TaxiParkTableRow>[] = [
     accessorKey: "onlineRate",
     header: "Онлайн",
     cell: ({ row }) => (
-      <span className="tabular-nums">{formatPercent(row.original.onlineRate)}</span>
+      <span className="tabular-nums">
+        {formatPercent(row.original.onlineRate)}
+      </span>
     ),
   },
   {
     accessorKey: "downtimeRate",
     header: "Простой",
     cell: ({ row }) => (
-      <span className="tabular-nums">{formatPercent(row.original.downtimeRate)}</span>
+      <span className="tabular-nums">
+        {formatPercent(row.original.downtimeRate)}
+      </span>
     ),
   },
   {
@@ -149,6 +155,7 @@ export const DirectorHomeDashboard = ({
   period,
   onRangeChange,
 }: DirectorHomeDashboardProps) => {
+  const navigate = useNavigate();
   const dashboardQuery = useDirectorHomeDashboard(period);
 
   useUnauthorizedHomeRedirect(dashboardQuery.error);
@@ -159,7 +166,10 @@ export const DirectorHomeDashboard = ({
         <PageHeader
           title="Главная"
           description={`Директорский дашборд для ${currentUser.fullName}.`}
-          actions={<TaxiparksPeriodFilter value={range} onChange={onRangeChange} />}
+          showLogoutButton
+          actions={
+            <TaxiparksPeriodFilter value={range} onChange={onRangeChange} />
+          }
         />
         <AnalyticsStateCard
           title="Загружаем директорский дашборд"
@@ -176,7 +186,10 @@ export const DirectorHomeDashboard = ({
         <PageHeader
           title="Главная"
           description={`Директорский дашборд для ${currentUser.fullName}.`}
-          actions={<TaxiparksPeriodFilter value={range} onChange={onRangeChange} />}
+          showLogoutButton
+          actions={
+            <TaxiparksPeriodFilter value={range} onChange={onRangeChange} />
+          }
         />
         <AnalyticsStateCard
           title="Не удалось загрузить директорский дашборд"
@@ -206,12 +219,12 @@ export const DirectorHomeDashboard = ({
     {
       label: "Водители / активные",
       value: String(dashboard.summary.driversCount),
-      meta: `${dashboard.summary.activeDriversCount} активных`,
+      meta: `${dashboard.summary.activeDriversCount} активных в периоде`,
     },
     {
       label: "Автомобили",
       value: String(dashboard.summary.carsCount),
-      meta: `${dashboard.summary.onlineDaysCount} онлайн-дней`,
+      meta: `${dashboard.summary.onlineDaysCount} рабочих дней`,
     },
     {
       label: "Общая выручка",
@@ -224,14 +237,16 @@ export const DirectorHomeDashboard = ({
       meta: formatCurrency(dashboard.financialKpis.averageRevenuePerTaxiPark),
     },
     {
-      label: "₽ / активный водитель",
-      value: formatCurrency(dashboard.financialKpis.averageRevenuePerActiveDriver),
+      label: "Средняя выручка водителя",
+      value: formatCurrency(
+        dashboard.financialKpis.averageRevenuePerActiveDriver,
+      ),
       meta: formatCurrency(dashboard.financialKpis.averageRevenuePerCar),
     },
     {
-      label: "Онлайн-рейт",
+      label: "Доля рабочих дней",
       value: formatPercent(dashboard.downtimeKpis.onlineRate),
-      meta: `${dashboard.downtimeKpis.onlineDaysCount} онлайн-дней`,
+      meta: `${dashboard.downtimeKpis.onlineDaysCount} рабочих дней`,
     },
     {
       label: "Потери от простоя",
@@ -245,7 +260,10 @@ export const DirectorHomeDashboard = ({
       <PageHeader
         title="Главная"
         description="Сводка по выручке, таксопаркам и простоям за выбранный период."
-        actions={<TaxiparksPeriodFilter value={range} onChange={onRangeChange} />}
+        showLogoutButton
+        actions={
+          <TaxiparksPeriodFilter value={range} onChange={onRangeChange} />
+        }
       />
 
       <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -353,7 +371,10 @@ export const DirectorHomeDashboard = ({
                   title={`${car.firm} ${car.model}`}
                   secondaryText={formatPercent(car.downtimeDaysCount)}
                   value={car.downtimeDaysCount}
-                  max={Math.max(...downtimeCars.map((item) => item.downtimeDaysCount), 1)}
+                  max={Math.max(
+                    ...downtimeCars.map((item) => item.downtimeDaysCount),
+                    1,
+                  )}
                   footnote={`${car.plateNumber} · Потери ${formatCurrency(car.estimatedLoss)}`}
                 />
               ))}
@@ -367,7 +388,7 @@ export const DirectorHomeDashboard = ({
         </TitledBlock>
 
         <TitledBlock
-          title="Топ брендов"
+          title="Топ марок"
           subtitle="По суммарной выручке"
           contentClassName="mt-2"
         >
@@ -378,7 +399,7 @@ export const DirectorHomeDashboard = ({
                   key={brand.firm}
                   label={brand.firm}
                   value={formatCurrency(brand.totalRevenue)}
-                  meta={`${brand.carsCount} авто · ${formatPercent(brand.utilizationRate)} утилизации`}
+                  meta={`${brand.carsCount} авто · ${formatPercent(brand.utilizationRate)} использования`}
                   className="min-w-0"
                   valueClassName="text-text-primary"
                   metaClassName="text-text-secondary"
@@ -428,24 +449,28 @@ export const DirectorHomeDashboard = ({
           <div className="flex flex-col gap-3">
             <KpiCard
               label="Средняя выручка на парк"
-              value={formatCurrency(dashboard.financialKpis.averageRevenuePerTaxiPark)}
-              meta={formatCompactCurrency(dashboard.financialKpis.totalRevenue)}
+              value={formatCurrency(
+                dashboard.financialKpis.averageRevenuePerTaxiPark,
+              )}
+              meta={`${formatCompactCurrency(dashboard.financialKpis.totalRevenue)} всего`}
               valueClassName="text-text-primary"
-              metaClassName="text-text-secondary"
+              metaClassName="text-accent-primary"
             />
             <KpiCard
               label="Средняя выручка на авто"
-              value={formatCurrency(dashboard.financialKpis.averageRevenuePerCar)}
+              value={formatCurrency(
+                dashboard.financialKpis.averageRevenuePerCar,
+              )}
               meta={`${dashboard.summary.carsCount} автомобилей`}
               valueClassName="text-text-primary"
-              metaClassName="text-text-secondary"
+              metaClassName="text-accent-primary"
             />
             <KpiCard
               label="Активные водители"
               value={String(dashboard.summary.activeDriversCount)}
               meta={`${formatPercent(dashboard.downtimeKpis.onlineRate)} выхода на линию`}
               valueClassName="text-text-primary"
-              metaClassName="text-text-secondary"
+              metaClassName="text-accent-primary"
             />
           </div>
         </TitledBlock>
@@ -460,6 +485,16 @@ export const DirectorHomeDashboard = ({
             columns={topTaxiParkColumns}
             data={dashboard.taxiParks}
             initialPageSize={10}
+            onRowClick={(row) => {
+              if (!row.taxiParkId) {
+                return;
+              }
+
+              navigate({
+                to: "/taxiparks/$id",
+                params: { id: row.taxiParkId },
+              });
+            }}
           />
         ) : (
           <EmptyBlock
