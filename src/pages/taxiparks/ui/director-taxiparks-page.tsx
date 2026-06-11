@@ -274,7 +274,7 @@ export const DirectorTaxiparksPage = () => {
                   ))
                 ) : (
                   <AppText className="text-text-secondary text-sm font-medium">
-                    Нет данных по брендам за выбранный период.
+                    Нет данных по маркам за выбранный период.
                   </AppText>
                 )}
               </div>

@@ -25,10 +25,12 @@ import {
   useDriverAnalyticsPeriod,
   useDriverSelfAnalyticsContext,
 } from "./model";
+import { CsvExportButton } from "@/features/csv-export-button";
 import { DataTable } from "@/features/data-table";
 import { KpiCard } from "@/features/kpi-card";
 import { PageHeader } from "@/features/page-header/page-header";
 import { ProgressCard } from "@/features/progress-card";
+import { SearchInput } from "@/features/search-input";
 import { TAXIPARKS_SIDEBAR_NAV_BY_ID } from "@/features/taxiparks-sidebar";
 import { TitledBlock } from "@/features/titled-block";
 
@@ -400,17 +402,22 @@ const DirectorDriversPage = () => {
               title="Водители"
               subtitle="Водители из ваших таксопарков"
               className="min-w-0"
+              topRightSlot={
+                <div className="flex w-full flex-col gap-3 lg:w-auto lg:flex-row lg:items-center">
+                  <SearchInput
+                    value={search}
+                    onChange={(value) => setSearch(value)}
+                    placeholder="Поиск водителя или авто"
+                    className="w-full lg:w-96"
+                  />
+                  <CsvExportButton
+                    columns={driverColumns}
+                    data={filteredRows}
+                    fileName="taxiparks-analytics"
+                  />
+                </div>
+              }
             >
-              <div className="relative mb-4 w-full max-w-sm">
-                <Search className="text-text-secondary absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-                <Input
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Поиск водителя или авто"
-                  className="h-11 pl-9"
-                />
-              </div>
-
               {filteredRows.length > 0 ? (
                 <DataTable
                   columns={driverColumns}

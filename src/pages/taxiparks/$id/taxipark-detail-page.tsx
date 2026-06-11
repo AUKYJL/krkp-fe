@@ -107,7 +107,7 @@ const driverColumns: ColumnDef<DriverRow>[] = [
   },
   {
     accessorKey: "averageRevenuePerOnlineDay",
-    header: "₽ / рабочий день",
+    header: "Средняя выручка за день",
     cell: ({ getValue }) => (
       <span className="tabular-nums">{formatCurrency(getValue<number>())}</span>
     ),
@@ -151,7 +151,7 @@ const carColumns: ColumnDef<CarRow>[] = [
   },
   {
     accessorKey: "averageRevenuePerOnlineDay",
-    header: "₽ / рабочий день",
+    header: "Средняя выручка за день",
     cell: ({ getValue }) => (
       <span className="tabular-nums">{formatCurrency(getValue<number>())}</span>
     ),
@@ -323,8 +323,8 @@ export const TaxiparkDetailPage = ({ taxiparkId }: TaxiparkDetailPageProps) => {
           deleteErrorMessage
             ? deleteErrorMessage
             : analytics?.header.address
-            ? `Аналитика таксопарка за период ${period.from} - ${period.to}. ${analytics.header.address}`
-            : `Аналитика таксопарка за период ${period.from} - ${period.to}.`
+              ? `Аналитика таксопарка за период ${period.from} - ${period.to}. ${analytics.header.address}`
+              : `Аналитика таксопарка за период ${period.from} - ${period.to}.`
         }
         breadcrumbs={[
           { label: "Главная", href: "/" },
@@ -465,7 +465,7 @@ export const TaxiparkDetailPage = ({ taxiparkId }: TaxiparkDetailPageProps) => {
           </section>
 
           <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-            <TitledBlock title="Лучшие бренды" subtitle="Рейтинг по выручке">
+            <TitledBlock title="Лучшие марки" subtitle="Рейтинг по выручке">
               <div className="flex flex-col gap-3">
                 {analytics.topBrands.length > 0 ? (
                   analytics.topBrands
@@ -480,7 +480,7 @@ export const TaxiparkDetailPage = ({ taxiparkId }: TaxiparkDetailPageProps) => {
                     ))
                 ) : (
                   <AppText className="text-text-secondary text-sm font-medium">
-                    Нет данных по брендам за выбранный период.
+                    Нет данных по маркам за выбранный период.
                   </AppText>
                 )}
               </div>

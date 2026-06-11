@@ -1,5 +1,5 @@
-import type { ColumnDef } from "@tanstack/react-table";
 import { useNavigate } from "@tanstack/react-router";
+import type { ColumnDef } from "@tanstack/react-table";
 
 import {
   type DirectorHomeDashboardViewModel,
@@ -408,8 +408,8 @@ export const DirectorHomeDashboard = ({
             </div>
           ) : (
             <EmptyBlock
-              title="Нет данных по брендам"
-              message="API не вернул агрегаты по брендам за выбранный период."
+              title="Нет данных по маркам"
+              message="API не вернул агрегаты по маркам за выбранный период."
             />
           )}
         </TitledBlock>

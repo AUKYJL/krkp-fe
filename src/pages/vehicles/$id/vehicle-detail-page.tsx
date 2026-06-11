@@ -218,8 +218,8 @@ export const VehicleDetailPage = ({ carId }: VehicleDetailPageProps) => {
           deleteErrorMessage
             ? deleteErrorMessage
             : analytics
-            ? `Аналитика автомобиля ${analytics.car.plateNumber} за период ${analytics.period.from} - ${analytics.period.to}.`
-            : "Детальная аналитика автомобиля по выручке, использованию и рабочим дням."
+              ? `Аналитика автомобиля ${analytics.car.plateNumber} за период ${analytics.period.from} - ${analytics.period.to}.`
+              : "Детальная аналитика автомобиля по выручке, использованию и рабочим дням."
         }
         breadcrumbs={[
           { label: "Главная", href: "/" },
@@ -439,7 +439,7 @@ export const VehicleDetailPage = ({ carId }: VehicleDetailPageProps) => {
               value={formatCurrency(analytics.summary.totalRevenue)}
             />
             <KpiCard
-              label="₽ / рабочий день"
+              label="Средняя выручка за день"
               value={formatCurrency(
                 analytics.summary.averageRevenuePerOnlineDay,
               )}
@@ -457,17 +457,17 @@ export const VehicleDetailPage = ({ carId }: VehicleDetailPageProps) => {
           </section>
 
           <TitledBlock
-            title={`Позиция в бренде ${analytics.brandAnalytics.firm}`}
+            title={`Позиция в марке ${analytics.brandAnalytics.firm}`}
             subtitle="Срез по автомобилям той же марки вместо общих средних по парку"
           >
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
               <KpiCard
-                label="Авто бренда"
+                label="Авто марки"
                 value={analytics.brandAnalytics.carsCount}
                 meta={`Место по выручке: #${analytics.brandAnalytics.rankByRevenue}`}
               />
               <KpiCard
-                label="Средняя выручка бренда"
+                label="Средняя выручка марки"
                 value={formatCurrency(
                   analytics.brandAnalytics.averageRevenuePerCar,
                 )}
